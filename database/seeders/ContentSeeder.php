@@ -1,0 +1,120 @@
+<?php
+
+namespace Database\Seeders;
+
+use Illuminate\Database\Seeder;
+use App\Models\Content;
+use App\Models\Group;
+use App\Models\User;
+use App\Models\ContentCategory;
+use App\Models\ContentSubcategory;
+
+class ContentSeeder extends Seeder
+{
+    public function run(): void
+    {
+        // staff のみ
+        $staffUsers = User::whereHas('role', fn($q) => $q->where('name', 'staff'))->get();
+
+        // 委員会
+        $committeeGroups = Group::whereHas('category', fn($q) => $q->where('name', '委員会'))->get();
+
+        foreach ($committeeGroups as $group) {
+            for ($i = 1; $i <= rand(3,5); $i++) {
+                Content::factory()->create([
+                    'group_id'     => $group->id,
+                    'subcategory_id' => null,
+                    'title'        => $group->name . ' 資料 ' . $i,
+                    'meeting_date' => fake()->dateTimeBetween('-1 year', 'now'),
+                    'published_at' => fake()->dateTimeBetween('-1 year', 'now'),
+                    'created_by'   => $staffUsers->random()->id,
+                ]);
+            }
+        }
+
+        // 四医会
+        $associationGroups = Group::whereHas('category', fn($q) => $q->where('name', '四医会'))->get();
+
+        foreach ($associationGroups as $group) {
+            for ($i = 1; $i <= rand(2,4); $i++) {
+                Content::factory()->create([
+                    'group_id'     => $group->id,
+                    'subcategory_id' => null,
+                    'title'        => $group->name . ' 資料 ' . $i,
+                    'meeting_date' => fake()->dateTimeBetween('-1 year', 'now'),
+                    'published_at' => fake()->dateTimeBetween('-1 year', 'now'),
+                    'created_by'   => $staffUsers->random()->id,
+                ]);
+            }
+        }
+
+        // 理事会
+        $boardGroup = Group::whereHas('category', fn($q) => $q->where('name', '理事会'))->first();
+
+        if ($boardGroup) {
+            for ($i = 1; $i <= 5; $i++) {
+                Content::factory()->create([
+                    'group_id'     => $boardGroup->id,
+                    'subcategory_id' => null,
+                    'title'        => '理事会ニュース ' . $i,
+                    'meeting_date' => fake()->dateTimeBetween('-1 year', 'now'),
+                    'published_at' => fake()->dateTimeBetween('-1 year', 'now'),
+                    'created_by'   => $staffUsers->random()->id,
+                ]);
+            }
+        }
+
+        // 会報・記念誌（subcategory）
+        $magazinesCategory = ContentCategory::where('slug', 'bulletin-magazine')->first();
+        if ($magazinesCategory) {
+            $subcategories = ContentSubcategory::where('category_id', $magazinesCategory->id)->get();
+
+            foreach ($subcategories as $sub) {
+                for ($i = 1; $i <= 3; $i++) {
+                    Content::factory()->create([
+                        'category_id'    => $magazinesCategory->id,
+                        'subcategory_id' => $sub->id,
+                        'group_id'       => null,
+                        'title'          => $sub->name . ' ' . fake()->year . '年度版',
+                        'published_at'   => fake()->dateTimeBetween('-5 years', 'now'),
+                        'created_by'     => $staffUsers->random()->id,
+                    ]);
+                }
+            }
+        }
+
+        // 諸規定（subcategory）
+        $rulesCategory = ContentCategory::where('slug', 'regulations')->first();
+        if ($rulesCategory) {
+            $subcategories = ContentSubcategory::where('category_id', $rulesCategory->id)->get();
+
+            foreach ($subcategories as $sub) {
+                Content::factory()->create([
+                    'category_id'    => $rulesCategory->id,
+                    'subcategory_id' => $sub->id,
+                    'group_id'       => null,
+                    'title'          => $sub->name . '（' . fake()->year . '年度改訂）',
+                    'published_at'   => fake()->dateTimeBetween('-5 years', 'now'),
+                    'created_by'     => $staffUsers->random()->id,
+                ]);
+            }
+        }
+
+        // その他（subcategory）
+        $othersCategory = ContentCategory::where('slug', 'others-minutes')->first();
+        if ($othersCategory) {
+            $subcategories = ContentSubcategory::where('category_id', $othersCategory->id)->get();
+
+            foreach ($subcategories as $sub) {
+                Content::factory()->create([
+                    'category_id'    => $othersCategory->id,
+                    'subcategory_id' => $sub->id,
+                    'group_id'       => null,
+                    'title'          => $sub->name,
+                    'published_at'   => fake()->dateTimeBetween('-3 years', 'now'),
+                    'created_by'     => $staffUsers->random()->id,
+                ]);
+            }
+        }
+    }
+}
