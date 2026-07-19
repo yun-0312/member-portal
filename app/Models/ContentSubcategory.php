@@ -16,7 +16,7 @@ class ContentSubcategory extends Model
     ];
 
     public function category() {
-        return $this->belongsTo(ContentCategory::class);
+        return $this->belongsTo(ContentCategory::class, 'category_id');
     }
 
     public function contents() {

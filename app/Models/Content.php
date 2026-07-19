@@ -10,6 +10,10 @@ class Content extends Model
 {
     use HasFactory, SoftDeletes;
 
+    protected $casts = [
+        'published_at' => 'datetime',
+    ];
+
     protected $fillable = [
         'category_id',
         'title',
@@ -21,6 +25,10 @@ class Content extends Model
 
     public function category() {
         return $this->belongsTo(ContentCategory::class, 'category_id');
+    }
+
+    public function subcategory() {
+        return $this->belongsTo(ContentSubcategory::class, 'subcategory_id');
     }
 
     public function creator() {

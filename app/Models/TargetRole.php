@@ -11,6 +11,8 @@ class TargetRole extends Model
 
     protected $fillable = [
         'role_id',
+        'targetable_type',
+        'targetable_id',
     ];
 
     public function targetable() {

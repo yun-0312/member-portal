@@ -9,12 +9,15 @@ class Notice extends Model
 {
     use HasFactory;
 
+    protected $casts = [
+        'published_at' => 'datetime',
+    ];
+
     protected $fillable= [
         'title',
         'committee_name',
         'body',
         'category_id',
-        'workshop_id',
         'published_at',
         'created_by',
     ];

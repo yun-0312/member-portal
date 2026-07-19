@@ -33,7 +33,20 @@ class AuthService
 
     public function me()
     {
-        return Auth::user();
+        $user = auth()->user();
+
+        if (is_null($user->approved_at) || is_null($user->approved_by)) {
+            return [
+                'status' => 'pending',
+                'message' => '承認をお待ちください。',
+                'user' => $user,
+            ];
+        }
+
+        return [
+            'status' => 'active',
+            'user' => $user->load(['role', 'medicalInstitution']),
+        ];
     }
 }
 

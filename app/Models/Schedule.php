@@ -15,17 +15,23 @@ class Schedule extends Model
         'schedule_category_id',
         'location',
         'url',
-        'start_at',
-        'end_at',
         'created_by',
     ];
 
+    public function recurrences() {
+        return $this->hasMany(ScheduleRecurrence::class);
+    }
+
+    public function occurrences() {
+        return $this->hasMany(ScheduleOccurrence::class);
+    }
+
     public function room() {
-        return $this->belongsTo(Room::class);
+        return $this->belongsTo(Room::class, 'room_id');
     }
 
     public function category() {
-        return $this->belongsTo(ScheduleCategory::class);
+        return $this->belongsTo(ScheduleCategory::class, 'schedule_category_id');
     }
 
     public function creator() {

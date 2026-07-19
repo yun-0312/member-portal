@@ -21,4 +21,12 @@ class ContentCategory extends Model
     public function contents() {
         return $this->hasMany(Content::class, 'category_id');
     }
+
+    public function subcategories() {
+        return $this->hasMany(ContentSubcategory::class, 'category_id');
+    }
+
+    public function targetRoles() {
+        return $this->morphMany(TargetRole::class, 'targetable');
+    }
 }

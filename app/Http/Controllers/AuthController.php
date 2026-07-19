@@ -2,9 +2,14 @@
 
 namespace App\Http\Controllers;
 
+use App\Enums\UserStatus;
 use App\Services\AuthService;
 use Illuminate\Http\Request;
 use App\Http\Requests\LoginRequest;
+use App\Models\Role;
+use App\Models\User;
+use App\Http\Requests\ResisterMedicalStaffRequest;
+use Illuminate\Support\Facades\Hash;
 
 class AuthController extends Controller
 {
@@ -18,7 +23,7 @@ class AuthController extends Controller
         }
 
         return response()->json([
-            'message' => 'ログイン成功',
+            'message' => 'ログインに成功しました',
             'user' => $result['user'],
             'token' => $result['token'],
         ]);
@@ -36,5 +41,24 @@ class AuthController extends Controller
         return response()->json([
             'user' => $authService->me(),
         ]);
+    }
+
+    public function registerMedicalStaff(ResisterMedicalStaffRequest $request) {
+        $validated = $request->validated();
+
+        $validated['role_id'] = Role::where('name', 'medical_staff')->first()->id;
+        $validated['password'] = Hash::make($validated['password']);
+
+        //承認待ち
+        $validated['approved_at'] = null;
+        $validated['approved_by'] = null;
+        $validated['status'] = UserStatus::Pending;
+
+        $user = User::create($validated);
+
+        return response()->json([
+            'message' => '登録が完了しました。承認をお待ちください。',
+            'user' => $user,
+        ], 201);
     }
 }

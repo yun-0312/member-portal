@@ -36,7 +36,7 @@ class Workshop extends Model
     }
 
     public function targetRoles() {
-        return $this->morphMany(TargetRoles::class, 'targetable');
+        return $this->morphMany(TargetRole::class, 'targetable');
     }
 
     public function files() {
