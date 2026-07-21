@@ -3,9 +3,16 @@
 namespace App\Traits;
 
 trait FiltersByPolicy {
-    protected function filterByPolicy($items, $ability = 'view') {
-        return $items->filter(function ($item) use ($ability) {
-            return auth()->user()->can($ability, $item);
-        })->values();
+    protected function filterByPolicy($items, $ability = 'view')
+    {
+        $user = auth()->user();
+
+        if (!$user) {
+            return collect();
+        }
+
+        return $items
+            ->filter(fn ($item) => $user->can($ability, $item))
+            ->values();
     }
 }

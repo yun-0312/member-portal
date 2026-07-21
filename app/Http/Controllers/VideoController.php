@@ -2,39 +2,19 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Controllers\BasePublicContentController;
 use App\Models\Video;
-use Carbon\Carbon;
-use App\Traits\FiltersByPolicy;
+use Illuminate\Http\Request;
+use App\Traits\VideoSearchTrait;
 
-class VideoController extends Controller
+class VideoController extends BasePublicContentController
 {
-    use FiltersByPolicy;
+    use VideoSearchTrait;
 
-    public function index() {
-        $now = Carbon::now();
+    protected string $modelClass = Video::class;
+    protected string $routePrefix = 'videos';
 
-        $videos = Video::where('published_at', '<=', $now)
-            ->where(function ($q) use ($now) {
-                $q->whereNull('expired_at')
-                    ->orWhere('expired_at', '>=', $now);
-            })
-            ->orderBy('published_at', 'desc')->get();
-
-        $filtered = $this->filterByPolicy($videos);
-
-        $filtered->transform(function ($video) {
-            $video->show_url = route('videos.show', $video->id);
-            return $video;
-        });
-
-        return $filtered;
-    }
-
-    public function show(Video $video) {
-        $this->authorize('view', $video);
-        return response()->json([
-            'video' => $video,
-            'index_url' => route('videos.index'),
-        ]);
+    public function search(Request $request) {
+        return $this->searchVideos($request);
     }
 }

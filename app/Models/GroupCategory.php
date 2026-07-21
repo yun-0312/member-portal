@@ -19,4 +19,5 @@ class GroupCategory extends Model
     public function groups() {
         return $this->hasMany(Group::class);
     }
+
 }

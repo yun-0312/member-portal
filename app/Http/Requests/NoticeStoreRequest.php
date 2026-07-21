@@ -28,6 +28,11 @@ class NoticeStoreRequest extends FormRequest
             'published_at' => ['required', 'date'],
             'committee_name' => ['nullable', 'string', 'max:255'],
 
+            'file' => ['nullable', 'array'],
+            'file.*' => ['file', 'max:10240'],
+
+            'roles' => ['nullable', 'array'],
+            'roles.*' => ['integer', 'exists:roles,id'],
         ];
     }
 

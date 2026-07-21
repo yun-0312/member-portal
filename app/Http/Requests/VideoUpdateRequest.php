@@ -27,6 +27,16 @@ class VideoUpdateRequest extends FormRequest
             'external_url' => ['nullable', 'url'],
             'published_at' => ['sometimes', 'date'],
             'expired_at' => ['nullable', 'date', 'after_or_equal:published_at'],
+
+            'file' => ['nullable', 'array'],
+            'file.*' => ['file', 'max:10240'],
+            // 削除用
+            'delete_file_ids' => ['nullable', 'array'],
+            'delete_file_ids.*' => ['integer'],
+            'delete_all_files' => ['boolean'],
+
+            'roles' => ['nullable', 'array'],
+            'roles.*' => ['integer', 'exists:roles,id'],
         ];
     }
 }

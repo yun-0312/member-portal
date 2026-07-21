@@ -3,17 +3,17 @@
 namespace App\Policies;
 
 use App\Models\User;
-use App\Models\Video;
-use App\Policies\BasePolicy;
+use App\Models\video;
+use App\Traits\CheckRoleAccess;
 
-class VideoPolicy extends BasePolicy
+class VideoPolicy
 {
-    //閲覧権限（target_roles)
+    use CheckRoleAccess;
+    /**
+     * Create a new policy instance.
+     */
     public function view(User $user, Video $video)
     {
-        return $video->targetRoles()
-            ->where('role_id', $user->role_id)
-            ->exists();
+        return $this->hasRoleAccess($video->roles, $user->role_id);
     }
-
 }

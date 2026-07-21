@@ -11,12 +11,14 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('target_roles', function (Blueprint $table) {
+        Schema::create('role_targetables', function (Blueprint $table) {
             $table->id();
             $table->unsignedBigInteger('targetable_id');
             $table->string('targetable_type');
             $table->foreignId('role_id')->constrained('roles')->cascadeOnDelete();
             $table->timestamps();
+
+            $table->unique(['targetable_id', 'targetable_type', 'role_id'],'role_targetables_unique');
 
             $table->index(['targetable_id', 'targetable_type']);
         });
@@ -27,6 +29,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('target_roles');
+        Schema::dropIfExists('role_targetable');
     }
 };

@@ -3,20 +3,18 @@
 namespace App\Policies;
 
 use App\Models\User;
-use App\Policies\BasePolicy;
 
-class UserPolicy extends BasePolicy
+class UserPolicy
 {
     public function view(User $user, User $target) {
-        if (in_array($user->role->name, ['admin', 'staff'])) {
-            return true;
-        }
 
-        if (in_array($user->role->name, ['member', 'director'])) {
+        $role = optional($user->role)->name;
+
+        if (in_array($role, ['member', 'director'], true)) {
             return $user->medical_institution_id === $target->medical_institution_id;
         }
 
-        if ($user->role->name === 'medical_staff') {
+        if ($role->name === 'medical_staff') {
             return $user->id === $target->id;
         }
 

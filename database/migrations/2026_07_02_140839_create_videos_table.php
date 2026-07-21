@@ -13,12 +13,11 @@ return new class extends Migration
     {
         Schema::create('videos', function (Blueprint $table) {
             $table->id();
-            $table->tinyInteger('type');
-            $table->foreignId('workshop_id')->nullable()->constrained('workshops')->nullOnDelete();
             $table->string('title');
             $table->text('description')->nullable();
-            $table->string('external_url')->nullable();
-            $table->timestamp('published_at')->nullable();
+            $table->string('external_url');
+            $table->timestamp('published_at');
+            $table->timestamp('expired_at')->nullable();
             $table->foreignId('created_by')->constrained('users');
             $table->timestamps();
         });

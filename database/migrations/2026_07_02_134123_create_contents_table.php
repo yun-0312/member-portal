@@ -19,10 +19,9 @@ return new class extends Migration
             $table->string('title');
             $table->text('body')->nullable();
             $table->date('meeting_date')->nullable();
-            $table->timestamp('published_at')->nullable();
+            $table->timestamp('published_at');
             $table->foreignId('created_by')->constrained('users');
             $table->timestamps();
-            $table->softDeletes();
         });
     }
 

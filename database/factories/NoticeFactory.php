@@ -25,7 +25,6 @@ class NoticeFactory extends Factory
             'committee_name' => null,
             'body' => $this->faker->realText(fake()->numberBetween(25, 35)),
             'category_id' => NoticeCategory::inRandomOrder()->value('id'),
-            'workshop_id' => null,
             'published_at' => now()->subDays(rand(1, 30)),
             'created_by' => User::where('role', fn($q) => $q->where('name', 'staff'))
                 ->inRandomOrder()->value('id'),

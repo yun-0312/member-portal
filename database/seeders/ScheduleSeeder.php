@@ -6,7 +6,6 @@ use Illuminate\Database\Seeder;
 use App\Models\Schedule;
 use App\Models\Room;
 use App\Models\ScheduleCategory;
-use App\Models\workshop;
 use Carbon\Carbon;
 
 class ScheduleSeeder extends Seeder
@@ -16,18 +15,10 @@ class ScheduleSeeder extends Seeder
      */
     public function run(): void
     {
-        $rooms = Room::pluck('id')->toArray();
-
         //カテゴリID
         $committeeCat = ScheduleCategory::where('slug', 'committee')->value('id');
         $importantCat = ScheduleCategory::where('slug', 'important')->value('id');
         $lectureCat = ScheduleCategory::where('slug', 'lecture')->value('id');
-
-        // 半年前〜1年後まで
-        $start = Carbon::now()->subMonths(6)->startOfMonth();
-        $end   = Carbon::now()->addYear()->endOfMonth();
-
-        $current = $start->clone();
 
         //委員会開催場所
         $committeeRooms = Room::whereIn('name', [
@@ -54,75 +45,44 @@ class ScheduleSeeder extends Seeder
             '広報・医療情報委員会',
         ];
 
-        $boardCount = 1; // 理事会の通し番号
+        // 委員会（毎月1回）
+        foreach ($groups as $group) {
+            Schedule::create([
+                'title' => $group,
+                'schedule_category_id' => $committeeCat,
+                'room_id' => $committeeRooms[array_rand($committeeRooms)],
+                'location' => null,
+                'url' => null,
+                'created_by' => 1,
+            ]);
+        }
 
-        while ($current->lte($end)) {
-            $year = $current->year;
-            $month = $current->month;
-            $isAugust = ($month === 8);
+        // 理事会（毎月2回）
+        for ($i = 1; $i <= 24; $i++) {
+            Schedule::create([
+                'title' => "第{$i}回理事会",
+                'schedule_category_id' => $importantCat,
+                'room_id' => Room::where('name', '5階第1会議室')->value('id'),
+                'location' => null,
+                'url' => null,
+                'created_by' => 1,
+            ]);
+        }
 
-            // 委員会（第1〜4週 水曜・金曜）
-            if (!$isAugust) {
-                foreach ($groups as $group) {
-                    $date = Carbon::parse("first wednesday of $year-$month")
-                        ->setTime(20, 0);
+        // 研修会（月2〜3件）
+        for ($month = 1; $month <= 12; $month++) {
+            $count = rand(2, 3);
 
-                    Schedule::create([
-                        'title' => $group,
-                        'schedule_category_id' => $committeeCat,
-                        'room_id' => $committeeRooms[array_rand($committeeRooms)],
-                        'location' => null,
-                        'url' => null,
-                        'start_at' => $date,
-                        'end_at' => $date->clone()->addHour(),
-                        'created_by' => 1,
-                    ]);
-                }
-            }
-
-            // 理事会（第2・4週 金曜）
-            foreach ([2, 4] as $week) {
-
-                $date = Carbon::parse("first friday of $year-$month")
-                    ->addWeeks($week - 1)
-                    ->setTime(20, 0);
-
+            for ($i = 0; $i < $count; $i++) {
                 Schedule::create([
-                    'title' => '第' . $boardCount . '回理事会',
-                    'schedule_category_id' => $importantCat,
-                    'room_id' => $boardRoom,
+                    'title' => $groups[array_rand($groups)] . "研修会",
+                    'schedule_category_id' => $lectureCat,
+                    'room_id' => Room::where('name', '4階講堂')->value('id'),
                     'location' => null,
                     'url' => null,
-                    'start_at' => $date,
-                    'end_at' => $date->clone()->addHours(1),
-                    'created_by' => 1,
-                ]);
-                $boardCount++;
-            }
-
-            // 研修会（月3〜4件）
-            $workshops = Workshop::inRandomOrder()
-                ->take(rand(3, 4))
-                ->get();
-
-            foreach ($workshops as $ws) {
-
-                $day = rand(1, $current->daysInMonth);
-                $date = Carbon::create($year, $month, $day, 20, 0);
-
-                Schedule::create([
-                    'title' => "{$ws->title}（研修会）",
-                    'schedule_category_id' => $lectureCat,
-                    'room_id' => $rooms[array_rand($rooms)],
-                    'location' => null,
-                    'url' => "https://example.com/workshop/{$ws->id}",
-                    'start_at' => $date,
-                    'end_at' => $date->clone()->addHour(),
                     'created_by' => 1,
                 ]);
             }
-
-        $current->addMonth();
         }
     }
 }

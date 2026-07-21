@@ -15,25 +15,39 @@ class RolePermissionSeeder extends Seeder
     {
         $all = Permission::pluck('id');
 
-        //admin
+        //admin（全権限）
         Role::where('name', 'admin')->first()
             ->permissions()->sync($all);
 
         //staff
-        Role::where('name', 'staff')->first()
-            ->permissions()->sync(
-                Permission::whereNotIn('name', [
-                    'role.manage',
-                    'permission.manage',
-                ])->pluck('id')
-            );
+        $staffPermissions = Permission::whereIn('name', [
+            'notice.create', 'notice.update', 'notice.delete',
+            'content.create', 'content.update', 'content.delete',
+            'workshop.create', 'workshop.update', 'workshop.delete',
+            'video.create', 'video.update', 'video.delete',
+            'faq.create', 'faq.update', 'faq.delete',
+            'schedule.create', 'schedule.update', 'schedule.delete',
+        ])->pluck('id');
 
-        //director、member、medical_staff
-        Role::whereIn('name', ['director', 'member', 'medical_staff'])->get()
-            ->each(function ($role) {
-                $role->permissions()->sync(
-                Permission::where('name', 'like', '%.view')->pluck('id')
+        // staff に付与
+        Role::where('name', 'staff')->first()
+            ->permissions()->sync($staffPermissions);
+
+        //director、member
+        $directorMemberPermissions = Permission::whereIn('name', [
+            'medical_institution.update',
+        ])->pluck('id');
+
+        Role::where('name', 'director')->first()
+            ->permissions()->sync($directorMemberPermissions);
+
+        Role::where('name', 'member')->first()
+            ->permissions()->sync($directorMemberPermissions);
+
+        //medical_staff
+        Role::where('name', 'medical_staff')->first()
+            ->permissions()->sync(
+                Permission::where('name', 'medical_institution.view')->pluck('id')
             );
-        });
     }
 }

@@ -15,11 +15,9 @@ return new class extends Migration
             $table->id();
             $table->foreignId('room_id')->nullable()->constrained('rooms')->nullOnDelete();
             $table->string('title');
-            $table->foreignId('schedule_category_id')->constrained('schedule_categories')->restrictOnDelete;
+            $table->foreignId('schedule_category_id')->constrained('schedule_categories')->restrictOnDelete();
             $table->string('location')->nullable();
             $table->string('url')->nullable();
-            $table->timestamp('start_at');
-            $table->timestamp('end_at');
             $table->foreignId('created_by')->constrained('users');
             $table->timestamps();
         });

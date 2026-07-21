@@ -5,6 +5,7 @@ namespace Database\Seeders;
 use Illuminate\Database\Seeder;
 use App\Models\NoticeCategory;
 use App\Models\Notice;
+use App\Models\Role;
 use Illuminate\Support\Str;
 
 class NoticeSeeder extends Seeder
@@ -14,6 +15,7 @@ class NoticeSeeder extends Seeder
      */
     public function run(): void
     {
+        $roles = Role::pluck('id', 'name');
         $letterCat = NoticeCategory::where('slug', 'letter')->value('id');
         $circulateCat = NoticeCategory::where('slug', 'circulate')->value('id');
 
@@ -39,14 +41,22 @@ class NoticeSeeder extends Seeder
 
         //事務局レター
         foreach ($letterTitles as $title) {
-            Notice::create([
+            $notice = Notice::create([
                 'title' => $title,
                 'committee_name' => null,
                 'body' => fake()->realText(30),
                 'category_id' => $letterCat,
-                'workshop_id' => null,
-                'published_at' => now()->subDays(rand(1,20)),
+                'published_at' => now()->subDays(rand(1,30)),
                 'created_by' => 1,
+            ]);
+
+            //target_rolesを付与
+            $notice->roles()->attach([
+                $roles['admin'],
+                $roles['staff'],
+                $roles['member'],
+                $roles['director'],
+                $roles['medical_staff'],
             ]);
         }
 
@@ -57,15 +67,24 @@ class NoticeSeeder extends Seeder
             $committee = $committees[array_rand($committees)];
             $title = "【26-".str_pad($serial, 4,'0', STR_PAD_LEFT)."】     {$committee}研修会";
 
-            Notice::create([
+            $notice = Notice::create([
                 'title' => $title,
                 'committee_name' => $committee,
                 'body' => fake()->realText(80),
                 'category_id' => $circulateCat,
-                'workshop_id' => null,
                 'published_at' => now()->subDays(rand(1, 30)),
                 'created_by' => 1,
             ]);
+
+            // target_roles を付与
+            $notice->roles()->attach([
+                $roles['admin'],
+                $roles['staff'],
+                $roles['member'],
+                $roles['director'],
+                $roles['medical_staff'],
+            ]);
+
             $serial++;
         }
 

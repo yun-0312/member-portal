@@ -4,15 +4,16 @@ namespace App\Policies;
 
 use App\Models\User;
 use App\Models\Notice;
-use App\Policies\BasePolicy;
+use App\Traits\CheckRoleAccess;
 
-class NoticePolicy extends BasePolicy
+class NoticePolicy
 {
-    //閲覧権限（target_roles)
+    use CheckRoleAccess;
+    /**
+     * Create a new policy instance.
+     */
     public function view(User $user, Notice $notice)
     {
-        return $notice->targetRoles()
-            ->where('role_id', $user->role_id)
-            ->exists();
+        return $this->hasRoleAccess($notice->roles, $user->role_id);
     }
 }

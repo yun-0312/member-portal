@@ -33,7 +33,7 @@ class UserFactory extends Factory
             'role_id' => Role::where('name', 'member')->value('id'),
             'status' => 1,
             'approved_at' => now(),
-            'approved_by' => null,
+            'approved_by' => 1,
             'medical_institution_id' => null,
             'remember_token' => Str::random(10),
         ];

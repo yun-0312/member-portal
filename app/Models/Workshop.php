@@ -23,22 +23,6 @@ class Workshop extends Model
         return $this->belongsTo(User::class, 'created_by');
     }
 
-    public function videos() {
-        return $this->hasMany(Video::class, 'workshop_id');
-    }
-
-    public function notices() {
-        return $this->hasMany(Notice::class, 'workshop_id');
-    }
-
-    public function schedules() {
-        return $this->hasMany(Schedule::class, 'workshop_id');
-    }
-
-    public function targetRoles() {
-        return $this->morphMany(TargetRole::class, 'targetable');
-    }
-
     public function files() {
         return $this->morphMany(File::class, 'fileable');
     }

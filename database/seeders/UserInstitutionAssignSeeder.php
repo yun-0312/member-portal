@@ -24,8 +24,10 @@ class UserInstitutionAssignSeeder extends Seeder
         User::whereIn('role_id', [$memberId, $directorId, $medicalStaffId])
             ->get()
             ->each(function ($user) use ($institutions) {
-                $user->medical_institution_id = $institutions->random()->id;
-                $user->save();
+                if ($user->medical_institution_id === null) {
+                    $user->medical_institution_id = $institutions->random()->id;
+                    $user->save();
+                }
             });
     }
 }

@@ -7,10 +7,12 @@ use App\Models\Notice;
 
 trait NoticeSearchTrait
 {
-    protected function searchNotices(Request $request)
+    protected function searchNotices(Request $request, ?array $with = null)
     {
-        $query = Notice::with(['category', 'creator'])
-            ->orderBy('published_at', 'desc');
+        $relations = $with ?? ['category', 'files'];
+
+        $query = Notice::query()
+            ->with($relations);
 
         // カテゴリ slug
         if ($request->category) {
@@ -38,6 +40,6 @@ trait NoticeSearchTrait
             });
         }
 
-        return $query->get();
+        return $query;
     }
 }

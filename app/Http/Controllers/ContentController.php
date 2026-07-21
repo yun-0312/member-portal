@@ -2,36 +2,22 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Controllers\BasePublicContentController;
 use App\Traits\ContentSearchTrait;
 use Illuminate\Http\Request;
 use App\Models\Content;
-use App\Traits\FiltersByPolicy;
 
-class ContentController extends Controller
+class ContentController extends BasePublicContentController
 {
-    use FiltersByPolicy;
     use ContentSearchTrait;
 
-    public function index(Request $request) {
-        $contents = $this->searchContents($request);
+    protected array $extraRelations = ['category', 'subcategory'];
 
-        $filtered = $this->filterByPolicy($contents);
+    protected string $modelClass = Content::class;
+    protected string $routePrefix = 'contents';
 
-        $filtered->transform(function ($content) {
-            $content->show_url = route('contents.show', $content->id);
-            return $content;
-        });
-
-        $perPage = 10;
-        $page = $request->input('page', 1);
-        $paged = $filtered->slice(($page -1) * $perPage, $perPage)->values();
-
-        return response()->json([
-            'data' => $paged,
-            'total' => $filtered->count(),
-            'current_page' => $page,
-            'per_page' => $perPage,
-        ]);
+    public function search(Request $request) {
+        return $this->searchContents($request);
     }
 
     public function years() {
@@ -41,13 +27,4 @@ class ContentController extends Controller
             ->get();
     }
 
-    public function show(Content $content) {
-        $this->authorize('view', $content);
-        $content->load(['category', 'subcategory']);
-
-        return response()->json([
-            'content' => $content,
-            'index_url' => route('contents.index'),
-        ]);
-    }
 }

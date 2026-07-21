@@ -10,7 +10,7 @@ use App\Http\Requests\PermissionUpdateRequest;
 class PermissionController extends Controller
 {
     public function index() {
-        $permissions = Permission::orderBy('id')->get();
+        $permissions = Permission::with('roles')->orderBy('id')->get();
 
         $permissions->transform(function ($permission) {
             $permission->show_url = route('admin.permissions.show', $permission->id);

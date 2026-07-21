@@ -9,11 +9,13 @@ use App\Models\User;
 use App\Http\Requests\UserStoreRequest;
 use App\Http\Requests\UserUpdateRequest;
 use Illuminate\Support\Facades\Hash;
+use App\Notifications\UserRegisteredByAdmin;
+use App\Notifications\UserApprovedNotification;
 
 class UserController extends Controller
 {
     public function index(Request $request) {
-        $query = User::query()->with(['role', 'medicalInstitution', 'approvedBy']);
+        $query = User::query()->with(['role', 'medicalInstitution']);
 
         $query = $this->applyUserFilters($query, $request);
 
@@ -54,8 +56,11 @@ class UserController extends Controller
 
         $validated['approved_at'] = now();
         $validated['approved_by'] = auth()->id();
+        $validated['email_verified_at'] = now();
 
         $user = User::create($validated);
+        // 登録完了メールを送る
+        $user->notify(new UserRegisteredByAdmin());
 
         return response()->json([
             'message' => 'ユーザーを作成しました',
@@ -148,6 +153,9 @@ class UserController extends Controller
             'status' => UserStatus::Active,
         ]);
 
+         // 承認完了メールを送る
+        $user->notify(new UserApprovedNotification());
+
         return response()->json([
             'message' => 'ユーザーを承認しました',
             'user' => $user,
@@ -200,5 +208,6 @@ class UserController extends Controller
 
         return $query;
     }
+
 
 }

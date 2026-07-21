@@ -10,6 +10,8 @@ class File extends Model
     use HasFactory;
 
     protected $fillable = [
+        'fileable_id',
+        'fileable_type',
         'path',
         'name',
         'type',
@@ -17,5 +19,9 @@ class File extends Model
 
     public function fileable() {
         return $this->morphTo();
+    }
+
+    public function getUrlAttribute() {
+        return asset('storage/' . $this->path);
     }
 }

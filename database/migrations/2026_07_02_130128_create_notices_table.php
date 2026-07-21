@@ -17,8 +17,7 @@ return new class extends Migration
             $table->string('committee_name')->nullable();
             $table->text('body');
             $table->foreignId('category_id')->constrained('notice_categories');
-            $table->foreignId('workshop_id')->nullable()->constrained('workshops')->nullOnDelete();
-            $table->timestamp('published_at')->nullable();
+            $table->timestamp('published_at');
             $table->foreignId('created_by')->constrained('users');
             $table->timestamps();
         });

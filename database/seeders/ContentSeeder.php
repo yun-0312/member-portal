@@ -8,11 +8,27 @@ use App\Models\Group;
 use App\Models\User;
 use App\Models\ContentCategory;
 use App\Models\ContentSubcategory;
+use App\Models\Role;
 
 class ContentSeeder extends Seeder
 {
     public function run(): void
     {
+        $roles = Role::pluck('id', 'name');
+
+        $allRoleIds = [
+            $roles['admin'],
+            $roles['staff'],
+            $roles['member'],
+            $roles['director'],
+        ];
+
+        $noMemberRoleIds = [
+            $roles['admin'],
+            $roles['staff'],
+            $roles['director'],
+        ];
+
         // staff のみ
         $staffUsers = User::whereHas('role', fn($q) => $q->where('name', 'staff'))->get();
 
@@ -21,7 +37,7 @@ class ContentSeeder extends Seeder
 
         foreach ($committeeGroups as $group) {
             for ($i = 1; $i <= rand(3,5); $i++) {
-                Content::factory()->create([
+                $content = Content::factory()->create([
                     'group_id'     => $group->id,
                     'subcategory_id' => null,
                     'title'        => $group->name . ' 資料 ' . $i,
@@ -29,6 +45,8 @@ class ContentSeeder extends Seeder
                     'published_at' => fake()->dateTimeBetween('-1 year', 'now'),
                     'created_by'   => $staffUsers->random()->id,
                 ]);
+
+                $content->roles()->attach($allRoleIds);
             }
         }
 
@@ -37,7 +55,7 @@ class ContentSeeder extends Seeder
 
         foreach ($associationGroups as $group) {
             for ($i = 1; $i <= rand(2,4); $i++) {
-                Content::factory()->create([
+                $content = Content::factory()->create([
                     'group_id'     => $group->id,
                     'subcategory_id' => null,
                     'title'        => $group->name . ' 資料 ' . $i,
@@ -45,6 +63,8 @@ class ContentSeeder extends Seeder
                     'published_at' => fake()->dateTimeBetween('-1 year', 'now'),
                     'created_by'   => $staffUsers->random()->id,
                 ]);
+
+                $content->roles()->attach($allRoleIds);
             }
         }
 
@@ -53,7 +73,7 @@ class ContentSeeder extends Seeder
 
         if ($boardGroup) {
             for ($i = 1; $i <= 5; $i++) {
-                Content::factory()->create([
+                $content = Content::factory()->create([
                     'group_id'     => $boardGroup->id,
                     'subcategory_id' => null,
                     'title'        => '理事会ニュース ' . $i,
@@ -61,6 +81,8 @@ class ContentSeeder extends Seeder
                     'published_at' => fake()->dateTimeBetween('-1 year', 'now'),
                     'created_by'   => $staffUsers->random()->id,
                 ]);
+
+                $content->roles()->attach($allRoleIds);
             }
         }
 
@@ -71,7 +93,7 @@ class ContentSeeder extends Seeder
 
             foreach ($subcategories as $sub) {
                 for ($i = 1; $i <= 3; $i++) {
-                    Content::factory()->create([
+                    $content = Content::factory()->create([
                         'category_id'    => $magazinesCategory->id,
                         'subcategory_id' => $sub->id,
                         'group_id'       => null,
@@ -79,6 +101,8 @@ class ContentSeeder extends Seeder
                         'published_at'   => fake()->dateTimeBetween('-5 years', 'now'),
                         'created_by'     => $staffUsers->random()->id,
                     ]);
+
+                    $content->roles()->attach($allRoleIds);
                 }
             }
         }
@@ -89,7 +113,7 @@ class ContentSeeder extends Seeder
             $subcategories = ContentSubcategory::where('category_id', $rulesCategory->id)->get();
 
             foreach ($subcategories as $sub) {
-                Content::factory()->create([
+                $content = Content::factory()->create([
                     'category_id'    => $rulesCategory->id,
                     'subcategory_id' => $sub->id,
                     'group_id'       => null,
@@ -97,6 +121,8 @@ class ContentSeeder extends Seeder
                     'published_at'   => fake()->dateTimeBetween('-5 years', 'now'),
                     'created_by'     => $staffUsers->random()->id,
                 ]);
+
+                $content->roles()->attach($allRoleIds);
             }
         }
 
@@ -106,7 +132,7 @@ class ContentSeeder extends Seeder
             $subcategories = ContentSubcategory::where('category_id', $othersCategory->id)->get();
 
             foreach ($subcategories as $sub) {
-                Content::factory()->create([
+                $content = Content::factory()->create([
                     'category_id'    => $othersCategory->id,
                     'subcategory_id' => $sub->id,
                     'group_id'       => null,
@@ -114,6 +140,27 @@ class ContentSeeder extends Seeder
                     'published_at'   => fake()->dateTimeBetween('-3 years', 'now'),
                     'created_by'     => $staffUsers->random()->id,
                 ]);
+
+                $content->roles()->attach($allRoleIds);
+            }
+        }
+
+        // 理事会専用（subcategory）
+        $boardCategory = ContentCategory::where('slug', 'board-exclusive')->first();
+        if ($boardCategory) {
+            $subcategories = ContentSubcategory::where('category_id', $boardCategory->id)->get();
+
+            foreach ($subcategories as $sub) {
+                $content = Content::factory()->create([
+                    'category_id'    => $boardCategory->id,
+                    'subcategory_id' => $sub->id,
+                    'group_id'       => null,
+                    'title'          => $sub->name,
+                    'published_at'   => fake()->dateTimeBetween('-3 years', 'now'),
+                    'created_by'     => $staffUsers->random()->id,
+                ]);
+
+                $content->roles()->attach($noMemberRoleIds);
             }
         }
     }

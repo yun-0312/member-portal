@@ -4,10 +4,12 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use App\Traits\VisibleToScope;
+use App\Traits\HasPublishedScope;
 
 class Notice extends Model
 {
-    use HasFactory;
+    use HasFactory, VisibleToScope, HasPublishedScope;
 
     protected $casts = [
         'published_at' => 'datetime',
@@ -30,15 +32,12 @@ class Notice extends Model
         return $this->belongsTo(User::class, 'created_by');
     }
 
-    public function workshop() {
-        return $this->belongsTo(Workshop::class, 'workshop_id');
-    }
-
-    public function targetRoles() {
-        return $this->morphMany(TargetRole::class, 'targetable');
+    public function roles() {
+        return $this->morphToMany(Role::class, 'targetable', 'role_targetables');
     }
 
     public function files() {
         return $this->morphMany(File::class, 'fileable');
     }
+
 }

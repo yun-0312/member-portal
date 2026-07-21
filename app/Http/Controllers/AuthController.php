@@ -22,6 +22,13 @@ class AuthController extends Controller
             ], 401);
         }
 
+        //メール認証チェック
+        if (!$result['user']->hasVerifiedEmail()) {
+            return response()->json([
+                'message' => 'メール認証が完了していません',
+            ], 403);
+        }
+
         return response()->json([
             'message' => 'ログインに成功しました',
             'user' => $result['user'],
@@ -53,8 +60,11 @@ class AuthController extends Controller
         $validated['approved_at'] = null;
         $validated['approved_by'] = null;
         $validated['status'] = UserStatus::Pending;
+        $validated['email_verified_at'] = null;
 
         $user = User::create($validated);
+
+        $user->sendEmailVerificationNotification();
 
         return response()->json([
             'message' => '登録が完了しました。承認をお待ちください。',

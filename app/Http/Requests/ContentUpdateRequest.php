@@ -24,9 +24,20 @@ class ContentUpdateRequest extends FormRequest
         return [
             'title' => ['sometimes', 'string', 'max:255'],
             'body' => ['nullable', 'string'],
-            'category_id' => ['sometimes', 'exists:content_categories,id'],
+            'category_id' => ['sometimes', 'integer', 'exists:content_categories,id'],
+            'group_id' => ['sometimes', 'integer', 'exists:groups,id'],
             'subcategory_id' => ['nullable', 'exists:content_subcategories,id'],
             'published_at' => ['sometimes', 'date'],
+
+            'file' => ['nullable', 'array'],
+            'file.*' => ['file', 'max:10240'],
+            // 削除用
+            'delete_file_ids' => ['nullable', 'array'],
+            'delete_file_ids.*' => ['integer'],
+            'delete_all_files' => ['boolean'],
+
+            'roles' => ['nullable', 'array'],
+            'roles.*' => ['integer', 'exists:roles,id'],
         ];
     }
 

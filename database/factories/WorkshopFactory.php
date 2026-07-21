@@ -18,6 +18,22 @@ class WorkshopFactory extends Factory
      */
     public function definition(): array
     {
+        //タイトル
+        $titles = [
+            '保険委員会講習会',
+            '介護保険委員会研修会',
+            '予防接種説明会',
+            '公衆衛生委員会講習会',
+            '事業説明会',
+            'がん検診研修会',
+            '地域医療研修会',
+            '在宅医療研修会',
+            '学術研修会',
+            '胃がん検診研修会',
+            '肺がん検診研修会',
+            '認知症研修会',
+        ];
+
         //研修会の開始時間
         $start = $this->faker->dateTimeBetween('now', '+2 month');
 
@@ -43,11 +59,9 @@ class WorkshopFactory extends Factory
             '北下病院',
         ];
 
-        $staffUsers = User::whereHas('role', fn($q) => $q->where('name', 'staff'))->get();
-
         return [
-            'title' => $this->faker->sentence(3),
-            'description' =>$this->faker->paragraph(),
+            'title' => $this->faker->randomElement($titles),
+            'description' =>$this->faker->realText(50),
             'start_at' => $start,
             'end_at' => $end,
             'location' => $this->faker->randomElement($rooms),

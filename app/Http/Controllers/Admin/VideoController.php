@@ -2,65 +2,25 @@
 
 namespace App\Http\Controllers\Admin;
 
-use App\Http\Controllers\Controller;
+use App\Http\Controllers\Admin\BaseAdminContentController;
+use App\Traits\VideoSearchTrait;
 use App\Models\Video;
+use Illuminate\Http\Request;
 use App\Http\Requests\VideoStoreRequest;
 use App\Http\Requests\VideoUpdateRequest;
 
-class VideoController extends Controller
+class VideoController extends BaseAdminContentController
 {
-    public function index() {
-        $videos = Video::orderBy('published_at', 'desc')->get();
+    use VideoSearchTrait;
 
-        $videos->transform(function ($video) {
-            $video->show_url = route('admin.videos.show', $video->id);
-            return $video;
-        });
+    protected string $modelClass = Video::class;
+    protected string $routePrefix = 'videos';
 
-        return response()->json([
-            'data' => $videos,
-            'store_url' => route('admin.videos.store'),
-        ]);
+    protected string $storeRequestClass = VideoStoreRequest::class;
+    protected string $updateRequestClass = VideoUpdateRequest::class;
+
+    public function search(Request $request) {
+        return $this->searchVideos($request);
     }
 
-    public function show(Video $video) {
-        return response()->json([
-            'video' => $video,
-            'update_url' => route('admin.videos.update', $video->id),
-            'delete_url' => route('admin.videos.destroy', $video->id),
-        ]);
-    }
-
-    public function store(VideoStoreRequest $request) {
-        $validated = $request->validated();
-
-        $video = Video::create([
-            ...$validated,
-            'created_by' => $request->user()->id,
-        ]);
-
-        return response()->json([
-            'message' => '動画を登録しました',
-            'video' => $video,
-        ], 201);
-    }
-
-    public function update(VideoUpdateRequest $request, Video $video) {
-        $validated =$request->validated();
-
-        $video->update($validated);
-
-        return response()->json([
-            'message' => '動画を更新しました',
-            'video' => $video,
-        ]);
-    }
-
-    public function destroy(Video $video) {
-        $video->delete();
-
-        return response()->json([
-            'message' => '動画を削除しました'
-        ]);
-    }
 }

@@ -27,6 +27,12 @@ class VideoStoreRequest extends FormRequest
             'external_url' => ['required', 'url'],
             'published_at' => ['required', 'date'],
             'expired_at' => ['nullable', 'date', 'after_or_equal:published_at'],
+
+            'file' => ['nullable', 'array'],
+            'file.*' => ['file', 'max:10240'],
+
+            'roles' => ['nullable', 'array'],
+            'roles.*' => ['integer', 'exists:roles,id'],
         ];
     }
 

@@ -9,13 +9,18 @@ trait ContentSearchTrait
 {
     protected function searchContents(Request $request)
     {
-        $query = Content::with(['category', 'subcategory'])
-            ->orderBy('published_at', 'desc');
+        $query = Content::query()
+            ->with(['category', 'subcategory', 'files']);
 
-        // カテゴリ slug
-        if ($request->category) {
-            $query->whereHas('category', function ($q) use ($request) {
-                $q->where('slug', $request->category);
+        // カテゴリ slug、id
+        if ($request->filled('category')) {
+            $category = $request->category;
+            $query->whereHas('category', function ($q) use ($category) {
+                if (is_numeric($category)) {
+                    $q->where('id', $category);
+                } else {
+                    $q->where('slug', $category);
+                }
             });
         }
 
@@ -38,6 +43,6 @@ trait ContentSearchTrait
             });
         }
 
-        return $query->get();
+        return $query;
     }
 }

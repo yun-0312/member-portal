@@ -31,10 +31,10 @@ class ContentSubcategorySeeder extends Seeder
         $regulationsCategory = ContentCategory::where('slug', 'regulations')->first();
         if ($regulationsCategory) {
             $items = [
-                ['name' => '定款', 'sort_order' => 1],
-                ['name' => '施行細則', 'sort_order' => 2],
-                ['name' => '諸規定', 'sort_order' => 3],
-                ['name' => '内規', 'sort_order' => 4],
+                ['name' => '定款', 'sort_order' => 3],
+                ['name' => '施行細則', 'sort_order' => 4],
+                ['name' => '諸規定', 'sort_order' => 5],
+                ['name' => '内規', 'sort_order' => 6],
             ];
 
             foreach ($items as $item) {
@@ -50,11 +50,11 @@ class ContentSubcategorySeeder extends Seeder
         $othersCategory = ContentCategory::where('slug', 'others-minutes')->first();
         if ($othersCategory) {
             $items = [
-                ['name' => '感染症情報', 'sort_order' => 1],
-                ['name' => '外部団体講習会のお知らせ', 'sort_order' => 2],
-                ['name' => '新型コロナウィルス感染症情報', 'sort_order' => 3],
-                ['name' => 'サイバーセキュリティ関連資料', 'sort_order' => 4],
-                ['name' => '部活動', 'sort_order' => 5],
+                ['name' => '感染症情報', 'sort_order' => 7],
+                ['name' => '外部団体講習会のお知らせ', 'sort_order' => 8],
+                ['name' => '新型コロナウィルス感染症情報', 'sort_order' => 9],
+                ['name' => 'サイバーセキュリティ関連資料', 'sort_order' => 10],
+                ['name' => '部活動', 'sort_order' => 11],
             ];
 
             foreach ($items as $item) {
@@ -70,9 +70,9 @@ class ContentSubcategorySeeder extends Seeder
         $boardCategory = ContentCategory::where('slug', 'board-exclusive')->first();
         if ($boardCategory) {
             $items = [
-                ['name' => '理事会（抄録・資料）', 'sort_order' => 1],
-                ['name' => '庶務報告・協議事項', 'sort_order' => 2],
-                ['name' => 'その他', 'sort_order' => 3],
+                ['name' => '理事会（抄録・資料）', 'sort_order' => 12],
+                ['name' => '庶務報告・協議事項', 'sort_order' => 13],
+                ['name' => 'その他', 'sort_order' => 14],
             ];
 
             foreach ($items as $item) {

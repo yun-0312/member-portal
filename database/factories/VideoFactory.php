@@ -36,13 +36,15 @@ class VideoFactory extends Factory
             'https://www.youtube.com/watch?v=8S0FDjFBj8o',
         ];
 
+        $publishedAt = now()->subDays(fake()->numberBetween(1, 30));
+        $expiredAt   = $publishedAt->copy()->addDays(fake()->numberBetween(30, 120));
+
         return [
-            'type' => 1,
-            'workshop_id' => Workshop::inRandomOrder()->first()->id ?? null,
             'title' => $this->faker->randomElement($titles),
             'description' => $this->faker->realText(fake()->numberBetween(25, 50)),
             'external_url' => $this->faker->randomElement($urls),
-            'published_at' => now(),
+            'published_at' => $publishedAt,
+            'expired_at' => $expiredAt,
             'created_by' => User::whereHas('role', fn($q) => $q->where('name', 'staff'))
                 ->inRandomOrder()
                 ->value('id'),

@@ -40,6 +40,8 @@ class DatabaseSeeder extends Seeder
             RoomSeeder::class,
             ScheduleCategorySeeder::class,
             ScheduleSeeder::class,
+            RecurrenceSeeder::class,
+            OccurrenceSeeder::class,
 
             FaqCategorySeeder::class,
             FaqSeeder::class,

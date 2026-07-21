@@ -13,7 +13,7 @@ class HomeController extends Controller
 
     public function index(Request $request) {
         $user = $request->user();
-        $role = $user->role->name;
+        $role = $user->role->name ?? null;
 
         //お知らせ(letter)
         $letters = Notice::whereHas('category', fn($q) =>$q->where('slug', 'letter'))

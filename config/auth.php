@@ -112,4 +112,6 @@ return [
 
     'password_timeout' => 10800,
 
+    'super_roles' => ['admin', 'staff'],
+
 ];

@@ -3,7 +3,6 @@
 namespace Database\Factories;
 
 use App\Models\Schedule;
-use App\Models\Workshop;
 use App\Models\Room;
 use App\Models\User;
 use App\Models\ScheduleCategory;
@@ -28,8 +27,6 @@ class ScheduleFactory extends Factory
             'schedule_category_id' => ScheduleCategory::inRandomOrder()->value('id'),
             'location' => null,
             'url' => null,
-            'start_at' => now(),
-            'end_at' => now()->addHour(),
             'created_by' => User::whereHas('role', fn($q) =>
                 $q->where('name', 'staff')
             )->inRandomOrder()->value('id'),

@@ -27,6 +27,16 @@ class NoticeUpdateRequest extends FormRequest
             'body'          => ['nullable', 'string'],
             'published_at'  => ['sometimes', 'date'],
             'committee_name' => ['nullable', 'string', 'max:255'],
+
+            'file' => ['nullable', 'array'],
+            'file.*' => ['file', 'max:10240'],
+            // 削除用
+            'delete_file_ids' => ['nullable', 'array'],
+            'delete_file_ids.*' => ['integer'],
+            'delete_all_files' => ['boolean'],
+
+            'roles' => ['nullable', 'array'],
+            'roles.*' => ['integer', 'exists:roles,id'],
         ];
     }
 

@@ -4,10 +4,11 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use App\Traits\VisibleToScope;
 
 class ContentCategory extends Model
 {
-    use HasFactory;
+    use HasFactory, VisibleToScope;
 
     public $timestamps = false;
 
@@ -26,7 +27,8 @@ class ContentCategory extends Model
         return $this->hasMany(ContentSubcategory::class, 'category_id');
     }
 
-    public function targetRoles() {
-        return $this->morphMany(TargetRole::class, 'targetable');
+    public function roles() {
+        return $this->morphToMany(Role::class, 'targetable', 'role_targetables');
     }
+
 }

@@ -24,9 +24,16 @@ class ContentStoreRequest extends FormRequest
         return [
             'title' => ['required', 'string', 'max:255'],
             'body' => ['nullable', 'string'],
-            'category_id' => ['required', 'exists:content_categories,id'],
-            'subcategory_id' => ['nullable', 'exists:content_subcategories,id'],
+            'category_id' => ['required', 'integer', 'exists:content_categories,id'],
+            'subcategory_id' => ['nullable', 'integer', 'exists:content_subcategories,id'],
+            'group_id' => ['nullable', 'integer', 'exists:groups,id'],
             'published_at' => ['required', 'date'],
+
+            'file' => ['nullable', 'array'],
+            'file.*' => ['file', 'max:10240'],
+
+            'roles' => ['nullable', 'array'],
+            'roles.*' => ['integer', 'exists:roles,id'],
         ];
     }
 

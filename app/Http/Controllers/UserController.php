@@ -4,6 +4,8 @@ namespace App\Http\Controllers;
 
 use App\Models\User;
 use App\Enums\UserStatus;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Hash;
 
 class UserController extends Controller
 {
@@ -65,4 +67,30 @@ class UserController extends Controller
             'user' => $user,
         ]);
     }
+
+    public function changePassword(Request $request) {
+        $request->validate([
+            'current_password' => 'required',
+            'new_password' => 'required|min:8|confirmed',
+        ]);
+
+        $user = $request->user(); // ログイン済みのユーザー
+
+        // 現在のパスワードが正しいかチェック
+        if (!Hash::check($request->current_password, $user->password)) {
+            return response()->json([
+                'message' => '現在のパスワードが正しくありません。',
+            ], 400);
+        }
+
+        // 新しいパスワードに更新
+        $user->password = Hash::make($request->new_password);
+        $user->save();
+
+        return response()->json([
+            'message' => 'パスワードを変更しました。',
+        ], 200);
+    }
+
+
 }

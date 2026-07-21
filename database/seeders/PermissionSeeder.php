@@ -14,39 +14,69 @@ class PermissionSeeder extends Seeder
     {
         $permissions = [
             // Notice
-            'notice.view',
             'notice.create',
             'notice.update',
             'notice.delete',
 
-            // Document
-            'document.view',
-            'document.create',
-            'document.update',
-            'document.delete',
+            // Content
+            'content.create',
+            'content.update',
+            'content.delete',
 
             // Workshop
-            'workshop.view',
             'workshop.create',
             'workshop.update',
             'workshop.delete',
 
             // Video
-            'video.view',
             'video.create',
             'video.update',
             'video.delete',
 
             // FAQ
-            'faq.view',
             'faq.create',
             'faq.update',
             'faq.delete',
 
-            // User / Role / Permission 管理
-            'user.manage',
-            'role.manage',
-            'permission.manage',
+            // Schedule
+            'schedule.create',
+            'schedule.update',
+            'schedule.delete',
+
+            // User管理
+            'user.create',
+            'user.update',
+            'user.delete',
+
+            //Role管理
+            'role.create',
+            'role.update',
+            'role.delete',
+
+            //Permission管理
+            'permission.create',
+            'permission.update',
+            'permission.delete',
+
+            //Room管理
+            'room.create',
+            'room.update',
+            'room.delete',
+
+            //MedicalInstitution管理
+            'medical_institution.create',
+            'medical_institution.update',
+            'medical_institution.delete',
+
+            //Group管理
+            'group.create',
+            'group.update',
+            'group.delete',
+
+            //Category系管理
+            'category.create',
+            'category.update',
+            'category.delete',
 
             // 編集履歴
             'history.view',

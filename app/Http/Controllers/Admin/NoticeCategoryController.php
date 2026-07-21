@@ -2,13 +2,22 @@
 
 namespace App\Http\Controllers\Admin;
 
-use App\Http\Controllers\Controller;
+use App\Http\Controllers\Admin\BaseAdminMasterController;
 use App\Models\NoticeCategory;
 use App\Http\Requests\NoticeCategoryStoreRequest;
 use App\Http\Requests\NoticeCategoryUpdateRequest;
 
-class NoticeCategoryController extends Controller
+class NoticeCategoryController extends BaseAdminMasterController
 {
+    protected string $modelClass = NoticeCategory::class;
+    protected string $routePrefix = 'content-categories';
+
+    protected string $storeRequestClass = ContentCategoryStoreRequest::class;
+    protected string $updateRequestClass = ContentCategoryUpdateRequest::class;
+
+    protected string $sortColumn = 'sort_order';
+
+    protected array $extraRelations = ['subcategories','roles'];
     public function index() {
         $categories = NoticeCategory::orderBy('sort_order', 'desc')->get();
 

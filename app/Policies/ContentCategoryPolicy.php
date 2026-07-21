@@ -3,21 +3,17 @@
 namespace App\Policies;
 
 use App\Models\User;
-use APp\Models\ContentCategory;
+use App\Models\ContentCategory;
+use App\Traits\CheckRoleAccess;
 
 class ContentCategoryPolicy
 {
+    use CheckRoleAccess;
     /**
      * Create a new policy instance.
      */
     public function view(User $user, ContentCategory $category)
     {
-        if (in_array($user->role->name, ['admin', 'staff'])) {
-            return true;
-        }
-
-        return $category->targetRoles()
-            ->where('role_id', $user->role_id)
-            ->exists();
+        return $this->hasRoleAccess($category->roles, $user->role_id);
     }
 }
