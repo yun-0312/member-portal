@@ -38,18 +38,8 @@ class GroupController extends Controller
     }
 
     public function show(Group $group) {
-        $group->load('category', 'users');
+        $group->load('category');
 
-        $group->users->transform(function ($user) use ($group) {
-                $user->remove_url = route('admin.groups.users.destroy', [
-                    'group' => $group->id,
-                    'user' => $user->id,
-                ]);
-                return $user;
-            });
-
-        $group->search_user_url = route('admin.groups.users.search', $group->id);
-        $group->add_user_url = route('admin.groups.users.store', ['group' => $group->id, 'user' => '__USER_ID__']);
         $group->update_url = route('admin.groups.update', $group->id);
         $group->destroy_url = route('admin.groups.destroy', $group->id);
         $group->index_url = route('admin.groups.index');
@@ -91,11 +81,6 @@ class GroupController extends Controller
             ], 422);
         }
 
-        if ($group->users()->exists()) {
-            return response()->json([
-                'message' => 'このグループにはユーザーが所属しているため削除できません。',
-            ], 422);
-        }
         $group->delete();
 
         return response()->json([
@@ -103,68 +88,6 @@ class GroupController extends Controller
         ]);
     }
 
-    public function addUser(Group $group, User $user) {
-        // medical_staff のユーザーは追加不可にする
-        if ($user->role && $user->role->name === 'medical_staff') {
-            return response()->json([
-                'message' => '医療機関スタッフはこのグループに追加できません。',
-            ], 422);
-        }
-        // 既に所属しているかチェック
-        if ($group->users()->where('user_id', $user->id)->exists()) {
-            return response()->json([
-                'message' => 'このユーザーは既にグループに所属しています。',
-            ], 422);
-        }
-
-        $group->users()->attach($user->id);
-
-        return response()->json([
-            'message' => 'グループにユーザーを追加しました',
-            'user'    => $user,
-        ]);
-    }
-
-    public function searchAddableUsers(Request $request, Group $group) {
-        $keyword = $request->input('q');
-
-        if (blank($keyword)) {
-            return response()->json([]);
-        }
-
-        $users = User::query()
-            // すでにこのグループに所属しているユーザーを除外する
-            ->whereDoesntHave('groups', function ($q) use ($group) {
-                $q->where('groups.id', $group->id);
-            })
-            // リレーションに 'medical_staff' を持つユーザーを除外
-            ->whereDoesntHave('role', function ($q) {
-                $q->where('name', '!=', 'medical_staff');
-            })
-            // 名前またはメールアドレスで部分一致検索
-            ->where(function ($q) use ($keyword) {
-                $q->where('name', 'like', "%{$keyword}%")
-                ->orWhere('email', 'like', "%{$keyword}%");
-            })
-            ->limit(20) // 候補が多すぎないように絞り込む
-            ->get(['id', 'name', 'email']); // 必要な属性だけ取得
-
-        return response()->json($users);
-    }
-
-    public function removeUser(Group $group, User $user) {
-        // 該当のユーザーがグループに存在するかチェック（任意）
-        if (!$group->users()->where('user_id', $user->id)->exists()) {
-            return response()->json([
-                'message' => 'このユーザーは指定されたグループに所属していません。',
-            ], 404);
-        }
-
-        $group->users()->detach($user->id);
-
-        return response()->json([
-            'message' => 'グループからユーザーを解除しました',
-        ]);
     }
 
 

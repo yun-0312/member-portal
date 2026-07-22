@@ -18,10 +18,6 @@ class Group extends Model
         return $this->belongsTo(GroupCategory::class, 'group_category_id');
     }
 
-    public function users() {
-        return $this->belongsToMany(User::class, 'group_user');
-    }
-
     public function contents() {
         return $this->hasMany(Content::class);
     }

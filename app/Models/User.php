@@ -90,10 +90,6 @@ class User extends Authenticatable
         return $this->hasMany(User::class, 'approved_by');
     }
 
-    public function groups() {
-        return $this->belongsToMany(Group::class, 'group_user');
-    }
-
     public function sendEmailVerificationNotification() {
         $this->notify(new VerifyEmail);
     }

@@ -502,12 +502,6 @@ Route::middleware(['auth:sanctum'])->prefix('admin')->group(function () {
         Route::delete('/{group}', [GroupController::class, 'destroy'])
             ->middleware('permission:group.delete')
             ->name('admin.groups.destroy');
-        Route::get('/{group}/search-addable-users', [GroupController::class, 'searchAddableUsers'])
-            ->name('admin.groups.users.search');
-        Route::post('/{group}/users/{user}', [GroupController::class, 'addUser'])
-            ->name('admin.groups.users.store');
-        Route::delete('/{group}/users/{user}', [GroupController::class, 'removeUser'])
-            ->name('admin.groups.users.destroy');
     });
 
     //GroupCategory

@@ -26,7 +26,6 @@ class DatabaseSeeder extends Seeder
 
             GroupCategorySeeder::class,
             GroupSeeder::class,
-            GroupAssignSeeder::class,
 
             ContentCategorySeeder::class,
             ContentSubcategorySeeder::class,
