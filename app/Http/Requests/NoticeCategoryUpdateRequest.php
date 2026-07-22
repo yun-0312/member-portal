@@ -3,6 +3,8 @@
 namespace App\Http\Requests;
 
 use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Validation\Rule;
+use App\Models\NoticeCategory;
 
 class NoticeCategoryUpdateRequest extends FormRequest
 {
@@ -21,9 +23,12 @@ class NoticeCategoryUpdateRequest extends FormRequest
      */
     public function rules(): array
     {
+        $parameter = collect($this->route()->parameters())->first();
+        $categoryId = $parameter instanceof NoticeCategory ? $parameter->id : $parameter;
+
         return [
             'name' => ['sometimes', 'string', 'max:255'],
-            'slug' => ['sometimes', 'string', 'max:255','unique:notice_categories,slug'],
+            'slug' => ['sometimes', 'string', 'max:255', Rule::unique('notice_categories', 'slug')->ignore($categoryId)],
             'sort_order' => ['sometimes', 'integer'],
         ];
     }

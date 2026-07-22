@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Admin\BaseAdminMasterController;
+use Illuminate\Http\Request;
 use App\Models\ContentSubcategory;
 use App\Http\Requests\ContentSubcategoryStoreRequest;
 use App\Http\Requests\ContentSubcategoryUpdateRequest;
@@ -18,6 +19,15 @@ class ContentSubcategoryController extends BaseAdminMasterController
     protected string $sortColumn = 'sort_order';
 
     protected array $extraRelations = ['category'];
+
+    protected function beforeStore(array $validated, Request $request): array {
+        // sort_order が未入力なら自動採番
+        if (empty($validated['sort_order'])) {
+            $validated['sort_order'] = ContentSubcategory::getNextAvailableSortOrder();
+        }
+
+        return $validated;
+    }
 
     //削除時の制約チェックのためdestroyオーバーライド
     public function destroy($id) {

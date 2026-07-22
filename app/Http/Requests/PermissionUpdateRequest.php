@@ -3,6 +3,8 @@
 namespace App\Http\Requests;
 
 use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Validation\Rule;
+use App\Models\Permission;
 
 class PermissionUpdateRequest extends FormRequest
 {
@@ -21,8 +23,10 @@ class PermissionUpdateRequest extends FormRequest
      */
     public function rules(): array
     {
+        $parameter = collect($this->route()->parameters())->first();
+        $categoryId = $parameter instanceof Permission ? $parameter->id : $parameter;
         return [
-            'name' => ['required', 'string', 'max:255', 'unique:permissions,name'],
+            'name' => ['required', 'string', 'max:255', Rule::unique('permissions', 'name')->ignore($categoryId)],
         ];
     }
 }

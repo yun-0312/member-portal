@@ -4,6 +4,7 @@ namespace App\Http\Requests;
 
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
+use App\Models\ContentCategory;
 
 class ContentCategoryUpdateRequest extends FormRequest
 {
@@ -22,7 +23,8 @@ class ContentCategoryUpdateRequest extends FormRequest
      */
     public function rules(): array
     {
-        $categoryId = $this->route('content_category') ?? $this->route('id');
+        $category = $this->route('content_category') ?? $this->route('category') ?? $this->route('id');
+        $categoryId = $category instanceof ContentCategory ? $category->id : $category;
 
         return [
             'name' => ['sometimes', 'string', 'max:255'],

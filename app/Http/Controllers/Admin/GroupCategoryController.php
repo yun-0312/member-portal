@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Admin\BaseAdminMasterController;
+use Illuminate\Http\Request;
 use Illuminate\Http\JsonResponse;
 use App\Models\GroupCategory;
 use App\Http\Requests\GroupCategoryStoreRequest;
@@ -19,6 +20,15 @@ class GroupCategoryController extends BaseAdminMasterController
     protected string $sortColumn = 'sort_order';
 
     protected array $extraRelations = ['groups'];
+
+    protected function beforeStore(array $validated, Request $request): array {
+        // sort_order が未入力なら自動採番
+        if (empty($validated['sort_order'])) {
+            $validated['sort_order'] = GroupCategory::getNextAvailableSortOrder();
+        }
+
+        return $validated;
+    }
 
     //URL追加のためオーバーライド
     public function show($id): JsonResponse {
@@ -55,10 +65,7 @@ class GroupCategoryController extends BaseAdminMasterController
         $category->delete();
 
         return response()->json([
-            'category' => $category,
-            'index_url' => route("admin.{$this->routePrefix}.index"),
-            'update_url' => route("admin.{$this->routePrefix}.update", $category->id),
-            'destroy_url' => route("admin.{$this->routePrefix}.destroy", $category->id),
+            'message' => 'サブカテゴリを削除しました',
         ]);
     }
 }

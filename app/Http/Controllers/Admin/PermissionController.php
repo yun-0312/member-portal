@@ -2,29 +2,31 @@
 
 namespace App\Http\Controllers\Admin;
 
-use App\Http\Controllers\Controller;
+use App\Http\Controllers\Admin\BaseAdminMasterController;
 use App\Models\Permission;
 use App\Http\Requests\PermissionStoreRequest;
 use App\Http\Requests\PermissionUpdateRequest;
 
-class PermissionController extends Controller
+class PermissionController extends BaseAdminMasterController
 {
-    public function index() {
-        $permissions = Permission::with('roles')->orderBy('id')->get();
+    protected string $modelClass = Permission::class;
+    protected string $routePrefix = 'permissions';
 
-        $permissions->transform(function ($permission) {
-            $permission->show_url = route('admin.permissions.show', $permission->id);
-            return $permission;
-        });
+    protected string $storeRequestClass = PermissionStoreRequest::class;
+    protected string $updateRequestClass = PermissionUpdateRequest::class;
 
-        return response()->json([
-            'data' => $permissions,
-            'store_url' => route('admin.permissions.store'),
-        ]);
-    }
+    protected string $sortColumn = 'id';
 
-    public function show(Permission $permission) {
-        $permission->load('roles');
+    protected array $extraRelations = ['roles'];
+
+
+    //URLを追加するためオーバーライド
+    public function show($id) {
+        $permission = $this->findModel($id);
+
+        if (!empty($this->extraRelations)) {
+            $permission->load($this->extraRelations);
+        }
 
         return response()->json([
             'permission' => [
@@ -46,29 +48,10 @@ class PermissionController extends Controller
         ]);
     }
 
-    public function store(PermissionStoreRequest $request) {
-        $validated = $request->validated();
+    //削除時の制約チェックのためオーバーライド
+    public function destroy($id) {
+        $permission = $this->findModel($id);
 
-        $permission = Permission::create($validated);
-
-        return response()->json([
-            'message' => 'パーミッションを登録しました',
-            'permission' => $permission,
-        ]);
-    }
-
-    public function update(PermissionUpdateRequest $request, Permission $permission) {
-        $validated = $request->validated();
-
-        $permission->update($validated);
-
-        return response()->json([
-            'message' => 'パーミッションを更新しました',
-            'permission' => $permission,
-        ]);
-    }
-
-    public function destroy(Permission $permission) {
         if ($permission->roles()->exists()) {
             return response()->json([
                 'message' => 'このパーミッションは使用中のため削除できません。',

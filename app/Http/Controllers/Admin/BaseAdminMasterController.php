@@ -81,12 +81,19 @@ class BaseAdminMasterController extends Controller
     public function store(Request $request) {
         $validated = $this->validateRequest($request, $this->storeRequestClass);
 
+        // 保存直前のフック処理
+        $validated = $this->beforeStore($validated, $request);
+
         $item = $this->newModel()->create($validated);
 
         return response()->json([
             'message' => '登録しました',
             'item' => $item,
         ], 201);
+    }
+
+    protected function beforeStore(array $validated, Request $request): array {
+        return $validated;
     }
 
     public function update(Request $request, $id) {

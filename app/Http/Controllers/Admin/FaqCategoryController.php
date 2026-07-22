@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Admin\BaseAdminMasterController;
+use Illuminate\Http\Request;
 use App\Models\FaqCategory;
 use App\Http\Requests\FaqCategoryStoreRequest;
 use App\Http\Requests\FaqCategoryUpdateRequest;
@@ -17,6 +18,14 @@ class FaqCategoryController extends BaseAdminMasterController
 
     protected string $sortColumn = 'sort_order';
 
+    protected function beforeStore(array $validated, Request $request): array {
+        // sort_order が未入力なら自動採番
+        if (empty($validated['sort_order'])) {
+            $validated['sort_order'] = FaqCategory::getNextAvailableSortOrder();
+        }
+
+        return $validated;
+    }
 
     //削除時の制約チェックのためオーバーライド
     public function destroy($id) {

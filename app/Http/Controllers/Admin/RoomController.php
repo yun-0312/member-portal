@@ -2,63 +2,35 @@
 
 namespace App\Http\Controllers\Admin;
 
-use App\Http\Controllers\Controller;
+use App\Http\Controllers\Admin\BaseAdminMasterController;
+use Illuminate\Http\Request;
 use App\Models\Room;
 use App\Http\Requests\RoomStoreRequest;
 use App\Http\Requests\RoomUpdateRequest;
 
-class RoomController extends Controller
+class RoomController extends BaseAdminMasterController
 {
-    public function index() {
-        $rooms = Room::orderBy('sort_order')->get();
+    protected string $modelClass = Room::class;
+    protected string $routePrefix = 'rooms';
 
-        $rooms->transform(function ($room) {
-            $room->show_url = route('admin.rooms.show', $room->id);
-            return $room;
-        });
+    protected string $storeRequestClass = RoomStoreRequest::class;
+    protected string $updateRequestClass = RoomUpdateRequest::class;
 
-        return response()->json([
-            'data' => $rooms,
-            'store_url' => route('admin.rooms.store'),
-        ]);
+    protected string $sortColumn = 'sort_order';
+
+    protected function beforeStore(array $validated, Request $request): array {
+        // sort_order が未入力なら自動採番
+        if (empty($validated['sort_order'])) {
+            $validated['sort_order'] = Room::getNextAvailableSortOrder();
+        }
+
+        return $validated;
     }
 
-    public function show(Room $room) {
-        return response()->json([
-            'room' => [
-                'id' => $room->id,
-                'name' => $room->name,
-                'sort_order' => $room->sort_order,
-                'update_url' => route('admin.rooms.update', $room->id),
-                'destroy_url' => route('admin.rooms.destroy', $room->id),
-                'index_url' => route('admin.rooms.index'),
-            ],
-        ]);
-    }
+    //削除時の制約チェックのためオーバーライド
+    public function destroy($id) {
+        $room = $this->findModel($id);
 
-    public function store(RoomStoreRequest $request) {
-        $validated = $request->validated();
-
-        $room = Room::create($validated);
-
-        return response()->json([
-            'message' => '会議室を登録しました',
-            'room' => $room,
-        ]);
-    }
-
-    public function update(RoomUpdateRequest $request, Room $room) {
-        $validated = $request->validated();
-
-        $room->update($validated);
-
-        return response()->json([
-            'message' => '会議室を更新しました',
-            'room' => $room,
-        ]);
-    }
-
-    public function destroy(Room $room) {
         if ($room->schedules()->exists()) {
             return response()->json([
                 'message' => 'この会議室にはスケジュールが存在するため削除できません。',

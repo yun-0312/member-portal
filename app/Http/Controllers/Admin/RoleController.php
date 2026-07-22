@@ -2,28 +2,24 @@
 
 namespace App\Http\Controllers\Admin;
 
-use App\Http\Controllers\Controller;
+use App\Http\Controllers\Admin\BaseAdminMasterController;
 use App\Models\Role;
 use App\Http\Requests\RoleStoreRequest;
 use App\Http\Requests\RoleUpdateRequest;
 
-class RoleController extends Controller
+class RoleController extends BaseAdminMasterController
 {
-    public function index() {
-        $roles = Role::orderBy('id')->get();
+    protected string $modelClass = Role::class;
+    protected string $routePrefix = 'roles';
 
-        $roles->transform(function ($role) {
-            $role->show_url = route('admin.roles.show', $role->id);
-            return $role;
-        });
+    protected string $storeRequestClass = RoleStoreRequest::class;
+    protected string $updateRequestClass = RoleUpdateRequest::class;
 
-        return response()->json([
-            'data' => $roles,
-            'store_url' => route('admin.roles.store'),
-        ]);
-    }
+    protected string $sortColumn = 'id';
 
-    public function show(Role $role) {
+        //URLとpermissionを追加するためオーバーライド
+    public function show($id) {
+        $role = $this->findModel($id);
         $role->load('permissions');
 
         return response()->json([
@@ -49,30 +45,10 @@ class RoleController extends Controller
         ]);
     }
 
+    //削除時の制約チェックのためオーバーライド
+    public function destroy($id) {
+        $role = $this->findModel($id);
 
-    public function store(RoleStoreRequest $request) {
-        $validated = $request->validated();
-
-        $role = Role::create($validated);
-
-        return response()->json([
-            'message' => 'ロールを作成しました',
-            'role' => $role,
-        ], 201);
-    }
-
-    public function update(RoleUpdateRequest $request, Role $role) {
-        $validated = $request->validated();
-
-        $role->update($validated);
-
-        return response()->json([
-            'message' => 'ロールを更新しました',
-            'role' => $role,
-        ]);
-    }
-
-    public function destroy(Role $role) {
         if ($role->users()->exists()) {
             return response()->json([
                 'message' => 'このロールは使用中のため削除できません。',

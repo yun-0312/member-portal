@@ -25,7 +25,7 @@ class ContentCategoryStoreRequest extends FormRequest
         return [
             'name' => ['required', 'string', 'max:255'],
             'slug' => ['required', 'string', 'max:255', 'unique:content_categories,slug'],
-            'sort_order' => ['required', 'integer'],
+            'sort_order' => ['nullable', 'integer'],
         ];
     }
 }

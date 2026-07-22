@@ -20,6 +20,15 @@ class ContentCategoryController extends BaseAdminMasterController
 
     protected array $extraRelations = ['subcategories','roles'];
 
+    protected function beforeStore(array $validated, Request $request): array {
+        // sort_order が未入力なら自動採番
+        if (empty($validated['sort_order'])) {
+            $validated['sort_order'] = ContentCategory::getNextAvailableSortOrder();
+        }
+
+        return $validated;
+    }
+
     //subCategoryを表示するためオーバーライド
     public function index(Request $request) {
         $query = $this->newModel()->query();

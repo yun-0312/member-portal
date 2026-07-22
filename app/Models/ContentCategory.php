@@ -5,10 +5,11 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use App\Traits\VisibleToScope;
+use App\Traits\HasAvailableSortOrder;
 
 class ContentCategory extends Model
 {
-    use HasFactory, VisibleToScope;
+    use HasFactory, VisibleToScope, HasAvailableSortOrder;
 
     public $timestamps = false;
 

@@ -3,6 +3,8 @@
 namespace App\Http\Requests;
 
 use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Validation\Rule;
+use App\Models\ScheduleCategory;
 
 class ScheduleCategoryUpdateRequest extends FormRequest
 {
@@ -21,9 +23,12 @@ class ScheduleCategoryUpdateRequest extends FormRequest
      */
     public function rules(): array
     {
+        $parameter = collect($this->route()->parameters())->first();
+        $categoryId = $parameter instanceof ScheduleCategory ? $parameter->id : $parameter;
+
         return [
             'name' => ['sometimes', 'string', 'max:255'],
-            'slug' => ['sometimes', 'string', 'max:255','unique:schedule_categories,slug'],
+            'slug' => ['sometimes', 'string', 'max:255',Rule::unique('schedule_categories', 'slug')->ignore($categoryId)],
         ];
     }
 }

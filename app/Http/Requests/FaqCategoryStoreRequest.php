@@ -23,7 +23,7 @@ class FaqCategoryStoreRequest extends FormRequest
     {
         return [
             'name' => ['required', 'string', 'max:255'],
-            'sort_order' => ['required', 'integer'],
+            'sort_order' => ['nullable', 'integer'],
         ];
     }
 }

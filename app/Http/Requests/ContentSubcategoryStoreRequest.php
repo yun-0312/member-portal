@@ -24,7 +24,7 @@ class ContentSubcategoryStoreRequest extends FormRequest
         return [
             'category_id' => ['required', 'exists:content_categories,id'],
             'name' => ['required', 'string', 'max:255'],
-            'sort_order' => ['required', 'integer'],
+            'sort_order' => ['nullable', 'integer'],
         ];
     }
 }

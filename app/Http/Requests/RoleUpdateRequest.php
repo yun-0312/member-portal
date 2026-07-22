@@ -3,6 +3,8 @@
 namespace App\Http\Requests;
 
 use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Validation\Rule;
+use App\Models\Role;
 
 class RoleUpdateRequest extends FormRequest
 {
@@ -21,8 +23,11 @@ class RoleUpdateRequest extends FormRequest
      */
     public function rules(): array
     {
+        $parameter = collect($this->route()->parameters())->first();
+        $categoryId = $parameter instanceof Role ? $parameter->id : $parameter;
+
         return [
-            'name' => ['required', 'string', 'max:255', 'unique:roles,name'],
+            'name' => ['required', 'string', 'max:255', Rule::unique('roles', 'name')->ignore($categoryId)],
         ];
     }
 }

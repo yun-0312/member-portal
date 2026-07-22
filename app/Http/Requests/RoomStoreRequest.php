@@ -22,8 +22,8 @@ class RoomStoreRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'name' => ['required', 'string', 'max:255'],
-            'sort_order' => ['required', 'integer'],
+            'name' => ['required', 'string', 'max:255', 'unique:rooms,name'],
+            'sort_order' => ['nullable', 'integer'],
         ];
     }
 }
