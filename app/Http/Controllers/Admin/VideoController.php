@@ -10,7 +10,7 @@ use App\Http\Requests\VideoUpdateRequest;
 class VideoController extends BaseAdminContentController
 {
     protected array $indexExtraRelations = ['files'];
-    protected array $showExtraRelations = ['files'];
+    protected array $showExtraRelations = ['files', 'creator'];
     protected string $modelClass = Video::class;
     protected string $routePrefix = 'videos';
 

@@ -26,7 +26,7 @@ class ContentStoreRequest extends FormRequest
             'body' => ['nullable', 'string'],
             'category_id' => ['required', 'integer', 'exists:content_categories,id'],
             'subcategory_id' => ['nullable', 'integer', 'exists:content_subcategories,id'],
-            'group_id' => ['nullable', 'integer', 'exists:groups,id'],
+            'meeting_date' => ['nullable', 'date'],
             'published_at' => ['required', 'date'],
 
             'file' => ['nullable', 'array'],

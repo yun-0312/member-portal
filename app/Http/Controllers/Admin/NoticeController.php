@@ -9,7 +9,8 @@ use App\Http\Requests\NoticeUpdateRequest;
 
 class NoticeController extends BaseAdminContentController
 {
-    protected array $extraRelations = ['category'];
+    protected array $indexExtraRelations = ['category', 'files', 'roles'];
+    protected array $showExtraRelations = ['category', 'files', 'roles'];
 
     protected string $modelClass = Notice::class;
     protected string $routePrefix = 'notices';

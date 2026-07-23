@@ -27,6 +27,7 @@ class ContentUpdateRequest extends FormRequest
             'category_id' => ['sometimes', 'integer', 'exists:content_categories,id'],
             'group_id' => ['sometimes', 'integer', 'exists:groups,id'],
             'subcategory_id' => ['nullable', 'exists:content_subcategories,id'],
+            'meeting_date' => ['nullable', 'date'],
             'published_at' => ['sometimes', 'date'],
 
             'file' => ['nullable', 'array'],

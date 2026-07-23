@@ -25,7 +25,6 @@ class FaqStoreRequest extends FormRequest
             'question' => ['required', 'string', 'max:255'],
             'answer' => ['required', 'string', 'max:255'],
             'category_id' => ['required', 'exists:faq_categories,id'],
-            'created_at' => ['required', 'date'],
         ];
     }
 }

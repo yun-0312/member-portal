@@ -25,7 +25,6 @@ class FaqUpdateRequest extends FormRequest
             'question' => ['sometimes', 'string', 'max:255'],
             'answer' => ['sometimes', 'string', 'max:255'],
             'category_id' => ['sometimes', 'exists:faq_categories,id'],
-            'created_at' => ['sometimes', 'date'],
         ];
     }
 }
