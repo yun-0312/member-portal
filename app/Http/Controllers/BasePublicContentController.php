@@ -5,10 +5,13 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use App\Services\FileService;
 use Illuminate\Database\Eloquent\Model;
+use App\Traits\ContentSearchTrait;
 
 
 class BasePublicContentController extends Controller
 {
+    use ContentSearchTrait;
+
     protected string $modelClass;
     protected string $routePrefix;
     protected FileService $fileService;
@@ -30,10 +33,17 @@ class BasePublicContentController extends Controller
         return $this->newModel()->findOrFail($item);
     }
 
+    protected function search(Request $request) {
+        return $this->applyContentSearch($request);
+    }
+
     public function index(Request $request) {
         $query = $this->search($request);
 
+        $relations = array_merge(['roles'], $this->extraRelations);
+
         $items = $query
+            ->with($relations)
             ->published()
             ->visibleTo($request->user())
             ->latest('published_at')
@@ -48,6 +58,8 @@ class BasePublicContentController extends Controller
 
     public function show($id) {
         $item = $this->findModel($id);
+
+        $this->authorize('view', $item);
 
         $item->load(array_merge(['files', 'roles'], $this->extraRelations));
 

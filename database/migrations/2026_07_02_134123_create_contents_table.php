@@ -15,7 +15,6 @@ return new class extends Migration
             $table->id();
             $table->foreignId('category_id')->constrained('content_categories');
             $table->foreignId('subcategory_id')->nullable()->constrained('content_subcategories');
-            $table->foreignId('group_id')->nullable()->constrained('groups')->nullOnDelete();
             $table->string('title');
             $table->text('body')->nullable();
             $table->date('meeting_date')->nullable();

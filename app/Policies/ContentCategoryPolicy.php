@@ -12,8 +12,33 @@ class ContentCategoryPolicy
     /**
      * Create a new policy instance.
      */
-    public function view(User $user, ContentCategory $category)
+
+    public function viewAny(?User $user): bool
     {
-        return $this->hasRoleAccess($category->roles, $user->role_id);
+        return true;
+    }
+
+    public function view(User $user, ContentCategory $contentCategory): bool
+    {
+        if (in_array(optional($user->role)->name, ['admin', 'staff'], true)) {
+            return true;
+        }
+
+        return $this->hasRoleAccess($contentCategory->roles, $user->role_id);
+    }
+
+    public function create(User $user): bool
+    {
+        return false;
+    }
+
+    public function update(User $user, ContentCategory $contentCategory): bool
+    {
+        return false;
+    }
+
+    public function delete(User $user, ContentCategory $contentCategory): bool
+    {
+        return false;
     }
 }

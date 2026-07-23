@@ -19,7 +19,6 @@ class Content extends Model
     protected $fillable = [
         'category_id',
         'subcategory_id',
-        'group_id',
         'title',
         'body',
         'published_at',

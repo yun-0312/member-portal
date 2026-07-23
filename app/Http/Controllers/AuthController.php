@@ -71,4 +71,13 @@ class AuthController extends Controller
             'user' => $user,
         ], 201);
     }
+
+    public function medicalInstitutions() {
+        // id と name だけを取得して返却
+        $institutions = MedicalInstitution::select('id', 'name')->get();
+
+        return response()->json([
+            'data' => $institutions
+        ]);
+    }
 }

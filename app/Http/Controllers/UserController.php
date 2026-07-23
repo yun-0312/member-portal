@@ -6,6 +6,7 @@ use App\Models\User;
 use App\Enums\UserStatus;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
+use App\Notifications\UserApprovedNotification;
 
 class UserController extends Controller
 {
@@ -19,19 +20,25 @@ class UserController extends Controller
 
         $retireUrl = null;
         $retiredMessage = null;
-        $usersUrl = null;
+        $usersUrl = route('medical-institutions.users', $user->medical_institution_id);
+
+        $authRoleName = optional($authUser->role)->name;
+        $targetRoleName = optional($user->role)->name;
+
+        $isRetired = ($user->status === UserStatus::Retired || $user->status === UserStatus::Retired->value);
+
+        if ($isRetired) {
+            $retiredMessage = 'このスタッフは退職済みです';
+        }
 
         if (
-            in_array($authUser->role->name, ['director', 'member']) &&
+            in_array($authRoleName, ['director', 'member'], true) &&
+            $authUser->medical_institution_id !== null &&
             $authUser->medical_institution_id === $user->medical_institution_id
         ) {
-            $usersUrl = route('medical-institutions.users', $authUser->medical_institution_id);
-
             // 退職済みかどうか
-            if ($user->role->name === 'medical_staff') {
-                if ($user->status === UserStatus::Retired->value) {
-                    $retiredMessage = 'このスタッフは退職済みです';
-                } else {
+            if ($targetRoleName === 'medical_staff') {
+                if (!$isRetired) {
                     $retireUrl = route('users.retire', $user->id);
                 }
             }
@@ -45,7 +52,50 @@ class UserController extends Controller
         ]);
     }
 
+
+
+    public function approve(User $user) {
+        $this->authorize('approve', $user);
+
+        $user->update([
+            'approved_at' => now(),
+            'approved_by' => auth()->id(),
+            'status' => UserStatus::Active,
+        ]);
+
+         // 承認完了メールを送る
+        $user->notify(new UserApprovedNotification());
+
+        return response()->json([
+            'message' => 'ユーザーを承認しました',
+            'user' => $user,
+        ]);
+    }
+
+    public function reject(User $user) {
+        $this->authorize('reject', $user);
+
+        if ($user->status === UserStatus::Active) {
+            return response()->json([
+                'message' => '承認済みユーザーは却下できません',
+            ], 422);
+        }
+
+        $user->update([
+            'approved_at' => null,
+            'approved_by' => null,
+            'status' => UserStatus::Rejected,
+        ]);
+
+        return response()->json([
+            'message' => 'ユーザーを却下しました',
+            'user' => $user,
+        ]);
+    }
+
     public function retire(User $user) {
+        $this->authorize('retire', $user);
+
         if (auth()->id() === $user->id) {
             return response()->json([
                 'message' => '自分を退職扱いにすることはできません',
@@ -69,6 +119,8 @@ class UserController extends Controller
     }
 
     public function changePassword(Request $request) {
+        $this->authorize('update', $request->user());
+
         $request->validate([
             'current_password' => 'required',
             'new_password' => 'required|min:8|confirmed',

@@ -4,14 +4,30 @@ namespace App\Policies;
 
 use App\Models\User;
 use App\Models\Content;
+use App\Traits\CheckRoleAccess;
 
 class ContentPolicy
 {
-    //カテゴリごとの閲覧権限（target_roles)
+    use CheckRoleAccess;
+    protected function isStaffOrAdmin(User $user): bool
+    {
+        $roleName = optional($user->role)->name;
+
+        return in_array($roleName, ['admin', 'staff'], true);
+    }
+
+    public function viewAny(User $user): bool
+    {
+        return $this->isStaffOrAdmin($user);
+    }
+
     public function view(User $user, Content $content)
     {
-        $roleId = $user->role_id;
+        if ($this->isStaffOrAdmin($user)) {
+            return true;
+        }
 
+        $roleId = $user->role_id;
         $contentRoles = $content->roles;
         $categoryRoles = optional($content->category)->roles;
 
@@ -20,10 +36,25 @@ class ContentPolicy
             return $contentRoles->contains('id', $roleId);
         }
 
-        if ($categoryRoles && $categoryRoles->isNotEmpty) {
+        if ($categoryRoles && $categoryRoles->isNotEmpty()) {
             return $categoryRoles->contains('id', $roleId);
         }
 
         return true;
+    }
+
+    public function create(User $user): bool
+    {
+        return $this->isStaffOrAdmin($user);
+    }
+
+    public function update(User $user, Content $content): bool
+    {
+        return $this->isStaffOrAdmin($user);
+    }
+
+    public function delete(User $user, Content $content): bool
+    {
+        return $this->isStaffOrAdmin($user);
     }
 }

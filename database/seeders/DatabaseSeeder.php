@@ -24,9 +24,6 @@ class DatabaseSeeder extends Seeder
             UserSeeder::class,
             UserInstitutionAssignSeeder::class,
 
-            GroupCategorySeeder::class,
-            GroupSeeder::class,
-
             ContentCategorySeeder::class,
             ContentSubcategorySeeder::class,
             ContentSeeder::class,

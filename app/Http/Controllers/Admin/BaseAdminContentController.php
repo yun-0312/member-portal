@@ -7,23 +7,33 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Http\Request;
 use App\Services\FileService;
 use Illuminate\Database\Eloquent\Model;
+use App\Traits\ContentSearchTrait;
 
 class BaseAdminContentController extends Controller
 {
-    protected string $modelClass;
-    protected string $routePrefix;
-    protected string $storeRequestClass = Request::class;
-    protected string $updateRequestClass = Request::class;
-    protected array $extraRelations = [];
-    protected FileService $fileService;
+    use ContentSearchTrait;
 
-    public function __construct(FileService $fileService) {
-        $this->fileService = $fileService;
-    }
+    //モデル読み込み用
+    protected string $modelClass;
 
     protected function newModel() {
         return new $this->modelClass;
     }
+
+    protected function findModel($item): Model {
+        if ($item instanceof Model) {
+            return $item;
+        }
+
+        return $this->newModel()->findOrFail($item);
+    }
+
+    protected string $routePrefix;
+    protected string $publishedDateColumn = 'published_at';
+
+    //Request読み込み用
+    protected string $storeRequestClass = Request::class;
+    protected string $updateRequestClass = Request::class;
 
     protected function validateRequest(Request $request, string $requestClass): array {
         if ($requestClass === Request::class) {
@@ -35,21 +45,30 @@ class BaseAdminContentController extends Controller
         return $formRequest->validated();
     }
 
-    protected function findModel($item): Model {
-        if ($item instanceof Model) {
-            return $item;
-        }
+    //ファイルがあるコンテンツ用
+    protected FileService $fileService;
 
-        return $this->newModel()->findOrFail($item);
+    public function __construct(FileService $fileService) {
+        $this->fileService = $fileService;
     }
 
+    //index、showのリレーション設定
+    protected array $indexExtraRelations = [];
+    protected array $showExtraRelations = [];
+
+    protected function search(Request $request) {
+        return $this->applyContentSearch($request);
+    }
+
+
     public function index(Request $request) {
+        $this->authorize('viewAny', $this->modelClass);
         $query = $this->search($request);
 
         $items = $query
-            ->visibleTo($request->user())
-            ->latest('published_at')
-            ->paginate(10)
+            ->when(!empty($this->indexExtraRelations), fn($q) => $q->with($this->indexExtraRelations))
+            ->latest($this->publishedDateColumn)
+            ->paginate(15)
             ->through(function ($item) {
                 $item->show_url = route("admin.{$this->routePrefix}.show", $item->id);
                 return $item;
@@ -63,8 +82,11 @@ class BaseAdminContentController extends Controller
 
     public function show($id) {
         $item = $this->findModel($id);
+        $this->authorize('view', $item);
 
-        $item->load(array_merge(['files', 'roles', 'creator'], $this->extraRelations));
+        if (!empty($this->showExtraRelations)) {
+            $item->load($this->showExtraRelations);
+        }
 
         return response()->json([
             'item' => $item,
@@ -75,6 +97,8 @@ class BaseAdminContentController extends Controller
     }
 
     public function store(Request $request) {
+        $this->authorize('create', $this->modelClass);
+
         $validated = $this->validateRequest($request, $this->storeRequestClass);
         $item = DB::transaction(function () use ($request, $validated) {
 
@@ -91,22 +115,32 @@ class BaseAdminContentController extends Controller
                 );
             }
 
-            if ($request->filled('roles')) {
+            // roles リレーションが存在して、リクエストに含まれている場合のみ sync
+            if (method_exists($item, 'roles') && $request->has('roles')) {
                 $item->roles()->sync($request->roles ?? []);
             }
 
             return $item;
         });
 
+        // 保存後にレスポンスで返したいリレーションも showExtraRelations を活用
+        if (!empty($this->showExtraRelations)) {
+            $item->load($this->showExtraRelations);
+        }
+
         return response()->json([
             'message' => '登録しました',
-            'item' => $item->load('files', 'roles'),
+            'item' => $item,
         ], 201);
     }
 
     public function update(Request $request, $id) {
         $item = $this->findModel($id);
+
+        $this->authorize('update', $item);
+
         $validated = $this->validateRequest($request, $this->updateRequestClass);
+
         DB::transaction(function () use ($request, $item, $validated) {
             $item->update($validated);
 
@@ -124,26 +158,35 @@ class BaseAdminContentController extends Controller
                 );
             }
 
-            if ($request->has('roles')) {
+            if (method_exists($item, 'roles') && $request->has('roles')) {
                 $item->roles()->sync($request->roles ?? []);
             }
         });
 
+        $item->refresh();
+        if (!empty($this->showExtraRelations)) {
+            $item->load($this->showExtraRelations);
+        }
+
         return response()->json([
             'message' => '更新しました',
-            'item' => $item->refresh()->load('files', 'roles'),
+            'item' => $item,
         ]);
     }
 
     public function destroy($id) {
         $item = $this->findModel($id);
+        $this->authorize('delete', $item);
 
         DB::transaction(function () use ($item) {
-            $item->load('files');
+            if (method_exists($item, 'files')) {
+                $item->load('files');
+                $item->files->each(fn($file) => $this->fileService->delete($file));
+            }
 
-            $item->files->each(fn($file) => $this->fileService->delete($file));
-
-            $item->roles()->detach();
+            if (method_exists($item, 'roles')) {
+                $item->roles()->detach();
+            }
 
             $item->delete();
         });

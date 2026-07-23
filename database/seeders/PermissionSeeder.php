@@ -68,18 +68,11 @@ class PermissionSeeder extends Seeder
             'medical_institution.update',
             'medical_institution.delete',
 
-            //Group管理
-            'group.create',
-            'group.update',
-            'group.delete',
-
             //Category系管理
             'category.create',
             'category.update',
             'category.delete',
 
-            // 編集履歴
-            'history.view',
         ];
 
         foreach ($permissions as $name) {

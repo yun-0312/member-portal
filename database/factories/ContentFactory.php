@@ -21,7 +21,7 @@ class ContentFactory extends Factory
     {
         return [
             'category_id' => ContentCategory::inRandomOrder()->first()->id,
-            'group_id'    => null,
+            'subcategory_id' => null,
             'title'       => $this->faker->sentence(4),
             'body'        => $this->faker->realText(fake()->numberBetween(100, 150)),
             'meeting_date' => null,

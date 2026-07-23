@@ -11,26 +11,30 @@ use App\Models\MedicalInstitution;
 class MedicalInstitutionController extends Controller
 {
     public function index(Request $request) {
+        $this->authorize('view', MedicalInstitution::class);
+
         $query = MedicalInstitution::orderBy('id', 'desc');
         $query = $this->applyFilters($query, $request);
 
-        $institutions = $query->paginate(20);
+        $institutions = $query
+            ->paginate(20)
+            ->through(function ($institution) {
+                $institution->show_url = route('medical-institutions.show', $institution->id);
+                $institution->update_url = route('admin.medical-institutions.update', $institution->id);
+                $institution->destroy_url = route('admin.medical-institutions.destroy', $institution->id);
+                return $institution;
+            })
+            ->toArray();
 
-        $institutions->getCollection()->transform(function ($institution) {
-            $institution->show_url = route('medical-institutions.show', $institution->id);
-            $institution->update_url = route('admin.medical-institutions.update', $institution->id);
-            $institution->destroy_url = route('admin.medical-institutions.destroy', $institution->id);
-            return $institution;
-        });
+        $institutions['store_url'] = route('admin.medical-institutions.store');
+        $institutions['export_url'] = route('admin.medical-institutions.export') . '?' . http_build_query($request->query());
 
-        return response()->json([
-            'data' => $institutions,
-            'store_url' => route('admin.medical-institutions.store'),
-            'export_url' => route('admin.medical-institutions.export') . '?' . http_build_query($request->query()),
-        ]);
+        return response()->json($institutions);
     }
 
     public function store (MedicalInstitutionStoreRequest $request) {
+        $this->authorize('create', MedicalInstitution::class);
+
         $validated = $request->validated();
 
         $institution = MedicalInstitution::create($validated);
@@ -38,7 +42,7 @@ class MedicalInstitutionController extends Controller
         return response()->json([
             'message' => '医療機関を登録しました',
             'institution' => $institution,
-        ]);
+        ], 201);
     }
 
     public function update(MedicalInstitutionUpdateRequest $request, MedicalInstitution $medicalInstitution) {
@@ -55,6 +59,8 @@ class MedicalInstitutionController extends Controller
     }
 
     public function destroy(MedicalInstitution $medicalInstitution) {
+        $this->authorize('delete', $medicalInstitution);
+
         // ユーザーが存在するかチェック
         if ($medicalInstitution->users()->exists()) {
             return response()->json([
@@ -71,6 +77,8 @@ class MedicalInstitutionController extends Controller
     }
 
     public function export(Request $request) {
+        $this->authorize('view', MedicalInstitution::class);
+
         $query = MedicalInstitution::orderBy('id', 'desc');
         $query = $this->applyFilters($query, $request);
 

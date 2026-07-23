@@ -5,43 +5,43 @@ namespace App\Http\Controllers\Admin;
 use App\Enums\UserStatus;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 use App\Models\User;
+use App\Models\Role;
+use App\Models\MedicalInstitution;
 use App\Http\Requests\UserStoreRequest;
 use App\Http\Requests\UserUpdateRequest;
 use Illuminate\Support\Facades\Hash;
 use App\Notifications\UserRegisteredByAdmin;
-use App\Notifications\UserApprovedNotification;
+
 
 class UserController extends Controller
 {
     public function index(Request $request) {
-        $query = User::query()->with(['role', 'medicalInstitution']);
+        $this->authorize('view', User::class);
 
+        $query = User::query()->with(['role', 'medicalInstitution']);
         $query = $this->applyUserFilters($query, $request);
 
         $perPage = $request->input('per_page', 30);
 
-        $users = $query->orderBy('id', 'desc')->paginate($perPage);
+        $users = $query->orderBy('id', 'desc')
+            ->paginate($perPage)
+            ->through(function ($user) {
+                $user->show_url = route('admin.users.show', $user->id);
+                return $user;
+            })
+            ->toArray();
 
-        $users->getCollection()->transform(function ($user) {
-            $user->show_url = route('admin.users.show', $user->id);
-            return $user;
-        });
+        $users['export_url'] = route('admin.users.export') . '?' . http_build_query($request->query());
+        $users['pending_url'] = route('admin.users.pending');
 
-        return response()->json([
-            'data' => $users->items(),
-            'meta' => [
-                'current_page' => $users->currentPage(),
-                'last_page' => $users->lastPage(),
-                'per_page' => $users->perPage(),
-                'total' => $users->total(),
-            ],
-            'export_url' => route('admin.users.export') . '?' . http_build_query($request->query()),
-            'pending_url' => route('admin.users.pending'),
-        ]);
+        return response()->json($users);
     }
 
     public function show(User  $user) {
+        $this->authorize('view', $user);
+
         return response()->json([
             'user' => $user->load(['role', 'medicalInstitution', 'approvedBy']),
             'update_url' => route('admin.users.update', $user->id),
@@ -50,6 +50,8 @@ class UserController extends Controller
     }
 
     public function store(UserStoreRequest $request) {
+        $this->authorize('create', User::class);
+
         $validated = $request->validated();
 
         $validated['password'] = Hash::make($validated['password']);
@@ -69,21 +71,44 @@ class UserController extends Controller
     }
 
     public function update(UserUpdateRequest $request, User $user) {
+        $this->authorize('update', $user);
+
         $validated = $request->validated();
 
         if (isset($validated['password'])) {
             $validated['password'] = Hash::make($validated['password']);
         }
 
-        $user->update($validated);
+        //代理承認の判定
+        if ($request->has('status') && $request->status === UserStatus::Active) {
+            if ($user->status === UserStatus::Pending) {
+                $validated['approved_at'] = now();
+                $validated['approved_by'] = auth()->id();
+            }
+        }
+
+        DB::transaction(function () use ($user, $validated) {
+            $user->update($validated);
+        });
 
         return response()->json([
             'message' => 'ユーザーを更新しました',
-            'user' => $user,
+            'user' => $user->fresh(),
+        ]);
+    }
+
+    public function options() {
+        $this->authorize('view', User::class);
+
+        return response()->json([
+            'roles' => Role::select('id', 'name')->get(),
+            'medical_institutions' => MedicalInstitution::select('id', 'name')->get(),
         ]);
     }
 
     public function destroy(User $user) {
+        $this->authorize('delete', $user);
+
         $user->delete();
 
         return response()->json([
@@ -92,6 +117,8 @@ class UserController extends Controller
     }
 
     public function export(Request $request) {
+        $this->authorize('view', User::class);
+
         $query = User::with(['role', 'medicalInstitution', 'approvedBy']);
 
         $query = $this->applyUserFilters($query, $request);
@@ -135,6 +162,8 @@ class UserController extends Controller
     }
 
     public function pending() {
+        $this->authorize('view', User::class);
+
         $users = User::with(['role', 'medicalInstitution'])
             ->whereNull('approved_at')
             ->whereNull('approved_by')
@@ -143,41 +172,6 @@ class UserController extends Controller
 
         return response()->json([
             'data' => $users,
-        ]);
-    }
-
-    public function approve(User $user) {
-        $user->update([
-            'approved_at' => now(),
-            'approved_by' => auth()->id(),
-            'status' => UserStatus::Active,
-        ]);
-
-         // 承認完了メールを送る
-        $user->notify(new UserApprovedNotification());
-
-        return response()->json([
-            'message' => 'ユーザーを承認しました',
-            'user' => $user,
-        ]);
-    }
-
-    public function reject(User $user) {
-        if ($user->status === UserStatus::Active) {
-            return response()->json([
-                'message' => '承認済みユーザーは却下できません',
-            ], 422);
-        }
-
-        $user->update([
-            'approved_at' => null,
-            'approved_by' => null,
-            'status' => UserStatus::Rejected,
-        ]);
-
-        return response()->json([
-            'message' => 'ユーザーを却下しました',
-            'user' => $user,
         ]);
     }
 
@@ -208,6 +202,5 @@ class UserController extends Controller
 
         return $query;
     }
-
 
 }

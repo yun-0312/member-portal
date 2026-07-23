@@ -54,13 +54,10 @@ class AuthServiceProvider extends ServiceProvider
     public function boot(): void
     {
         Gate::before(function ($user, $ability) {
-            return in_array(
-                optional($user->role)->name,
-                config('auth.super_roles', []),
-                true
-            ) ? true : null;
-        });
+                // システムの最高管理者（admin）のみ無条件で許可
+                return optional($user->role)->name === 'admin' ? true : null;
+            });
 
-        $this->registerPolicies();
+            $this->registerPolicies();
     }
 }

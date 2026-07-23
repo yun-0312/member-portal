@@ -2,81 +2,55 @@
 
 namespace App\Http\Controllers\Admin;
 
-use App\Http\Controllers\Controller;
+use App\Http\Controllers\Admin\BaseAdminContentController;
 use Illuminate\Http\Request;
-use Carbon\Carbon;
-use App\Traits\FaqSearchTrait;
 use App\Models\Faq;
+use App\Models\FaqCategory;
 use App\Http\Requests\FaqStoreRequest;
 use App\Http\Requests\FaqUpdateRequest;
-use App\Models\FaqCategory;
+use Carbon\Carbon;
 
-class FaqController extends Controller
+class FaqController extends BaseAdminContentController
 {
-    use FaqSearchTrait;
+    protected string $modelClass = Faq::class;
+    protected string $routePrefix = 'faqs';
 
+    protected string $storeRequestClass = FaqStoreRequest::class;
+    protected string $updateRequestClass = FaqUpdateRequest::class;
+
+    protected array $indexExtraRelations = ['category'];
+    protected array $showExtraRelations = ['category', 'creator'];
+
+    protected function search(Request $request) {
+        // 共通検索Traitを実行
+        $query = $this->applyContentSearch($request);
+
+        // FAQ特有の「カテゴリの表示順 ➔ 作成日順」ソート
+        return $query->leftJoin('faq_categories', 'faqs.category_id', '=', 'faq_categories.id')
+            ->orderBy('faq_categories.sort_order')
+            ->orderBy('faqs.created_at')
+            ->select('faqs.*');
+    }
+
+    //URL追加のためオーバーライド
     public function index(Request $request) {
-        $faqs = $this->searchFaqs($request);
+        $this->authorize('viewAny', $this->modelClass);
+        $query = $this->search($request);
 
-        $faqs->transform(function ($faq) {
-            $faq->show_url = route('admin.faqs.show', $faq->id);
-            return $faq;
-        });
+        $items = $query
+            ->when(!empty($this->indexExtraRelations), fn($q) => $q->with($this->indexExtraRelations))
+            ->paginate(15)
+            ->through(function ($item) {
+                $item->show_url = route("admin.{$this->routePrefix}.show", $item->id);
+                return $item;
+            })
+            ->toArray();
 
-        return response()->json([
-            'data' => $faqs,
-            'store_url' => route('admin.faqs.store'),
-            'export_url' => route('faqs.export') . '?' . http_build_query($request->query()),
-            'import_url' => route('admin.faqs.import'),
-        ]);
-    }
+        $items['store_url'] = route("admin.{$this->routePrefix}.store");
+        $items['export_url'] = route("{$this->routePrefix}.export") . '?' . http_build_query($request->query());
+        $items['import_url'] = route("admin.{$this->routePrefix}.import");
 
-    public function show(Faq $faq) {
-        $this->authorize('view', $faq);
-
-        return response()->json([
-            'faq' => $faq,
-            'index_url' => route('admin.faqs.index'),
-            'update_url' => route('admin.faqs.update', $faq->id),
-            'delete_url' => route('admin.faqs.destroy', $faq->id),
-        ]);
-    }
-
-    public function store(FaqStoreRequest $request) {
-        $validated = $request->validated();
-
-        $validated['created_by'] = auth()->id();
-
-        $faq = Faq::create($validated);
-
-        if ($request->created_at) {
-            $faq->created_at = $request->created_at;
-            $faq->save();
-        }
-
-        return response()->json([
-            'message' => 'FAQを登録しました',
-            'faq' => $faq,
-        ]);
-    }
-
-    public function update(FaqUpdateRequest $request, Faq $faq) {
-        $validated = $request->validated();
-
-        $faq->update($validated);
-
-        return response()->json([
-            'message' => 'FAQを更新しました',
-            'faq' => $faq,
-        ]);
-    }
-
-    public function destroy(Faq $faq) {
-        $faq->delete();
-
-        return response()->json([
-            'message' => 'FAQを削除しました',
-        ]);
+        return response()->json($items);
     }
 
     public function import(Request $request) {

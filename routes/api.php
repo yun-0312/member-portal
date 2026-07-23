@@ -48,7 +48,10 @@ use App\Http\Controllers\Admin\FileController;
 */
 
 Route::post('/resister-medical-staff', [AuthController::class, 'registerMedicalStaff'])
+    ->middleware('throttle:5,1')
     ->name('auth.register-medical-staff');
+Route::get('/medical-institutions', [AuthController::class, 'medicalInstitutions'])
+    ->name('auth.medical-institutions');
 Route::post('/login', [AuthController::class, 'login'])
     ->name('auth.login');
 Route::post('/logout', [AuthController::class, 'logout'])->middleware('auth:sanctum')
@@ -122,7 +125,7 @@ Route::middleware(['auth:sanctum'])->group(function () {
             ->name('medical-institutions.users');
     });
 
-    // User（閲覧）
+    // User
     Route::prefix('users')->group(function () {
         Route::get('/{user}', [PublicUserController::class, 'show'])
             ->name('users.show');
@@ -130,6 +133,12 @@ Route::middleware(['auth:sanctum'])->group(function () {
             ->middleware('permission_or:user.update,medical_institution.update')
             ->name('users.retire');
         Route::post('/password', [PublicUserController::class, 'changePassword']);
+        Route::post('/{user}/approve', [PublicUserController::class, 'approve'])
+            ->middleware('permission_or:user.update,medical_institution.update')
+            ->name('users.approve');
+        Route::post('/{user}/reject', [PublicUserController::class, 'reject'])
+            ->middleware('permission_or:user.update,medical_institution.update')
+            ->name('users.reject');
     });
 
 });
@@ -334,6 +343,9 @@ Route::middleware(['auth:sanctum'])->prefix('admin')->group(function () {
         Route::get('/export', [AdminUserController::class, 'export'])
             ->middleware('permission:user.update')
             ->name('admin.users.export');
+        Route::get('/options', [AdminUserController::class, 'options'])
+            ->middleware('permission:user.update')
+            ->name('admin.users.options');
         Route::get('/{user}', [AdminUserController::class, 'show'])
             ->middleware('permission:user.update')
             ->name('admin.users.show');
@@ -346,12 +358,7 @@ Route::middleware(['auth:sanctum'])->prefix('admin')->group(function () {
         Route::delete('/{user}', [AdminUserController::class, 'destroy'])
             ->middleware('permission:user.delete')
             ->name('admin.users.destroy');
-        Route::post('/{user}/approve', [AdminUserController::class, 'approve'])
-            ->middleware('permission_or:user.update,medical_institution.update')
-            ->name('admin.users.approve');
-        Route::post('/{user}/reject', [AdminUserController::class, 'reject'])
-            ->middleware('permission_or:user.update,medical_institution.update')
-            ->name('admin.users.reject');
+
 
     });
 
@@ -484,43 +491,6 @@ Route::middleware(['auth:sanctum'])->prefix('admin')->group(function () {
         Route::delete('/{subcategory}', [ContentSubcategoryController::class, 'destroy'])
             ->middleware('permission:category.delete')
             ->name('admin.content-subcategories.destroy');
-    });
-
-    //Group
-    Route::prefix('groups')->group(function () {
-        Route::get('/', [GroupController::class, 'index'])
-            ->name('admin.groups.index');
-        Route::get('/{group}', [GroupController::class, 'show'])
-            ->middleware('permission:group.update')
-            ->name('admin.groups.show');
-        Route::post('/', [GroupController::class, 'store'])
-            ->middleware('permission:group.create')
-            ->name('admin.groups.store');
-        Route::put('/{group}', [GroupController::class, 'update'])
-            ->middleware('permission:group.update')
-            ->name('admin.groups.update');
-        Route::delete('/{group}', [GroupController::class, 'destroy'])
-            ->middleware('permission:group.delete')
-            ->name('admin.groups.destroy');
-    });
-
-    //GroupCategory
-    Route::prefix('group-categories')->group(function () {
-        Route::get('/', [GroupCategoryController::class, 'index'])
-            ->middleware('permission:category.update')
-            ->name('admin.group-categories.index');
-        Route::get('/{category}', [GroupCategoryController::class, 'show'])
-            ->middleware('permission:category.update')
-            ->name('admin.group-categories.show');
-        Route::post('/', [GroupCategoryController::class, 'store'])
-            ->middleware('permission:category.create')
-            ->name('admin.group-categories.store');
-        Route::put('/{category}', [GroupCategoryController::class, 'update'])
-            ->middleware('permission:category.update')
-            ->name('admin.group-categories.update');
-        Route::delete('/{category}', [GroupCategoryController::class, 'destroy'])
-            ->middleware('permission:category.delete')
-            ->name('admin.group-categories.destroy');
     });
 
     //file

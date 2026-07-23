@@ -9,18 +9,20 @@ class MedicalInstitutionPolicy
 {
     protected function isSameInstitution(User $user, MedicalInstitution $institution): bool
     {
-        return $user->medical_institution_id === $institution->id;
+        return $user->medical_institution_id !== null
+            && $user->medical_institution_id === $institution->id;
     }
 
-    protected function role(User $user): ?string
-    {
-        return optional($user->role)->name;
-    }
+    public function view(User $user, MedicalInstitution $institution):bool {
+        $roleName = optional($user->role)->name;
 
-    public function view(User $user, MedicalInstitution $institution)
-    {
+        //staffは全医療機関閲覧可
+        if ($roleName === 'staff') {
+            return true;
+        }
+
         //directorとmemberは自分の医療機関のみ閲覧可
-        if (in_array($this->role($user), ['member', 'director'], true)) {
+        if (in_array($roleName, ['member', 'director'], true)) {
             return $this->isSameInstitution($user, $institution);
         }
 
@@ -28,14 +30,19 @@ class MedicalInstitutionPolicy
         return false;
     }
 
+    public function create(User $user)
+    {
+        return false;
+    }
+
     public function update(User $user, MedicalInstitution $institution)
     {
         // member / director は自分の医療機関のみ編集可
-        if (in_array($this->role($user), ['member', 'director'], true)) {
+        if (in_array( optional($user->role)->name, ['member', 'director'], true)) {
             return $this->isSameInstitution($user, $institution);
         }
 
-        // medical_staff 不可
+        // staff、medical_staff 不可
         return false;
     }
 
