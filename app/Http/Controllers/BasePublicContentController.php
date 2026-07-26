@@ -16,6 +16,7 @@ class BasePublicContentController extends Controller
     protected string $routePrefix;
     protected FileService $fileService;
     protected array $extraRelations = [];
+    protected string $publishedDateColumn = 'published_at';
 
     public function __construct(FileService $fileService) {
         $this->fileService = $fileService;
@@ -37,21 +38,16 @@ class BasePublicContentController extends Controller
         return $this->applyContentSearch($request);
     }
 
+    protected array $indexExtraRelations = [];
+
     public function index(Request $request) {
         $query = $this->search($request);
 
-        $relations = array_merge(['roles'], $this->extraRelations);
-
         $items = $query
-            ->with($relations)
-            ->published()
+            ->when(!empty($this->indexExtraRelations), fn($q) => $q->with($this->indexExtraRelations))
             ->visibleTo($request->user())
-            ->latest('published_at')
-            ->paginate(10)
-            ->through(function ($item) {
-                $item->show_url = route("{$this->routePrefix}.show", $item->id);
-                return $item;
-            });
+            ->latest($this->publishedDateColumn)
+            ->paginate(15);
 
         return response()->json($items);
     }

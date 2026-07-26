@@ -2,17 +2,51 @@
 
 namespace App\Http\Controllers;
 
-use App\Traits\FaqSearchTrait;
+use App\Http\Controllers\BasePublicContentController;
+use App\Models\Faq;
+use App\Models\FaqCategory;
 use Illuminate\Http\Request;
-use App\Traits\FiltersByPolicy;
 
-class FaqController extends Controller
+class FaqController extends BasePublicContentController
 {
-    use FiltersByPolicy;
-    use FaqSearchTrait;
+    protected string $modelClass = Faq::class;
+    protected string $routePrefix = 'faqs';
 
+    protected array $indexExtraRelations = ['category'];
+
+    protected function search(Request $request) {
+        // 共通検索Traitを実行
+        $query = $this->applyContentSearch($request);
+
+        // FAQ特有の「カテゴリの表示順 ➔ 作成日順」ソート
+        return $query->leftJoin('faq_categories', 'faqs.category_id', '=', 'faq_categories.id')
+            ->orderBy('faq_categories.sort_order')
+            ->orderBy('faqs.created_at')
+            ->select('faqs.*');
+    }
+
+    //URL追加のためオーバーライド
     public function index(Request $request) {
-        $faqs = $this->searchFaqs($request);
+        $query = $this->search($request);
+
+        $items = $query
+            ->when(!empty($this->indexExtraRelations), fn($q) => $q->with($this->indexExtraRelations))
+            ->paginate(30);
+
+        $response = $items->toArray();
+        $queryParams = $request->except('page');
+        $queryString = http_build_query($queryParams);
+        $response['export_url'] = '/faqs/export' . ($queryString ? '?' . $queryString : '');
+
+        $response['categories'] = FaqCategory::select('id', 'name')->get();
+
+        return response()->json($response);
+    }
+
+    public function export(Request $request) {
+        $query = $this->search($request);
+
+        $faqs = $query->when(!empty($this->indexExtraRelations), fn($q) => $q->with($this->indexExtraRelations))->get();
 
         if (isset($faqs['error'])) {
             return response()->json([
@@ -20,34 +54,8 @@ class FaqController extends Controller
             ], 422);
         }
 
-        $filtered = $this->filterByPolicy($faqs);
-
-        $perPage = 30;
-        $page = $request->input('page', 1);
-
-        $paged = $filtered->slice(($page - 1) * $perPage, $perPage)->values();
-
-        return response()->json([
-            'data' => $paged,
-            'total' => $filtered->count(),
-            'current_page' => $page,
-            'per_page' => $perPage,
-            'export_url' => route('faqs.export') . '?' . http_build_query($request->query()),
-        ]);
-    }
-
-    public function export(Request $request) {
-        $faqs = $this->searchFaqs($request);
-
-        if (isset($faqs['error'])) {
-            return response()->json([
-                'message' => $faq['error'],
-            ], 422);
-        }
-
-        $filtered = $this->filterByPolicy($faqs);
-
         $csv = fopen('php://temp', 'r+');
+        fputs($csv, "\xEF\xBB\xBF");
 
         fputcsv($csv, [
             '受付日',
@@ -57,7 +65,7 @@ class FaqController extends Controller
             '回答内容',
         ]);
 
-        foreach ($filtered as $faq) {
+        foreach ($faqs as $faq) {
             fputcsv($csv, [
                 $faq->created_at->format('Y-m-d'),
                 $faq->category_id,
@@ -71,7 +79,10 @@ class FaqController extends Controller
 
         return response()->streamDownload(function () use ($csv) {
             fpassthru($csv);
-        }, 'faq.csv');
+            fclose($csv);
+        }, 'faq.csv',[
+            'Content-Type' => 'text/csv; charset=UTF-8',
+        ]);
     }
 
 }

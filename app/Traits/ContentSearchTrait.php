@@ -23,26 +23,74 @@ trait ContentSearchTrait
             ? $model->newQuery()->with($relations)
             : $model->newQuery();
 
+        $normalizeValues = function ($value): array {
+            if ($value === null) {
+                return [];
+            }
+
+            if (is_array($value)) {
+                return array_values(array_filter($value, static fn ($item) => $item !== null && $item !== ''));
+            }
+
+            if (is_string($value)) {
+                $trimmed = trim($value);
+                if ($trimmed === '') {
+                    return [];
+                }
+
+                return array_values(array_filter(array_map('trim', explode(',', $trimmed)), static fn ($item) => $item !== ''));
+            }
+
+            return [$value];
+        };
+
         // A. カテゴリ検索（ID、slug、リレーション名対応）
-        if ($request->filled('category')) {
-            $category = $request->category;
-            $query->whereHas('category', function ($q) use ($category) {
-                if (is_numeric($category)) {
-                    $q->where('id', $category);
-                } else {
-                    // ★ slug カラムを外し、name のあいまい検索のみにする
-                    $q->where('name', 'LIKE', "%{$category}%");
+        $categories = $normalizeValues($request->query('category'));
+        if (!empty($categories)) {
+            $query->where(function ($q) use ($categories) {
+                foreach ($categories as $category) {
+                    $q->orWhereHas('category', function ($sub) use ($category) {
+                        if (is_numeric($category)) {
+                            $sub->where('id', $category);
+                        } else {
+                            $sub->where('name', 'LIKE', "%{$category}%")
+                                ->orWhere('slug', 'LIKE', "%{$category}%");
+                        }
+                    });
                 }
             });
         }
-        if ($request->filled('category_id')) {
-            $query->where('category_id', $request->category_id);
-        }
-        if ($request->filled('subcategory')) {
-            $query->where('subcategory_id', $request->subcategory);
+
+        $categoryIds = $normalizeValues($request->query('category_id'));
+        if (!empty($categoryIds)) {
+            $query->whereIn('category_id', $categoryIds);
         }
 
-        // B. 日付・年度・期間検索（faqs / workshops / その他で判定カラムを切り替え）
+        // -------------------------------------------------------------
+        // ⭐ サブカテゴリ検索（ID、slug、リレーション名対応に修正）
+        // -------------------------------------------------------------
+        $subcategories = $normalizeValues($request->query('subcategory') ?? $request->query('sub_category'));
+        if (!empty($subcategories)) {
+            $query->where(function ($q) use ($subcategories) {
+                foreach ($subcategories as $subcategory) {
+                    $q->orWhereHas('subcategory', function ($sub) use ($subcategory) {
+                        if (is_numeric($subcategory)) {
+                            $sub->where('id', $subcategory);
+                        } else {
+                            $sub->where('name', 'LIKE', "%{$subcategory}%")
+                                ->orWhere('slug', 'LIKE', "%{$subcategory}%");
+                        }
+                    });
+                }
+            });
+        }
+
+        $subcategoryIds = $normalizeValues($request->query('subcategory_id'));
+        if (!empty($subcategoryIds)) {
+            $query->whereIn('subcategory_id', $subcategoryIds);
+        }
+
+        // B. 日付・年度・期間検索
         $tableName = $model->getTable();
         $dateColumn = match ($tableName) {
             'faqs'       => 'created_at',
@@ -50,11 +98,22 @@ trait ContentSearchTrait
             default      => 'published_at',
         };
 
-        if ($request->filled('year')) {
-            $query->whereYear($dateColumn, $request->year);
+        $years = $normalizeValues($request->query('year'));
+        if (!empty($years)) {
+            $query->where(function ($q) use ($years, $dateColumn) {
+                foreach ($years as $year) {
+                    $q->orWhereYear($dateColumn, $year);
+                }
+            });
         }
-        if ($request->filled('date')) {
-            $query->whereDate($dateColumn, $request->date);
+
+        $dates = $normalizeValues($request->query('date'));
+        if (!empty($dates)) {
+            $query->where(function ($q) use ($dates, $dateColumn) {
+                foreach ($dates as $date) {
+                    $q->orWhereDate($dateColumn, $date);
+                }
+            });
         }
 
         // 期間指定（start_date / end_date / month）
@@ -75,29 +134,42 @@ trait ContentSearchTrait
             $query->whereDate($dateColumn, '<=', $end);
         }
 
-        // C. キーワード検索（テーブルごとに実際のマイグレーションに存在するカラムだけを指定）
-        if ($request->filled('keyword')) {
-            $keyword = trim($request->keyword);
+        // C. キーワード検索
+        $keywords = $normalizeValues($request->query('keyword'));
+        if (!empty($keywords)) {
+            $query->where(function ($q) use ($keywords, $tableName) {
+                $searchColumns = match ($tableName) {
+                    'faqs'      => ['question', 'answer'],
+                    'videos'    => ['title', 'description'],
+                    'workshops' => ['title', 'description', 'location', 'lecture'],
+                    'notices'   => ['title', 'committee_name', 'body'],
+                    'contents'  => ['title', 'body'],
+                    default     => ['title', 'body', 'description'],
+                };
 
-            // テーブルごとのキーワード検索対象カラムマップ
-            $searchColumns = match ($tableName) {
-                'faqs'      => ['question', 'answer'],
-                'videos'    => ['title', 'description'],
-                'workshops' => ['title', 'description', 'location', 'lecture'],
-                'notices'   => ['title', 'committee_name', 'body'],
-                'contents'  => ['title', 'body'],
-                default     => ['title', 'body', 'description'],
-            };
-
-            $query->where(function ($q) use ($keyword, $searchColumns) {
-                foreach ($searchColumns as $index => $column) {
-                    if ($index === 0) {
-                        $q->where($column, 'LIKE', "%{$keyword}%");
-                    } else {
-                        $q->orWhere($column, 'LIKE', "%{$keyword}%");
+                foreach ($keywords as $keyword) {
+                    $keyword = trim($keyword);
+                    if ($keyword === '') {
+                        continue;
                     }
+
+                    $q->where(function ($sub) use ($keyword, $searchColumns) {
+                        foreach ($searchColumns as $columnIndex => $column) {
+                            if ($columnIndex === 0) {
+                                $sub->where($column, 'LIKE', "%{$keyword}%");
+                            } else {
+                                $sub->orWhere($column, 'LIKE', "%{$keyword}%");
+                            }
+                        }
+                    });
                 }
             });
+        }
+
+        // D. ID検索
+        $ids = $normalizeValues($request->query('id'));
+        if (!empty($ids)) {
+            $query->whereIn('id', $ids);
         }
 
         return $query;

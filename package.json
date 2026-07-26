@@ -6,8 +6,18 @@
         "build": "vite build"
     },
     "devDependencies": {
-        "axios": "^1.6.4",
+        "@tailwindcss/postcss": "^4.3.3",
+        "autoprefixer": "^10.5.4",
+        "axios": "^1.18.1",
         "laravel-vite-plugin": "^1.0.0",
+        "postcss": "^8.5.22",
+        "tailwindcss": "^4.3.3",
         "vite": "^5.0.0"
+    },
+    "dependencies": {
+        "@holiday-jp/holiday_jp": "^2.5.1",
+        "@vitejs/plugin-vue": "^6.0.8",
+        "vue": "^3.5.40",
+        "vue-router": "^4.6.4"
     }
 }

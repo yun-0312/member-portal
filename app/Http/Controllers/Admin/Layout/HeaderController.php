@@ -7,14 +7,22 @@ use Illuminate\Http\Request;
 
 class HeaderController extends Controller
 {
-    public function index() {
-        return [
-            'menu' => [
-                ['label' => 'ダッシュボード', 'url' => route('admin.home.index')],
-                ['label' => 'お知らせ', 'url' => route('admin.notices.index')],
-                ['label' => 'コンテンツ', 'url' => route('admin.contents.index')],
-                ['label' => '会館予約', 'url' => route('admin.schedules.index')],
+    public function index(Request $request) {
+
+        $user = $request->user();
+
+        return response()->json([
+            'user' => [
+                'id'   => $user->id,
+                'name' => $user->name,
+                'role' => $user->role->name ?? 'admin',
             ],
-        ];
+            'menu' => [
+                ['label' => '管理画面', 'url' => '/admin/dashboard'],
+                ['label' => 'ホーム', 'url' => '/dashboard'],
+                ['label' => 'ログアウト', 'action' => 'logout'],
+            ],
+        ]);
+
     }
 }

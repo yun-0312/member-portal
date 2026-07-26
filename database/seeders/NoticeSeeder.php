@@ -6,7 +6,6 @@ use Illuminate\Database\Seeder;
 use App\Models\NoticeCategory;
 use App\Models\Notice;
 use App\Models\Role;
-use Illuminate\Support\Str;
 
 class NoticeSeeder extends Seeder
 {
@@ -39,12 +38,17 @@ class NoticeSeeder extends Seeder
             '資料をアップしました',
         ];
 
+        $trainingTexts = [
+            '本研修会では、日常業務や現場で直面する最新の課題とその対策について、専門の講師をお招きして分かりやすく解説いたします。実践的な知識を深めるとともに、参加者同士での意見交換や情報共有の場としてもご活用いただけます。ご多忙中とは存じますが、関係部署の皆様お誘い合わせの上、ぜひご参加くださいますようご案内申し上げます。なお、会場準備および資料作成の都合上、参加をご希望される方は期日までに事前にお申し込みをお願いいたします。詳細なプログラムや持ち物につきましては、添付の案内チラシをご確認ください。皆様のご参加を心よりお待ちしております。',
+            '拝啓 時下ますますご清栄のこととお慶び申し上げます。平素は当委員会の事業運営に格別のご高配を賜り、厚く御礼申し上げます。さて、このたび下記の日程におきまして研修会を開催する運びとなりました。本研修では、最近の制度改正の動向や具体的な対応事例を取り上げ、実務に役立つ最新情報をご提供いたします。業務のスキルアップはもちろん、日頃の疑問点を解消する絶好の機会となっております。ご多用中恐縮ではございますが、万障お繰り合わせの上ご参加賜りますようお願い申し上げます。なお、定員になり次第締め切らせていただきますので、お早めにお申し込みください。参考資料および関連リンクにつきましては https://www.google.com/ よりアクセスいただけます。',
+        ];
+
         //事務局レター
         foreach ($letterTitles as $title) {
             $notice = Notice::create([
                 'title' => $title,
                 'committee_name' => null,
-                'body' => fake()->realText(30),
+                'body' => $trainingTexts[array_rand($trainingTexts)],
                 'category_id' => $letterCat,
                 'published_at' => now()->subDays(rand(1,30)),
                 'created_by' => 1,
@@ -70,7 +74,7 @@ class NoticeSeeder extends Seeder
             $notice = Notice::create([
                 'title' => $title,
                 'committee_name' => $committee,
-                'body' => fake()->realText(80),
+                'body' => $trainingTexts[array_rand($trainingTexts)],
                 'category_id' => $circulateCat,
                 'published_at' => now()->subDays(rand(1, 30)),
                 'created_by' => 1,

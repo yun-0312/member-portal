@@ -12,8 +12,11 @@ class ContentSubcategory extends Model
 
     protected $fillable = [
         'category_id',
+        'parent_id',
         'name',
+        'slug',
         'sort_order',
+        'display_type',
     ];
 
     public function category() {
@@ -22,6 +25,16 @@ class ContentSubcategory extends Model
 
     public function contents() {
         return $this->hasMany(Content::class, 'subcategory_id');
+    }
+
+    public function parent()
+    {
+        return $this->belongsTo(ContentSubcategory::class, 'parent_id');
+    }
+
+    public function children()
+    {
+        return $this->hasMany(ContentSubcategory::class, 'parent_id');
     }
 
 }

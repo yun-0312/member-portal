@@ -1,0 +1,80 @@
+<template>
+    <div class="flex flex-col min-h-screen">
+        <!-- ログイン前 -->
+        <PublicHeader v-if="!user" />
+
+        <!-- admin または staff の場合 -->
+        <AdminHeader v-else-if="isAdminOrStaff" />
+
+        <!-- それ以外の一般ユーザー (user, medical_staff など) -->
+        <UserHeader v-else />
+
+        <main class="flex-grow">
+            <RouterView />
+        </main>
+    </div>
+</template>
+
+<script setup>
+import { ref, computed, onMounted } from "vue";
+import PublicHeader from "./components/PublicHeader.vue";
+import UserHeader from "./components/UserHeader.vue";
+import AdminHeader from "./components/AdminHeader.vue";
+
+const user = ref(null);
+
+const normalizeRoleName = (value) => {
+    if (!value) return null;
+
+    if (typeof value === "string") {
+        return value.toLowerCase().replace(/[-\s]+/g, "_");
+    }
+
+    if (typeof value === "object") {
+        return normalizeRoleName(value.name);
+    }
+
+    return null;
+};
+
+const fetchUser = () => {
+    const rawData = localStorage.getItem("user");
+    if (!rawData) {
+        user.value = null;
+        return;
+    }
+
+    try {
+        const parsed = JSON.parse(rawData);
+        user.value = parsed.user ? parsed.user : parsed;
+    } catch (e) {
+        console.error("userデータのパースエラー", e);
+        user.value = null;
+    }
+};
+
+onMounted(() => {
+    fetchUser();
+});
+
+// ログイン・ログアウト等の更新イベントを受け取る
+window.addEventListener("user-updated", () => {
+    fetchUser();
+});
+
+// admin または staff かどうかを判定
+const isAdminOrStaff = computed(() => {
+    if (!user.value) return false;
+
+    const roleId = user.value.role_id ?? user.value.roleId;
+    const roleName = normalizeRoleName(
+        user.value.role ?? user.value.role_name ?? user.value.roleName,
+    );
+
+    if (roleId !== undefined && roleId !== null) {
+        return [1, 2].includes(Number(roleId));
+    }
+
+    return ["admin", "staff"].includes(roleName);
+});
+</script>

@@ -3,6 +3,7 @@
 namespace App\Services;
 
 use Illuminate\Support\Facades\Auth;
+use Laravel\Sanctum\PersonalAccessToken;
 
 class AuthService
 {
@@ -28,7 +29,11 @@ class AuthService
 
     public function logout($user): void
     {
-        $user->currentAccessToken()->delete();
+        $token = $user?->currentAccessToken();
+
+        if ($token instanceof PersonalAccessToken) {
+            $token->delete();
+        }
     }
 
     public function me()

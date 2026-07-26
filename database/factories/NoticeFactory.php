@@ -23,7 +23,7 @@ class NoticeFactory extends Factory
         return [
             'title' => $this->faker->realText(10),
             'committee_name' => null,
-            'body' => $this->faker->realText(fake()->numberBetween(25, 35)),
+            'body' => $this->faker->realText(fake()->numberBetween(200, 250)),
             'category_id' => NoticeCategory::inRandomOrder()->value('id'),
             'published_at' => now()->subDays(rand(1, 30)),
             'created_by' => User::where('role', fn($q) => $q->where('name', 'staff'))

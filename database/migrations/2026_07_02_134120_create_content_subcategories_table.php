@@ -14,8 +14,11 @@ return new class extends Migration
         Schema::create('content_subcategories', function (Blueprint $table) {
             $table->id();
             $table->foreignId('category_id')->constrained('content_categories')->cascadeOnDelete();
+            $table->foreignId('parent_id')->nullable()->constrained('content_subcategories')->nullOnDelete();
             $table->string('name');
-            $table->unsignedInteger('sort_order');
+            $table->string('slug')->unique();
+            $table->unsignedInteger('sort_order')->default(0);
+            $table->enum('display_type', ['list', 'children', 'year_archive'])->default('list');
             $table->timestamps();
         });
     }

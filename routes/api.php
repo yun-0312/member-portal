@@ -4,6 +4,8 @@ use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\HomeController as PublicHomeController;
 use App\Http\Controllers\Admin\HomeController as AdminHomeController;
+use App\Http\Controllers\Layout\HeaderController as PublicHeaderController;
+use App\Http\Controllers\Admin\Layout\HeaderController as AdminHeaderController;
 use App\Http\Controllers\NoticeController as PublicNoticeController;
 use App\Http\Controllers\Admin\NoticeController as AdminNoticeController;
 use App\Http\Controllers\ContentController as PublicContentController;
@@ -27,8 +29,6 @@ use App\Http\Controllers\MedicalInstitutionController as PublicMedicalInstitutio
 use App\Http\Controllers\Admin\ContentCategoryController;
 use App\Http\Controllers\Admin\ContentSubcategoryController;
 use App\Http\Controllers\Admin\FaqCategoryController;
-use App\Http\Controllers\Admin\GroupController;
-use App\Http\Controllers\Admin\GroupCategoryController;
 use App\Http\Controllers\Admin\NoticeCategoryController;
 use App\Http\Controllers\Admin\ScheduleCategoryController;
 use App\Http\Controllers\Auth\EmailVerificationController;
@@ -68,16 +68,16 @@ Route::post('/password/reset', [ResetPasswordController::class, 'reset']);
 
 Route::middleware(['auth:sanctum'])->group(function () {
     //Home
-    Route::get('home', [PublicHomeController::class, 'index'])
-        ->name('home');
+    Route::get('/home', [PublicHomeController::class, 'index'])
+        ->name('home.index');
+
+    //header
+    Route::get('/header', [PublicHeaderController::class, 'index'])
+        ->name('header');
 
     // Notice
-    Route::prefix('notices')->group(function () {
-        Route::get('/', [PublicNoticeController::class, 'index'])
-            ->name('notices.index');
-        Route::get('/{notice}', [PublicNoticeController::class, 'show'])
-            ->name('notices.show');
-    });
+    Route::get('/notices', [PublicNoticeController::class, 'index'])
+        ->name('notices.index');
 
     // Content
     Route::prefix('contents')->group(function () {
@@ -90,20 +90,12 @@ Route::middleware(['auth:sanctum'])->group(function () {
     });
 
     // Workshop
-    Route::prefix('workshops')->group(function () {
-        Route::get('/', [PublicWorkshopController::class, 'index'])
+    Route::get('/workshops', [PublicWorkshopController::class, 'index'])
             ->name('workshops.index');
-        Route::get('/{workshop}', [PublicWorkshopController::class, 'show'])
-            ->name('workshops.show');
-    });
 
     // Video
-    Route::prefix('videos')->group(function () {
-        Route::get('/', [PublicVideoController::class, 'index'])
+        Route::get('/videos', [PublicVideoController::class, 'index'])
             ->name('videos.index');
-        Route::get('/{video}', [PublicVideoController::class, 'show'])
-            ->name('videos.show');
-    });
 
     // FAQ
     Route::prefix('faqs')->group(function () {
@@ -148,6 +140,10 @@ Route::middleware(['auth:sanctum'])->prefix('admin')->group(function () {
     Route::get('/home', [AdminHomeController::class, 'index'])
         ->middleware('permission:content.update')
         ->name('admin.home.index');
+    //header
+    Route::get('/header', [AdminHeaderController::class, 'index'])
+        ->middleware('permission:content.update')
+        ->name('admin.header');
 
     // Notice
     Route::prefix('notices')->group(function () {

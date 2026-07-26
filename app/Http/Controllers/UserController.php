@@ -20,7 +20,9 @@ class UserController extends Controller
 
         $retireUrl = null;
         $retiredMessage = null;
-        $usersUrl = route('medical-institutions.users', $user->medical_institution_id);
+        $userUpdateUrl = "/admin/users/{$user->id}";
+        $usersUrl = null;
+        $medicalInstitutionUrl = null;
 
         $authRoleName = optional($authUser->role)->name;
         $targetRoleName = optional($user->role)->name;
@@ -32,23 +34,27 @@ class UserController extends Controller
         }
 
         if (
-            in_array($authRoleName, ['director', 'member'], true) &&
+            in_array($authRoleName, ['admin', 'staff', 'director', 'member'], true) &&
             $authUser->medical_institution_id !== null &&
             $authUser->medical_institution_id === $user->medical_institution_id
         ) {
             // 退職済みかどうか
             if ($targetRoleName === 'medical_staff') {
                 if (!$isRetired) {
-                    $retireUrl = route('users.retire', $user->id);
+                    $retireUrl = "users/retire/{$user->id}";
                 }
             }
+            $usersUrl = "medical-institutions/{$user->medical_institution_id}/users";
+            $medicalInstitutionUrl = "medical-institutions/{$user->medical_institution_id}";
         }
 
         return response()->json([
             'user' => $userArray,
+            'user_update_url' => $userUpdateUrl,
             'retire_url' => $retireUrl,
             'retired_message' => $retiredMessage,
             'users_url' => $usersUrl,
+            'medical_institution_url' => $medicalInstitutionUrl,
         ]);
     }
 

@@ -9,11 +9,15 @@ class HeaderController extends Controller
 {
     public function index(Request $request) {
         return [
-            'user' => $request->user(),
+            'user' => [
+                'id' => $request->user()->id,
+                'name' => $request->user()->name,
+                'role' => $request->user()->role->name,
+            ],
             'menu' => [
-                ['label' => 'ホーム', 'url' => route('home.index')],
-                ['label' => '会員情報', 'url' => route('auth.me')],
-                ['label' => 'ログアウト', 'url' => route('auth.logout')],
+                ['label' => 'ホーム', 'url' => '/dashboard'],
+                ['label' => '会員情報', 'url' => "/users/{$request->user()->id}"],
+                ['label' => 'ログアウト', 'action' => 'logout'],
             ],
         ];
     }

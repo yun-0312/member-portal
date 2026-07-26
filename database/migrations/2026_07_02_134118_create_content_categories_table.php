@@ -15,8 +15,10 @@ return new class extends Migration
             $table->id();
             $table->string('name');
             $table->string('slug')->unique();
-            $table->text('description')->nullable();
-            $table->unsignedInteger('sort_order');
+            $table->enum('section', ['download', 'main_menu', 'special'])->nullable();
+            $table->unsignedInteger('sort_order')->default(0);
+            $table->enum('display_type', ['list', 'subcategory', 'year_archive'])->default('list');
+            $table->timestamps();
         });
     }
 

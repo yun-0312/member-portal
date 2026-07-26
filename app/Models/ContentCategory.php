@@ -11,13 +11,12 @@ class ContentCategory extends Model
 {
     use HasFactory, VisibleToScope, HasAvailableSortOrder;
 
-    public $timestamps = false;
-
     protected $fillable = [
         'name',
         'slug',
-        'description',
+        'section',
         'sort_order',
+        'display_type',
     ];
 
     public function contents() {
@@ -26,6 +25,11 @@ class ContentCategory extends Model
 
     public function subcategories() {
         return $this->hasMany(ContentSubcategory::class, 'category_id');
+    }
+
+     //このカテゴリーに属する「第一階層（親サブカテゴリーを持たないもの）」のみを取得
+    public function topLevelSubcategories() {
+        return $this->hasMany(ContentSubcategory::class, 'category_id')->whereNull('parent_id');
     }
 
     public function roles() {

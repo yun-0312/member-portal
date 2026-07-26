@@ -8,8 +8,10 @@ use Illuminate\Http\Request;
 use App\Http\Requests\LoginRequest;
 use App\Models\Role;
 use App\Models\User;
+use App\Models\MedicalInstitution;
 use App\Http\Requests\ResisterMedicalStaffRequest;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Auth;
 
 class AuthController extends Controller
 {
@@ -29,6 +31,11 @@ class AuthController extends Controller
             ], 403);
         }
 
+        // remember が true の場合はセッション期限を延長
+        if ($request->remember) {
+            config(['session.lifetime' => 43200]); // 30日
+        }
+
         return response()->json([
             'message' => 'ログインに成功しました',
             'user' => $result['user'],
@@ -38,6 +45,11 @@ class AuthController extends Controller
 
     public function logout(Request $request, AuthService $authService) {
         $authService->logout($request->user());
+
+        //セッション破棄
+            Auth::guard('web')->logout();
+            $request->session()->invalidate();
+            $request->session()->regenerateToken();
 
         return response()->json([
             'message' => 'ログアウトしました',
