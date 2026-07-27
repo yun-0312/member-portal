@@ -21,6 +21,6 @@ class UserApprovedNotification extends Notification
             ->subject('承認が完了しました')
             ->line('会員専用サイトのあなたのアカウントが承認されました。')
             ->line('ログインしてサービスをご利用いただけます。')
-            ->action('ログインはこちら', url('http://localhost/api/login'));
+            ->action('ログインはこちら', url('http://localhost'));
     }
 }

@@ -20,7 +20,8 @@ class UserController extends Controller
 
         $retireUrl = null;
         $retiredMessage = null;
-        $userUpdateUrl = "/admin/users/{$user->id}";
+        $userUpdateUrl = null;
+        $userChangePasswordUrl = null;
         $usersUrl = null;
         $medicalInstitutionUrl = null;
 
@@ -33,6 +34,10 @@ class UserController extends Controller
             $retiredMessage = 'このスタッフは退職済みです';
         }
 
+        if ($authUser->id === $user->id) {
+            $userChangePasswordUrl = "/admin/users/{$user->id}";
+        }
+
         if (
             in_array($authRoleName, ['admin', 'staff', 'director', 'member'], true) &&
             $authUser->medical_institution_id !== null &&
@@ -41,16 +46,17 @@ class UserController extends Controller
             // 退職済みかどうか
             if ($targetRoleName === 'medical_staff') {
                 if (!$isRetired) {
-                    $retireUrl = "users/retire/{$user->id}";
+                    $retireUrl = "/users/{$user->id}/retire";
                 }
             }
-            $usersUrl = "medical-institutions/{$user->medical_institution_id}/users";
-            $medicalInstitutionUrl = "medical-institutions/{$user->medical_institution_id}";
+            $usersUrl = "/medical-institutions/{$user->medical_institution_id}/users";
+            $medicalInstitutionUrl = "/medical-institutions/{$user->medical_institution_id}";
         }
 
         return response()->json([
             'user' => $userArray,
             'user_update_url' => $userUpdateUrl,
+            'password_change_url' =>  $userChangePasswordUrl,
             'retire_url' => $retireUrl,
             'retired_message' => $retiredMessage,
             'users_url' => $usersUrl,
@@ -88,6 +94,7 @@ class UserController extends Controller
         }
 
         $user->update([
+            'email' => $user->email . '.rejected.' . now()->format('YmdHis'),
             'approved_at' => null,
             'approved_by' => null,
             'status' => UserStatus::Rejected,
@@ -115,6 +122,7 @@ class UserController extends Controller
         }
 
         $user->update([
+            'email' => $user->email . '.retired.' . now()->format('YmdHis'),
             'status' => UserStatus::Retired,
         ]);
 

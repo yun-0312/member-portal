@@ -11,10 +11,12 @@ class MedicalInstitutionController extends Controller
     {
         $this->authorize('view', $medicalInstitution);
 
+        $medicalInstitution->load('representative');
+
         return response()->json([
             'institution' => $medicalInstitution,
-            'edit_url' => route('admin.medical-institutions.update', ['medicalInstitution' => $medicalInstitution->id]),
-            'users_url' => route('medical-institutions.users', ['medicalInstitution' => $medicalInstitution->id]),
+            'edit_url' => "/admin/medical-institutions/{$medicalInstitution->id}",
+            'users_url' => "/medical-institutions/{$medicalInstitution->id}/users",
         ]);
     }
 
@@ -28,7 +30,7 @@ class MedicalInstitutionController extends Controller
                 UserStatus::Retired->value,
                 UserStatus::Rejected->value,
             ])
-            ->with('role')
+            ->with('role', 'medicalInstitution')
             ->orderBy('created_at', 'desc')
             ->get();
 
@@ -36,11 +38,12 @@ class MedicalInstitutionController extends Controller
             $user->is_pending = ($user->status === UserStatus::Pending || $user->status === UserStatus::Pending->value);
 
             if ($user->is_pending) {
-                $user->approve_url = route('users.approve', ['user' => $user->id]);
-                $user->reject_url = route('users.reject', ['user' => $user->id]);
+                $user->approve_url = "/users/{$user->id}/approve";
+                $user->reject_url = "users/{$user->id}/reject";
             }
 
-            $user->show_url = route('users.show', ['user' => $user->id]);
+            $user->show_url = "/users/{$user->id}";
+
             return $user;
         });
 

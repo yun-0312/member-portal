@@ -15,12 +15,18 @@ class MedicalInstitution extends Model
 
     protected $fillable = [
         'name',
+        'postcode',
         'address',
         'phone',
+        'representative_user_id',
     ];
 
     public function users() {
         return $this->hasMany(User::class);
+    }
+
+    public function representative() {
+        return $this->belongsTo(User::class, 'representative_user_id');
     }
 
     public function scopeVisibleTo(Builder $query, User $user): Builder

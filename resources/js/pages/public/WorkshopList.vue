@@ -39,12 +39,7 @@
             >
               {{ getLocationType(workshop.location) }}
             </span>
-            <h2 class="text-lg font-bold text-slate-800 hover:text-blue-600 transition-colors">
-              <!-- show_url が無くなったため id からURLを生成 -->
-              <router-link :to="`/workshops/${workshop.id}`">
-                {{ workshop.title }}
-              </router-link>
-            </h2>
+
           </div>
 
           <!-- 概要テキスト -->

@@ -22,7 +22,7 @@ class UserRegisteredByAdmin extends Notification
             ->line('会員専用サイトのあなたのアカウントが作成されました。')
             ->line('ログインしてご利用を開始できます。')
 
-            ->action('ログインはこちら', url('http://localhost/api/login'))
+            ->action('ログインはこちら', url('http://localhost'))
 
             ->line('ログイン時のメールアドレスはこのメールの届いているメールアドレスです。')
             ->line('パスワードも同様ですが、セキュリティのため、パスワードの変更をお願いいたします。');

@@ -35,6 +35,8 @@ use App\Http\Controllers\Auth\EmailVerificationController;
 use App\Http\Controllers\Auth\ForgotPasswordController;
 use App\Http\Controllers\Auth\ResetPasswordController;
 use App\Http\Controllers\Admin\FileController;
+use Illuminate\Http\Request;
+use App\Models\User;
 
 /*
 |--------------------------------------------------------------------------
@@ -47,7 +49,7 @@ use App\Http\Controllers\Admin\FileController;
 |
 */
 
-Route::post('/resister-medical-staff', [AuthController::class, 'registerMedicalStaff'])
+Route::post('/register-medical-staff', [AuthController::class, 'registerMedicalStaff'])
     ->middleware('throttle:5,1')
     ->name('auth.register-medical-staff');
 Route::get('/medical-institutions', [AuthController::class, 'medicalInstitutions'])
@@ -60,10 +62,50 @@ Route::get('/me', [AuthController::class, 'me'])->middleware('auth:sanctum')
     ->name('auth.me');
 
 Route::get('/email/verify/{id}/{hash}', [EmailVerificationController::class, 'verify'])
-    ->middleware('signed')
+    ->middleware(['signed'])
     ->name('verification.verify');
 Route::post('/password/email', [ForgotPasswordController::class, 'sendResetLinkEmail']);
 Route::post('/password/reset', [ResetPasswordController::class, 'reset']);
+Route::get('/email/verify/{id}/{hash}', function (Request $request, $id, $hash) {
+    $frontendUrl = config('app.frontend_url', 'http://localhost');
+
+    // 1. URLの署名（有効期限・改ざん）チェック
+    if (! $request->hasValidSignature()) {
+        return redirect($frontendUrl . '/?verified=error&message=' . urlencode('URLの有効期限が切れているか、無効なリンクです。'));
+    }
+
+    $user = User::findOrFail($id);
+
+    if (! hash_equals((string) $hash, sha1($user->getEmailForVerification()))) {
+        return redirect($frontendUrl . '/?verified=error&message=' . urlencode('不正なアクセスです。'));
+    }
+
+    if (! $user->hasVerifiedEmail()) {
+        $user->markEmailAsVerified();
+    }
+
+    return redirect($frontendUrl . '/?verified=success_register');
+})->name('verification.verify');
+
+Route::get('/email/verify-new/{id}/{hash}', function (Request $request, $id, $hash) {
+    $frontendUrl = config('app.frontend_url', 'http://localhost');
+    if (! $request->hasValidSignature()) {
+        return response()->json(['message' => '不正なアクセスです（URLの期限切れまたは改ざん）'], 403);
+    }
+
+    $user = User::findOrFail($id);
+    $newEmail = urldecode($request->query('email'));
+
+    if (! hash_equals((string) $hash, sha1($newEmail))) {
+        return response()->json(['message' => '不正なアクセスです'], 403);
+    }
+
+    $user->email = $newEmail;
+    $user->email_verified_at = now();
+    $user->save();
+
+    return redirect($frontendUrl . '/?verified=success');
+})->name('verification.verify.new');
 
 
 Route::middleware(['auth:sanctum'])->group(function () {

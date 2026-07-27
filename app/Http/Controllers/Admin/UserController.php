@@ -75,8 +75,26 @@ class UserController extends Controller
 
         $validated = $request->validated();
 
+        if (!auth()->user()->isAdmin()) {
+            // admin 以外は name と email だけ許可
+            $validated = array_intersect_key($validated, [
+                'name' => true,
+                'email' => true,
+            ]);
+        }
+
         if (isset($validated['password'])) {
             $validated['password'] = Hash::make($validated['password']);
+        }
+
+        //mail変更時の処理
+        $isEmailChanged = isset($validated['email']) && $validated['email'] !== $user->email;
+
+        if ($isEmailChanged) {
+            $newEmail = $validated['email'];
+
+            unset($validated['email']);
+            $user->notify(new \App\Notifications\VerifyNewEmail($newEmail));
         }
 
         //代理承認の判定
@@ -91,8 +109,13 @@ class UserController extends Controller
             $user->update($validated);
         });
 
+        $message = 'ユーザーを更新しました';
+        if ($isEmailChanged) {
+            $message .= '。新しいメールアドレスに確認メールを送信しました。認証を完了するまでメールアドレスは変更されません。';
+        }
+
         return response()->json([
-            'message' => 'ユーザーを更新しました',
+            'message' => $message,
             'user' => $user->fresh(),
         ]);
     }

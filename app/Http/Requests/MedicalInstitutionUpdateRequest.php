@@ -23,8 +23,10 @@ class MedicalInstitutionUpdateRequest extends FormRequest
     {
         return [
             'name' => ['sometimes', 'string', 'max:255'],
+            'postcode' => ['nullable', 'string', 'regex:/^\d{3}-\d{4}$/'],
             'address' => ['nullable', 'string', 'max:255'],
             'phone' => ['nullable', 'string', 'max:20'],
+            'representative_user_id' => ['nullable', 'integer', 'exists:users,id']
         ];
     }
 }

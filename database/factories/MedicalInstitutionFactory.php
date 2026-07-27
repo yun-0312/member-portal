@@ -23,7 +23,8 @@ class MedicalInstitutionFactory extends Factory
 
         return [
             'name' => $this->faker->lastName() . $this->faker->randomElement($hospitalTypes),
-            'address' => $this->faker->address(),
+            'postcode' => $this->faker->postcode(),
+            'address'  => $this->faker->prefecture() . $this->faker->city() . $this->faker->streetAddress(),
             'phone' => $this->faker->numerify('03-####-####'),
             'created_at' => $randomDate,
             'updated_at' => $randomDate,

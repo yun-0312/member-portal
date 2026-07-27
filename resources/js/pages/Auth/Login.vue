@@ -1,6 +1,32 @@
 <template>
-    <div class="bg-gray-100 min-h-screen flex items-center justify-center">
+
+
+        <div class="bg-gray-100 min-h-screen flex items-center justify-center">
+  
+
         <div class="bg-white p-8 rounded-lg shadow-lg w-96">
+            <!--  新規登録：メール認証完了メッセージ -->
+            <div
+                v-if="route.query.verified === 'success_register'"
+                class="p-4 mb-6 bg-emerald-50 border border-emerald-200 text-emerald-700 rounded-xl text-xs md:text-sm font-medium flex items-center gap-2 shadow-sm"
+            >
+                <span class="text-base">🎉</span>
+                <div>
+                    <p class="font-bold">メールアドレスの認証が完了しました！</p>
+                    <p class="text-xs text-emerald-600 mt-0.5">管理者による承認後、ログインが可能になります。今しばらくお待ちください。</p>
+                </div>
+            </div>
+
+            <!-- メールアドレス変更：メール認証完了メッセージ -->
+            <div v-if="route.query.verified === 'success'" class="p-4 mb-4 bg-emerald-50 border border-emerald-200 text-emerald-700 rounded-xl text-xs md:text-sm font-medium flex items-center gap-2">
+                <span>✅</span>
+                <span>メールアドレスの変更が完了しました。新しいメールアドレスでログインしてください。</span>
+            </div>
+
+            <div v-if="route.query.verified === 'error'" class="p-4 mb-4 bg-rose-50 border border-rose-200 text-rose-700 rounded-xl text-xs md:text-sm font-medium flex items-center gap-2">
+                <span>⚠️</span>
+                <span>{{ route.query.message || '認証に失敗しました。' }}</span>
+            </div>
             <h2 class="text-2xl font-bold mb-6 text-center text-gray-800">
                 ログイン
             </h2>
@@ -96,8 +122,9 @@
 <script setup>
 import { ref } from 'vue'
 import api from "../../api";
-import { useRouter } from 'vue-router'
+import { useRouter, useRoute } from 'vue-router'
 const router = useRouter()
+const route = useRoute()
 
 const email = ref("");
 const password = ref("");
@@ -120,6 +147,8 @@ const login = async () => {
 
         localStorage.setItem("user", JSON.stringify(res.data.user));
         localStorage.setItem("token", res.data.token);
+
+        api.defaults.headers.common['Authorization'] = `Bearer ${res.data.token}`;
 
         window.dispatchEvent(new Event('user-updated'))
         router.push('/dashboard')

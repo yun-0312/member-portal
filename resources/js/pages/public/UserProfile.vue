@@ -19,13 +19,15 @@
             </router-link>
 
             <!-- 退職手続きリンク（nullでない場合のみ表示） -->
-            <router-link
-            v-if="profileData.retire_url"
-            :to="formatUrl(profileData.retire_url)"
-            class="inline-flex items-center text-xs bg-rose-50 hover:bg-rose-100 text-rose-600 font-medium px-3.5 py-2 rounded-lg border border-rose-200 transition-colors"
+            <button
+                v-if="profileData.retire_url"
+                @click="handleRetire"
+                :disabled="isProcessing"
+                class="inline-flex items-center text-xs bg-rose-50 hover:bg-rose-100 text-rose-600 font-medium px-3.5 py-2 rounded-lg border border-rose-200 transition-colors disabled:opacity-50"
             >
-            退職手続き
-            </router-link>
+                <span v-if="isProcessing" class="inline-block animate-spin mr-1.5 h-3 w-3 border-2 border-rose-600 border-t-transparent rounded-full"></span>
+                退職手続き
+            </button>
         </div>
     </div>
 
@@ -65,6 +67,18 @@
                 >
                 {{ user.status === 1 ? '承認済み' : '未承認' }}
                 </span>
+
+                <!-- 💡 パスワード変更ボタン (password_reset_url がある場合に表示) -->
+                <router-link
+                    v-if="profileData?.password_change_url"
+                    :to="formatUrl(profileData.password_change_url)"
+                    class="inline-flex items-center text-xs bg-slate-100 hover:bg-slate-200 text-slate-700 font-medium px-3 py-1.5 rounded-lg transition-colors border border-slate-200"
+                >
+                    <svg class="w-3.5 h-3.5 mr-1 text-slate-500" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 7a2 2 0 012 2m4 0a6 6 0 01-7.743 5.743L11 17H9v2H7v2H4a1 1 0 01-1-1v-2.586a1 1 0 01.293-.707l5.964-5.964A6 6 0 0121 9z"></path>
+                    </svg>
+                    パスワード変更
+                </router-link>
 
                 <!-- 会員情報を編集ボタン（基本情報の横に移動） -->
                 <router-link
@@ -135,8 +149,8 @@
             <h2 class="text-base font-bold text-slate-800">所属医療機関情報</h2>
 
             <!-- 医療機関詳細ボタン（medical_institution_url がある場合表示） -->
-            <router-link 
-                v-if="profileData?.medical_institution_url" 
+            <router-link
+                v-if="profileData?.medical_institution_url"
                 :to="formatUrl(profileData.medical_institution_url)"
                 class="inline-flex items-center text-xs bg-slate-100 hover:bg-slate-200 text-slate-700 font-medium px-3 py-1.5 rounded-lg transition-colors"
             >
@@ -160,15 +174,18 @@
             <div>
                 <dt class="text-slate-400 font-medium">電話番号</dt>
                 <dd class="text-slate-800 font-mono mt-0.5">
-                {{ user.medical_institution.phone }}
+                {{ user.medical_institution.phone || '-' }}
                 </dd>
             </div>
 
             <!-- 所在地 -->
             <div class="sm:col-span-2">
                 <dt class="text-slate-400 font-medium">所在地</dt>
+                <dd class="text-slate-800 font-mono mt-0.5">
+                {{ user.medical_institution.postcode ? `〒${user.medical_institution.postcode}` : '-' }}
+                </dd>
                 <dd class="text-slate-800 mt-0.5 leading-relaxed">
-                {{ user.medical_institution.address }}
+                {{ user.medical_institution.address || '-'  }}
                 </dd>
             </div>
             </dl>
@@ -190,6 +207,7 @@ import api from '../../api.js'
 const route = useRoute()
 const profileData = ref(null)
 const isLoading = ref(false)
+const isProcessing = ref(false)
 
 const user = computed(() => profileData.value?.user || null)
 
@@ -214,9 +232,47 @@ const fetchUserProfile = async () => {
     }
 }
 
+// 退職処理ハンドラー
+const handleRetire = async () => {
+    if (!profileData.value?.retire_url) return
+
+    // 誤操作防止の確認ダイアログ
+    if (!confirm('このユーザーを退職処理してもよろしいですか？')) {
+        return
+    }
+
+    try {
+        // APIリクエスト送信（URLのフォーマットを適用）
+        const url = formatUrl(profileData.value.retire_url)
+
+        const response = await api.post(url)
+
+        alert(response.data.message || '退職処理が完了しました')
+
+        // データを最新化（画面の再取得）
+        await fetchUserProfile()
+    } catch (error) {
+        console.error('退職処理に失敗しました:', error)
+        // Laravelの422エラーメッセージを表示
+        const errorMessage = error.response?.data?.message || '処理に失敗しました。'
+        alert(errorMessage)
+    }
+}
+
 // URLがスラッシュから始まらない相対パスの場合、先頭にスラッシュを補正する helper
 const formatUrl = (url) => {
     if (!url) return '#'
+
+    // フルURL (http://... や https://...) で来た場合
+    if (url.startsWith('http://') || url.startsWith('https://')) {
+        try {
+            return new URL(url).pathname
+        } catch {
+            return url
+        }
+    }
+
+    // 相対パスで、先頭にスラッシュがない場合を補正
     return url.startsWith('/') ? url : `/${url}`
 }
 

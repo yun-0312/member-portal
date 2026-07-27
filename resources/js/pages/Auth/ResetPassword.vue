@@ -22,7 +22,7 @@
             />
 
             <button
-            class="w-full bg-sky-500 text-white py-2 px-4 rounded-md shadow hover:bg-sky-600 mt-4"
+            class="w-full bg-blue-600 text-white py-2 px-4 rounded-md shadow hover:bg-blue-700 mt-4"
             >
             リセットリンクを送信
             </button>

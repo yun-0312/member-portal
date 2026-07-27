@@ -23,6 +23,7 @@ class DatabaseSeeder extends Seeder
             MedicalInstitutionSeeder::class,
             UserSeeder::class,
             UserInstitutionAssignSeeder::class,
+            MedicalInstitutionRepresentativeSeeder::class,
 
             ContentCategorySeeder::class,
             ContentSubcategorySeeder::class,
