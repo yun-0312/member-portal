@@ -4,7 +4,7 @@ namespace App\Http\Requests;
 
 use Illuminate\Foundation\Http\FormRequest;
 
-class FaqUpdateRequest extends FormRequest
+class RoleTargetableStoreRequest extends FormRequest
 {
     /**
      * Determine if the user is authorized to make this request.
@@ -22,10 +22,9 @@ class FaqUpdateRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'received_at' => ['sometimes', 'date'],
-            'question' => ['sometimes', 'string', 'max:255'],
-            'answer' => ['sometimes', 'string', 'max:255'],
-            'category_id' => ['sometimes', 'exists:faq_categories,id'],
+            'targetable_id' => ['required', 'integer'],
+            'targetable_type' => ['required', 'string'],
+            'role_id' => ['required', 'exists:roles,id'],
         ];
     }
 }

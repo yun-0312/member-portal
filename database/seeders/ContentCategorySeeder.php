@@ -26,7 +26,7 @@ class ContentCategorySeeder extends Seeder
                 'name' => '健診・検診マニュアル',
                 'slug' => 'health-check-manual',
                 'section' => 'download',
-                'display_type' => 'list',
+                'display_type' => 'year_archive',
                 'sort_order' => 2,
             ],
             [

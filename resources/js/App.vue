@@ -17,10 +17,12 @@
 
 <script setup>
 import { ref, computed, onMounted } from "vue";
+import { useRouter } from "vue-router";
 import PublicHeader from "./components/PublicHeader.vue";
 import UserHeader from "./components/UserHeader.vue";
 import AdminHeader from "./components/AdminHeader.vue";
 
+const router = useRouter();
 const user = ref(null);
 
 const normalizeRoleName = (value) => {
@@ -36,6 +38,21 @@ const normalizeRoleName = (value) => {
 
     return null;
 };
+
+const isAdminOrStaff = computed(() => {
+    if (!user.value) return false;
+
+    const roleId = user.value.role_id ?? user.value.roleId;
+    const roleName = normalizeRoleName(
+        user.value.role ?? user.value.role_name ?? user.value.roleName,
+    );
+
+    if (roleId !== undefined && roleId !== null) {
+        return [1, 2].includes(Number(roleId));
+    }
+
+    return ["admin", "staff"].includes(roleName);
+});
 
 const fetchUser = () => {
     const rawData = localStorage.getItem("user");
@@ -60,21 +77,31 @@ onMounted(() => {
 // ログイン・ログアウト等の更新イベントを受け取る
 window.addEventListener("user-updated", () => {
     fetchUser();
-});
 
-// admin または staff かどうかを判定
-const isAdminOrStaff = computed(() => {
-    if (!user.value) return false;
-
-    const roleId = user.value.role_id ?? user.value.roleId;
-    const roleName = normalizeRoleName(
-        user.value.role ?? user.value.role_name ?? user.value.roleName,
-    );
-
-    if (roleId !== undefined && roleId !== null) {
-        return [1, 2].includes(Number(roleId));
+    if (user.value) {
+        if (isAdminOrStaff.value) {
+            router.push({ name: "AdminDashboard" });
+        } else {
+            router.push({ name: "PublicDashboard" });
+        }
+    } else {
+        router.push("/");
     }
-
-    return ["admin", "staff"].includes(roleName);
 });
+
+// // admin または staff かどうかを判定
+// const isAdminOrStaff = computed(() => {
+//     if (!user.value) return false;
+
+//     const roleId = user.value.role_id ?? user.value.roleId;
+//     const roleName = normalizeRoleName(
+//         user.value.role ?? user.value.role_name ?? user.value.roleName,
+//     );
+
+//     if (roleId !== undefined && roleId !== null) {
+//         return [1, 2].includes(Number(roleId));
+//     }
+
+//     return ["admin", "staff"].includes(roleName);
+// });
 </script>

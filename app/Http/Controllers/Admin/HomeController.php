@@ -3,40 +3,101 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
-use App\Models\User;
-use App\Models\MedicalInstitution;
+use Illuminate\Http\Request;
+use App\Models\Notice;
+use App\Models\ContentCategory;
 
 
 class HomeController extends Controller
 {
-        public function index() {
-        return response()->json([
-            'stats' => [
-                'users' => User::count(),
-                'medical-institutions' => MedicalInstitution::count(),
+    public function index(Request $request) {
+        $user = $request->user();
+        $user->load('role');
+
+        //お知らせ(letter)
+        $letters = Notice::whereHas('category', fn($q) =>$q->where('slug', 'letter'))
+            ->whereNotNull('published_at')
+            ->latest()
+            ->take(3)
+            ->get()
+            ->map(fn($n) => [
+                'id' => $n->id,
+                'title' => $n->title,
+                'date' => $n->published_at->format('Y-m-d'),
+                'url' => "/admin/notices?id={$n->id}",
+            ]);
+
+        //回覧(circulate)
+        $circulate = Notice::whereHas('category', fn($q) => $q->where('slug', 'circulate'))
+            ->whereNotNull('published_at')
+            ->selectRaw('DATE(published_at) as date, COUNT(*) as count')
+            ->groupBy('date')
+            ->orderBy('date', 'desc')
+            ->take(3)
+            ->get()
+            ->map(fn($row) => [
+                'date' => $row->date,
+                'count' => $row->count,
+                'url' => "/admin/notices?category=circulate&date={$row->date}",
+            ]);
+
+        //schedule
+        $schedule = [
+            'schedule' => '/admin/schedules',
+            'workshop' => '/admin/workshops',
+        ];
+
+        //書式（downloads)
+        $downloads = ContentCategory::where('section', 'download')
+            ->orderBy('sort_order')
+            ->get()
+            ->map(fn($category) => [
+                'key'   => str_replace('-', '_', $category->slug),
+                'label' => $category->name,
+                'url'   => "/admin/contents?category={$category->slug}",
+            ]);
+
+        //その他カテゴリ(categories)
+        $dbCategories = ContentCategory::where('section', 'main_menu')
+            ->orderBy('sort_order')
+            ->get()
+            ->map(fn($category) => [
+                'key'   => str_replace('-', '_', $category->slug),
+                'label' => $category->name,
+                'url'   => "/admin/contents?category={$category->slug}",
+            ]);
+
+        // DB管理外の特殊メニューを追加
+        $extraCategories = collect([
+            [
+                'key'   => 'workshop_videos',
+                'label' => '研修会動画',
+                'url'   => '/admin/videos',
             ],
-            'links' => [
-                'users' => route('admin.users.index'),
-                'medical_institutions' => route('admin.medical-institutions.index'),
-                'notices' => route('admin.notices.index'),
-                'contents' => route('admin.contents.index'),
-                'workshops' => route('admin.workshops.index'),
-                'schedules' => route('admin.schedules.index'),
-                'videos' => route('admin.videos.index'),
-                'faqs' => route('admin.faqs.index'),
-
-
-                'roles' => route('admin.roles.index'),
-                'content_categories' => route('admin.content-categories.index'),
-                'content_subcategories' => route('admin.content-subcategories.index'),
-                'group' => route('admin.groups.index'),
-                'group_categories' => route('admin.group-categories.index'),
-                'faq_categories' => route('admin.faq-categories.index'),
-                'notice_categories' => route('admin.notice-categories.index'),
-                'rooms' => route('admin.rooms.index'),
-                'permissions' => route('admin.permissions.index'),
-                'schedule_category' => route('admin.schedule-categories.index'),
+            [
+                'key'   => 'faqs',
+                'label' => 'コールセンター問い合わせ報告書',
+                'url'   => '/admin/faqs',
             ],
         ]);
+
+        $categories = $dbCategories->concat($extraCategories)->values();
+
+        // 6. 理事会専用 (director_only)
+        $boardExclusive = ContentCategory::where('slug', 'board-exclusive')->first();
+        $directorOnlyUrl = $boardExclusive ? "/admin/contents?category={$boardExclusive->slug}" : null;
+
+        return response()->json([
+            'user' => $user,
+            'letter' => $letters,
+            'letter_url' => '/admin/notices?category=letter',
+            'circulate' => $circulate,
+            'circulate_url' => '/admin/notices?category=circulate',
+            'schedule' => $schedule,
+            'downloads' => $downloads,
+            'categories' => $categories,
+            'director_only' => $directorOnlyUrl,
+        ]);
+
     }
 }

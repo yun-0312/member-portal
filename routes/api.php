@@ -35,6 +35,10 @@ use App\Http\Controllers\Auth\EmailVerificationController;
 use App\Http\Controllers\Auth\ForgotPasswordController;
 use App\Http\Controllers\Auth\ResetPasswordController;
 use App\Http\Controllers\Admin\FileController;
+use App\Http\Controllers\Admin\ManagementController;
+use App\Http\Controllers\Admin\NoticeRolesController;
+use App\Http\Controllers\Admin\ContentRolesController;
+use App\Http\Controllers\Admin\VideoRolesController;
 use Illuminate\Http\Request;
 use App\Models\User;
 
@@ -182,6 +186,9 @@ Route::middleware(['auth:sanctum'])->prefix('admin')->group(function () {
     Route::get('/home', [AdminHomeController::class, 'index'])
         ->middleware('permission:content.update')
         ->name('admin.home.index');
+    Route::get('/management', [ManagementController::class, 'index'])
+        ->middleware('permission:role.update')
+        ->name('admin.management.index');
     //header
     Route::get('/header', [AdminHeaderController::class, 'index'])
         ->middleware('permission:content.update')
@@ -204,7 +211,13 @@ Route::middleware(['auth:sanctum'])->prefix('admin')->group(function () {
             ->name('admin.notices.update');
         Route::delete('/{notice}', [AdminNoticeController::class, 'destroy'])
             ->middleware('permission:notice.delete')
-            ->name('admin.notices.destroy');
+            ->name('admin.notice.destroy');
+        Route::post('/{notice}/roles', [NoticeRolesController::class, 'store'])
+            ->middleware('permission:notice.update')
+            ->name('admin.notices.roles.store');
+        Route::delete('/{notice}/roles/{role}', [NoticeRolesController::class, 'destroy'])
+            ->middleware('permission:notice.update')
+            ->name('admin.notices.roles.destroy');
     });
 
     // NoticeCategory
@@ -244,6 +257,12 @@ Route::middleware(['auth:sanctum'])->prefix('admin')->group(function () {
         Route::delete('/{content}', [AdminContentController::class, 'destroy'])
             ->middleware('permission:content.delete')
             ->name('admin.contents.destroy');
+        Route::post('/{content}/roles', [ContentRolesController::class, 'store'])
+            ->middleware('permission:content.update')
+            ->name('admin.contents.roles.store');
+        Route::delete('/{content}/roles/{role}', [ContentRolesController::class, 'destroy'])
+            ->middleware('permission:content.update')
+            ->name('admin.contents.roles.destroy');
     });
 
     // Workshop
@@ -283,6 +302,12 @@ Route::middleware(['auth:sanctum'])->prefix('admin')->group(function () {
         Route::delete('/{video}', [AdminVideoController::class, 'destroy'])
             ->middleware('permission:video.delete')
             ->name('admin.videos.destroy');
+        Route::post('/{video}/roles', [VideoRolesController::class, 'store'])
+            ->middleware('permission:video.update')
+            ->name('admin.videos.roles.store');
+        Route::delete('/{video}/roles/{role}', [VideoRolesController::class, 'destroy'])
+            ->middleware('permission:video.update')
+            ->name('admin.videos.roles.destroy');
     });
 
     // FAQ
@@ -345,6 +370,9 @@ Route::middleware(['auth:sanctum'])->prefix('admin')->group(function () {
             ->name('admin.schedules.destroy');
     });
     Route::prefix('occurrences')->group(function () {
+        Route::get('/{occurrence}', [AdminScheduleController::class, 'showOccurrence'])
+            ->middleware(('permission:schedule.update'))
+            ->name('admin.schedule-occurrences.show');
         Route::put('/{occurrence}', [AdminScheduleController::class, 'updateOccurrence'])
             ->middleware('permission:schedule.update')
             ->name('admin.schedule-occurrences.update');
@@ -556,6 +584,9 @@ Route::middleware(['auth:sanctum'])->prefix('admin')->group(function () {
         Route::post('/videos/{video}', [FileController::class, 'uploadToVideo'])
             ->middleware('permission:video.update')
             ->name('admin.files.upload.video');
+
+        Route::get('/{file}/download', [FileController::class, 'download'])
+            ->name('admin.files.download');
 
         Route::delete('/{file}', [FileController::class, 'destroy'])
             ->middleware('permission:content.update')

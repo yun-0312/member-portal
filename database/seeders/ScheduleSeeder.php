@@ -62,7 +62,7 @@ class ScheduleSeeder extends Seeder
             Schedule::create([
                 'title' => "第{$i}回理事会",
                 'schedule_category_id' => $importantCat,
-                'room_id' => Room::where('name', '5階第1会議室')->value('id'),
+                'room_id' => $boardRoom,
                 'location' => null,
                 'url' => null,
                 'created_by' => 1,

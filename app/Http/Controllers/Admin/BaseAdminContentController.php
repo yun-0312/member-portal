@@ -70,12 +70,12 @@ class BaseAdminContentController extends Controller
             ->latest($this->publishedDateColumn)
             ->paginate(15)
             ->through(function ($item) {
-                $item->show_url = route("admin.{$this->routePrefix}.show", $item->id);
+                $item->show_url = "/admin/{$this->routePrefix}/{$item->id}";
                 return $item;
             });
 
         $items = $items->toArray();
-        $items['store_url'] = route("admin.{$this->routePrefix}.store");
+        $items['store_url'] = "/admin/{$this->routePrefix}";
 
         return response()->json($items);
     }
@@ -90,9 +90,9 @@ class BaseAdminContentController extends Controller
 
         return response()->json([
             'item' => $item,
-            'index_url' => route("admin.{$this->routePrefix}.index"),
-            'update_url' => route("admin.{$this->routePrefix}.update", $item->id),
-            'delete_url' => route("admin.{$this->routePrefix}.destroy", $item->id),
+            'index_url' => "/admin/{$this->routePrefix}",
+            'update_url' => "/admin/{$this->routePrefix}/{$item->id}",
+            'delete_url' => "/admin/{$this->routePrefix}/{$item->id}",
         ]);
     }
 

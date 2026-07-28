@@ -115,7 +115,7 @@
 
                 <!-- 受付日（作成日） -->
                 <time class="text-slate-400 font-mono ml-auto">
-                  📅 受付日: {{ formatDate(faq.created_at) }}
+                  📅 受付日: {{ formatDate(faq.received_at) }}
                 </time>
               </div>
 

@@ -337,15 +337,20 @@
         return `${parseInt(m, 10)}月`
     }
 
-    const formatTime = (isoString) => {
-        if (!isoString) return ''
-        const date = new Date(isoString)
-        return date.toLocaleTimeString('ja-JP', {
-            hour: '2-digit',
-            minute: '2-digit',
-            timeZone: 'UTC' // API側がUTCの場合はUTCを指定
-        })
-    }
+// 時刻フォーマット (例: 11:00 UTC -> 20:00 JST)
+const formatTime = (isoString) => {
+    if (!isoString) return ''
+    const d = new Date(isoString)
+    if (isNaN(d.getTime())) return isoString
+
+    // UTCミリ秒に9時間を加算してJST時刻を計算
+    const jst = new Date(d.getTime() + 9 * 60 * 60 * 1000)
+
+    const hh = String(jst.getUTCHours()).padStart(2, '0')
+    const min = String(jst.getUTCMinutes()).padStart(2, '0')
+
+    return `${hh}:${min}`
+}
 
     // カテゴリ用スタイル（枠線）
     const getCategoryBorderClass = (slug) => {

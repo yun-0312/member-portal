@@ -22,6 +22,7 @@ class FaqStoreRequest extends FormRequest
     public function rules(): array
     {
         return [
+            'received_at' => ['required', 'date'],
             'question' => ['required', 'string', 'max:255'],
             'answer' => ['required', 'string', 'max:255'],
             'category_id' => ['required', 'exists:faq_categories,id'],

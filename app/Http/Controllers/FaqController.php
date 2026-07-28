@@ -21,7 +21,7 @@ class FaqController extends BasePublicContentController
         // FAQ特有の「カテゴリの表示順 ➔ 作成日順」ソート
         return $query->leftJoin('faq_categories', 'faqs.category_id', '=', 'faq_categories.id')
             ->orderBy('faq_categories.sort_order')
-            ->orderBy('faqs.created_at')
+            ->orderBy('faqs.received_at')
             ->select('faqs.*');
     }
 
@@ -67,7 +67,7 @@ class FaqController extends BasePublicContentController
 
         foreach ($faqs as $faq) {
             fputcsv($csv, [
-                $faq->created_at->format('Y-m-d'),
+                $faq->received_at->format('Y-m-d'),
                 $faq->category_id,
                 optional($faq->category)->name,
                 $faq->question,

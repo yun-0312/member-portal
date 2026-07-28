@@ -31,7 +31,7 @@ class ScheduleController extends Controller
         ->get();
 
         $occurrences->transform(function ($occurrence) {
-            $occurrence->show_url   = route('admin.schedules.show', $occurrence->schedule_id);
+            $occurrence->show_url = "/admin/occurrences/{$occurrence->id}";
             return $occurrence;
         });
 
@@ -54,16 +54,16 @@ class ScheduleController extends Controller
 
         $scheduleArray = $schedule->toArray();
 
-        $scheduleArray['update_url'] = route('admin.schedules.update', $schedule->id);
-        $scheduleArray['destroy_url'] = route('admin.schedules.destroy', $schedule->id);
+        $scheduleArray['update_url'] = "/admin/schedules/{$schedule->id}";
+        $scheduleArray['destroy_url'] = "/admin/schedules/{$schedule->id}";
         $scheduleArray['occurrences'] = $schedule->occurrences->map(function ($occurrence) {
             return [
                 'id' => $occurrence->id,
                 'start_at' => $occurrence->start_at,
                 'end_at' => $occurrence->end_at,
                 'type' => $occurrence->type,
-                'update_url' => route('admin.schedule-occurrences.update', $occurrence->id),
-                'destroy_url' => route('admin.schedule-occurrences.destroy', $occurrence->id),
+                'update_url' => "/admin/schedule-occurrences/{$occurrence->id}",
+                'destroy_url' => "/admin/schedule-occurrences/{$occurrence->id}",
             ];
         });
 
@@ -132,6 +132,58 @@ class ScheduleController extends Controller
         return response()->json([
             'message' => 'スケジュールを更新しました',
             'schedule' => $schedule->fresh(),
+        ]);
+    }
+
+    public function showOccurrence(ScheduleOccurrence $occurrence) {
+        // 関連モデル（Scheduleとその配下）を読み込み
+        $occurrence->load([
+            'schedule.room',
+            'schedule.category',
+            'schedule.recurrences',
+            'schedule.occurrences' => function ($query) {
+                $query->orderBy('start_at', 'asc');
+            },
+        ]);
+
+        $schedule = $occurrence->schedule;
+
+        return response()->json([
+            'occurrence' => [
+                'id'          => $occurrence->id,
+                'start_at'    => $occurrence->start_at,
+                'end_at'      => $occurrence->end_at,
+                'type'        => $occurrence->type,
+                'update_url'  => "/admin/schedule-occurrences/{$occurrence->id}",
+                'destroy_url' => "/admin/schedule-occurrences/{$occurrence->id}",
+            ],
+            'schedule' => [
+                'id'                   => $schedule->id,
+                'room_id'              => $schedule->room_id,
+                'title'                => $schedule->title,
+                'schedule_category_id' => $schedule->schedule_category_id,
+                'location'             => $schedule->location,
+                'url'                  => $schedule->url,
+                'created_by'           => $schedule->created_by,
+                'created_at'           => $schedule->created_at,
+                'updated_at'           => $schedule->updated_at,
+                'room'                 => $schedule->room,
+                'category'             => $schedule->category,
+                'recurrences'          => $schedule->recurrences,
+                'update_url'           => "/admin/schedules/{$schedule->id}",
+                'destroy_url'          => "/admin/schedules/{$schedule->id}",
+                // 一覧で全 Occurrence も参照できるように設定
+                'occurrences'          => $schedule->occurrences->map(function ($item) {
+                    return [
+                        'id'          => $item->id,
+                        'start_at'    => $item->start_at,
+                        'end_at'      => $item->end_at,
+                        'type'        => $item->type,
+                        'update_url'  => "/admin/schedule-occurrences/{$item->id}",
+                        'destroy_url' => "/admin/schedule-occurrences/{$item->id}",
+                    ];
+                }),
+            ],
         ]);
     }
 

@@ -5,7 +5,7 @@ import ForgotPassword from "../pages/Auth/ResetPassword.vue";
 import ResetPasswordConfirm from "../pages/Auth/ResetPasswordConfirm.vue";
 import RegisterMedicalStaff from "../pages/Auth/RegisterMedicalStaff.vue";
 import ChangePassword from "../pages/Auth/ChangePassword.vue";
-import Dashboard from "../pages/public/Dashboard.vue";
+import DashboardView from "../components/DashboardView.vue";
 import NoticesIndex from "../pages/public/NoticesIndex.vue";
 import ContentsIndex from "../pages/public/ContentsIndex.vue";
 import ScheduleList from "../pages/public/ScheduleList.vue";
@@ -18,6 +18,17 @@ import MedicalInstitutionUsers from "../pages/public/MedicalInstitutionUsers.vue
 import MedicalInstitutionDetail from "../pages/public/MedicalInstitutionDetail.vue";
 import MedicalInstitutionEdit from "../pages/public/MedicalInstitutionEdit.vue";
 
+import AdminNoticesIndex from "../pages/admin/NoticesIndex.vue";
+import AdminNoticeShow from "../pages/admin/NoticeShow.vue";
+import AdminWorkshopList from "../pages/admin/WorkshopList.vue";
+import AdminWorkshopShow from "../pages/admin/WorkshopShow.vue";
+import AdminVideoList from "../pages/admin/VideoList.vue";
+import AdminVideoShow from "../pages/admin/VideoShow.vue";
+import AdminContentsIndex from "../pages/admin/ContentsIndex.vue";
+import AdminContentShow from "../pages/admin/ContentShow.vue";
+import AdminFaqList from "../pages/admin/FaqList.vue";
+import AdminScheduleList from "../pages/admin/ScheduleList.vue";
+import AdminScheduleShow from "../pages/admin/ScheduleShow.vue";
 
 const routes = [
     { path: "/", name: "login", component: Login },
@@ -42,7 +53,26 @@ const routes = [
         name: "register-medical-staff",
         component: RegisterMedicalStaff,
     },
-    { path: "/dashboard", name: "dashboard", component: Dashboard },
+    {
+        path: "/dashboard",
+        name: "PublicDashboard",
+        component: DashboardView,
+        props: {
+            apiEndpoint: "/home",
+            title: "ダッシュボード",
+        },
+        meta: { requiresAuth: true },
+    },
+    {
+        path: "/admin/dashboard",
+        name: "AdminDashboard",
+        component: DashboardView,
+        props: {
+            apiEndpoint: "/admin/home",
+            title: "管理者ダッシュボード",
+        },
+        meta: { requiresAuth: true, roles: ["admin", "staff"] },
+    },
     {
         path: "/notices",
         name: "NoticesIndex",
@@ -98,11 +128,83 @@ const routes = [
         name: "MedicalInstitutionDetail",
         component: MedicalInstitutionDetail,
     },
+    // 管理者グループ（Prefix: /admin）
+    {
+        path: "/admin",
+        children: [
+            {
+                path: "/admin/notices",
+                name: "admin.noticesIndex",
+                component: AdminNoticesIndex,
+            },
+            {
+                path: "/admin/notices/:id",
+                name: "NoticesShow",
+                component: AdminNoticeShow,
+            },
+            {
+                path: "/admin/workshops",
+                name: "admin.workshopList",
+                component: AdminWorkshopList,
+            },
+            {
+                path: "/admin/workshops/:id",
+                name: "admin.workshopShow",
+                component: AdminWorkshopShow,
+            },
+            {
+                path: "/admin/videos",
+                name: "admin.videoList",
+                component: AdminVideoList,
+            },
+            {
+                path: "/admin/videos/:id",
+                name: "admin.videoShow",
+                component: AdminVideoShow,
+            },
+            {
+                path: "/admin/contents",
+                name: "admin.contentsIndex",
+                component: AdminContentsIndex,
+            },
+            {
+                path: "/admin/contents/:id",
+                name: "admin.contentShow",
+                component: AdminContentShow,
+            },
+            {
+                path: "/admin/faqs",
+                name: "admin.faqList",
+                component: AdminFaqList,
+            },
+            {
+                path: "/admin/schedules",
+                name: "admin.ScheduleList",
+                component: AdminScheduleList,
+            },
+            {
+                path: "/admin/schedules/:id",
+                name: "admin.ScheduleShow",
+                component: AdminScheduleShow,
+            },
+        ],
+    },
 ];
 
 const router = createRouter({
     history: createWebHistory(),
     routes,
+});
+
+router.beforeEach((to, from, next) => {
+    const token = localStorage.getItem("token");
+
+    // 未ログインで認証必須ページへ行こうとした時だけログイン画面へ返す
+    if (to.meta.requiresAuth && !token) {
+        return next({ name: "login" });
+    }
+
+    next();
 });
 
 export default router;

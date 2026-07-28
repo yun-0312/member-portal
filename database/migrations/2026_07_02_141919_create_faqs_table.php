@@ -13,6 +13,7 @@ return new class extends Migration
     {
         Schema::create('faqs', function (Blueprint $table) {
             $table->id();
+            $table->timestamp('received_at');
             $table->text('question');
             $table->text('answer');
             $table->foreignId('category_id')->nullable()->constrained('faq_categories')->nullOnDelete();

@@ -143,18 +143,21 @@ const login = async () => {
             remember: remember.value,
         });
 
-        console.log("ログイン成功", res.data);
 
-        localStorage.setItem("user", JSON.stringify(res.data.user));
-        localStorage.setItem("token", res.data.token);
+        const user = res.data.user;
+        const token = res.data.token;
+
+        localStorage.setItem("user", JSON.stringify(user));
+        localStorage.setItem("token", token);
 
         api.defaults.headers.common['Authorization'] = `Bearer ${res.data.token}`;
 
-        window.dispatchEvent(new Event('user-updated'))
-        router.push('/dashboard')
+        window.dispatchEvent(new Event('user-updated'));
+
     } catch (error) {
         errorMessage.value =
             error.response?.data?.message || "ログインに失敗しました";
     }
 };
+
 </script>

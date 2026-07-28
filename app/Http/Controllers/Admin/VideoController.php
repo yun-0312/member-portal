@@ -17,4 +17,29 @@ class VideoController extends BaseAdminContentController
     protected string $storeRequestClass = VideoStoreRequest::class;
     protected string $updateRequestClass = VideoUpdateRequest::class;
 
+     //Url追加のためオーバーライド
+    public function show($id) {
+        $item = $this->findModel($id);
+        $this->authorize('view', $item);
+
+        if (!empty($this->showExtraRelations)) {
+            $item->load($this->showExtraRelations);
+        }
+
+        return response()->json([
+            'item' => $item,
+            'index_url' => "/admin/{$this->routePrefix}",
+            'update_url' => "/admin/{$this->routePrefix}/{$item->id}",
+            'delete_url' => "/admin/{$this->routePrefix}/{$item->id}",
+            'role_targetable_url' => "/admin/{$this->routePrefix}/{$item->id}/roles",
+            'roles' => $item->roles->map(function ($role) use ($item) {
+                return [
+                    'id' => $role->id,
+                    'name' => $role->name,
+                    'destroy_url' => "/admin/{$this->routePrefix}/{$item->id}/roles/{$role->id}",
+                ];
+            }),
+        ]);
+    }
+
 }

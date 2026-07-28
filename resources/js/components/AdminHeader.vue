@@ -7,7 +7,10 @@
             class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between"
         >
             <!-- 左側：ロゴ・サイト名エリア -->
-            <div class="flex items-center gap-3">
+            <router-link
+                to="/dashboard"
+                class="flex items-center gap-3 group transition-all duration-200 hover:opacity-90 active:scale-98"
+            >
                 <!-- 管理者用アイコン枠 -->
                 <div
                     class="w-9 h-9 bg-indigo-500/20 backdrop-blur-md rounded-xl flex items-center justify-center border border-indigo-400/30 shadow-inner text-indigo-300"
@@ -26,7 +29,7 @@
                         >
                     </div>
                 </div>
-            </div>
+            </router-link
 
             <!-- 右側：ユーザー情報 & ナビゲーション -->
             <div class="flex items-center gap-3 sm:gap-5">

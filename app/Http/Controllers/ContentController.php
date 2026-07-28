@@ -1,6 +1,7 @@
 <?php
 
 namespace App\Http\Controllers;
+
 use Illuminate\Http\Request;
 use App\Http\Controllers\BasePublicContentController;
 use App\Models\Content;
@@ -147,7 +148,7 @@ class ContentController extends BasePublicContentController
         // 6. パラメータ指定がない場合（全件一覧）
         return response()->json([
             'display_mode' => 'list',
-            'contents'     => $this->fetchPaginatedContents($query, $request),
+            'contents' => $this->fetchPaginatedContents($query, $request),
         ]);
     }
 

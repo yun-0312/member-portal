@@ -9,6 +9,7 @@ use App\Models\Notice;
 use App\Models\Content;
 use App\Models\Video;
 use App\Models\File;
+use Illuminate\Support\Facades\Storage;
 
 class FileController extends Controller
 {
@@ -64,6 +65,23 @@ class FileController extends Controller
             'message' => 'ファイルをアップロードしました。',
             'file' => $savedFiles,
         ], 201);
+    }
+
+    public function download(File $file) {
+        // DB上のパス（例: 'uploads/notices/xxxx.jpg' や 'notices/xxxx.jpg'）
+        // ご利用のディスク（'public' や 'local'、's3'など）に合わせて指定してください
+        $disk = Storage::disk('public'); 
+
+        // ファイルが存在するかチェック
+        if (!$disk->exists($file->path)) {
+            return response()->json([
+                'message' => '指定されたファイルが見つかりません。'
+            ], 404);
+        }
+
+        // $file->path のファイルを、元のファイル名（$file->name や $file->original_name）でダウンロード
+        // ※ DBのカラム名に合わせて第2引数を調整してください
+        return $disk->download($file->path, $file->name);
     }
 
     public function destroy(File $file) {

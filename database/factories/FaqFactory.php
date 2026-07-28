@@ -23,6 +23,7 @@ class FaqFactory extends Factory
         $randomDate = $this->faker->dateTimeBetween('-1 year', 'now');
 
         return [
+            'received_at' => $this->faker->dateTimeBetween('-1 year', 'now'),
             'question' => $this->faker->realText(fake()->numberBetween(25, 50)),
             'answer' => $this->faker->realText(fake()->numberBetween(25, 50)),
             'category_id' => FaqCategory::inRandomOrder()->value('id'),

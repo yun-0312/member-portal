@@ -57,7 +57,7 @@ class ContentSeeder extends Seeder
         $fourMedicalAssociationCategory = ContentCategory::where('slug', 'four-medical-association
 committee')->first();
         if ($fourMedicalAssociationCategory) {
-            $subcategories = ContentSubcategory::where('category_id', $fourMedicalAssociation->id)->get();
+            $subcategories = ContentSubcategory::where('category_id', $fourMedicalAssociationCategory->id)->get();
 
             foreach ($subcategories as $sub) {
                 for ($i = 1; $i <= 24; $i++) {
@@ -164,6 +164,55 @@ committee')->first();
                 ]);
 
                 $content->roles()->attach($noMemberRoleIds);
+            }
+        }
+
+        //書類系（download)
+        $downloadSlugs = [
+            'disaster-manual',
+            'health-check-manual',
+            'vaccination-summary',
+            'public-health',
+            'registration-change',
+            'commission-fees',
+            'others-documents',
+        ];
+
+        foreach ($downloadSlugs as $slug) {
+            $category = ContentCategory::where('slug', $slug)->first();
+
+            if ($category) {
+                // subcategory がある場合は subcategory ごとに作成
+                $subcategories = ContentSubcategory::where('category_id', $category->id)->get();
+
+                if ($subcategories->count() > 0) {
+                    foreach ($subcategories as $sub) {
+                        for ($i = 1; $i <= 30; $i++) {
+                            $content = Content::factory()->create([
+                                'category_id'    => $category->id,
+                                'subcategory_id' => $sub->id,
+                                'title'          => $sub->name . '資料 ' . $i,
+                                'published_at'   => fake()->dateTimeBetween('-2 years', 'now'),
+                                'created_by'     => $staffUsers->random()->id,
+                            ]);
+
+                            $content->roles()->attach($allRoleIds);
+                        }
+                    }
+                } else {
+                    // subcategory がない場合は category 直下に作成
+                    for ($i = 1; $i <= 10; $i++) {
+                        $content = Content::factory()->create([
+                            'category_id'    => $category->id,
+                            'subcategory_id' => null,
+                            'title'          => $category->name . '資料 ' . $i,
+                            'published_at'   => fake()->dateTimeBetween('-2 years', 'now'),
+                            'created_by'     => $staffUsers->random()->id,
+                        ]);
+
+                        $content->roles()->attach($allRoleIds);
+                    }
+                }
             }
         }
     }

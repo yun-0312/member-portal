@@ -19,7 +19,7 @@ class HeaderController extends Controller
             ],
             'menu' => [
                 ['label' => '管理画面', 'url' => '/admin/dashboard'],
-                ['label' => 'ホーム', 'url' => '/dashboard'],
+                ['label' => 'ホーム', 'url' => '/admin/dashboard'],
                 ['label' => 'ログアウト', 'action' => 'logout'],
             ],
         ]);

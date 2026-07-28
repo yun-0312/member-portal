@@ -11,6 +11,7 @@ class Faq extends Model
     use HasFactory, VisibleToScope;
 
     protected $fillable = [
+        'received_at',
         'question',
         'answer',
         'category_id',
