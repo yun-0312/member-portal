@@ -25,7 +25,7 @@ class WorkshopStoreRequest extends FormRequest
             'title' => ['required', 'string', 'max:255'],
             'description' => ['nullable', 'string'],
             'start_at' => ['required', 'date'],
-            'end_at' => ['required', 'date'],
+            'end_at' => ['required', 'date', 'after:start_at'],
             'location' => ['required', 'string', 'max:255'],
             'lecture' => ['required', 'string', 'max:255'],
         ];

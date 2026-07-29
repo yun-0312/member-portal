@@ -6,9 +6,9 @@
         <div class="flex flex-col md:flex-row md:items-center md:justify-between border-b border-slate-200 pb-4 gap-4">
             <div>
             <h1 class="text-2xl md:text-3xl font-extrabold text-slate-800 tracking-tight flex items-center gap-2">
-                <span>🎬</span> 研修・セミナー動画管理一覧
+                <span>🎬</span> 研修会・講演会動画一覧
             </h1>
-            <p class="text-xs md:text-sm text-slate-500 mt-1">登録されている研修・セミナー動画の追加・編集・管理が行えます</p>
+            <p class="text-xs md:text-sm text-slate-500 mt-1">研修会・講演会動画の追加・編集・管理</p>
             </div>
 
             <!-- アクションボタンエリア（新規動画登録 ＆ ダッシュボード） -->

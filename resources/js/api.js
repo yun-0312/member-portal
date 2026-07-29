@@ -1,4 +1,5 @@
 import axios from "axios"
+import router from "./router"
 
 const api = axios.create({
     baseURL: "/api",
@@ -18,5 +19,30 @@ api.interceptors.request.use((config) => {
 
     return config;
 });
+
+// レスポンス時の処理（401エラーの自動検知とリダイレクト）
+api.interceptors.response.use(
+    (response) => {
+        return response;
+    },
+    (error) => {
+        // 401 Unauthenticated（認証切れ）が発生した場合
+        if (error.response && error.response.status === 401) {
+            // 1. ローカルストレージの古い情報をクリア
+            localStorage.removeItem('token');
+            localStorage.removeItem('user');
+
+            // 2. AxiosのデフォルトヘッダーからAuthorizationを削除
+            delete api.defaults.headers.common['Authorization'];
+
+            // 3. ログイン画面へ遷移（現在地がすでにログイン画面でない場合のみ）
+            if (router.currentRoute.value.path !== '/') {
+                router.push('/');
+            }
+        }
+        // 個別の catch ブロックでもエラーを受け取れるようにそのままエラーを投げる
+        return Promise.reject(error);
+    }
+);
 
 export default api;

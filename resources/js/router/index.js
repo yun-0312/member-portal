@@ -20,15 +20,27 @@ import MedicalInstitutionEdit from "../pages/public/MedicalInstitutionEdit.vue";
 
 import AdminNoticesIndex from "../pages/admin/NoticesIndex.vue";
 import AdminNoticeShow from "../pages/admin/NoticeShow.vue";
+import AdminNoticeCreate from "../pages/admin/NoticeCreate.vue";
+import AdminNoticeEdit from "../pages/admin/NoticeEdit.vue";
 import AdminWorkshopList from "../pages/admin/WorkshopList.vue";
 import AdminWorkshopShow from "../pages/admin/WorkshopShow.vue";
+import AdminWorkshopCreate from "../pages/admin/WorkshopCreate.vue";
+import AdminWorkshopEdit from "../pages/admin/WorkshopEdit.vue";
 import AdminVideoList from "../pages/admin/VideoList.vue";
 import AdminVideoShow from "../pages/admin/VideoShow.vue";
+import AdminVideoCreate from "../pages/admin/VideoCreate.vue";
+import AdminVideoEdit from "../pages/admin/VideoEdit.vue";
 import AdminContentsIndex from "../pages/admin/ContentsIndex.vue";
 import AdminContentShow from "../pages/admin/ContentShow.vue";
+import AdminContentEdit from "../pages/admin/ContentEdit.vue";
+import AdminContentCreate from "../pages/admin/ContentCreate.vue";
 import AdminFaqList from "../pages/admin/FaqList.vue";
+import AdminFaqCreate from "../pages/admin/FaqCreate.vue";
+import AdminFaqEdit from "../pages/admin/FaqEdit.vue";
 import AdminScheduleList from "../pages/admin/ScheduleList.vue";
 import AdminScheduleShow from "../pages/admin/ScheduleShow.vue";
+import AdminScheduleCreate from "../pages/admin/ScheduleCreate.vue";
+import AdminScheduleEdit from "../pages/admin/ScheduleEdit.vue";
 
 const routes = [
     { path: "/", name: "login", component: Login },
@@ -143,6 +155,16 @@ const routes = [
                 component: AdminNoticeShow,
             },
             {
+                path: "/admin/notices/create",
+                name: "NoticesCreate",
+                component: AdminNoticeCreate,
+            },
+            {
+                path: "/admin/notices/:id/edit",
+                name: "NoticesEdit",
+                component: AdminNoticeEdit,
+            },
+            {
                 path: "/admin/workshops",
                 name: "admin.workshopList",
                 component: AdminWorkshopList,
@@ -151,6 +173,16 @@ const routes = [
                 path: "/admin/workshops/:id",
                 name: "admin.workshopShow",
                 component: AdminWorkshopShow,
+            },
+            {
+                path: "/admin/workshops/create",
+                name: "admin.workshopCreate",
+                component: AdminWorkshopCreate,
+            },
+            {
+                path: "/admin/workshops/:id/edit",
+                name: "admin.workshopEdit",
+                component: AdminWorkshopEdit,
             },
             {
                 path: "/admin/videos",
@@ -163,6 +195,16 @@ const routes = [
                 component: AdminVideoShow,
             },
             {
+                path: "/admin/videos/create",
+                name: "admin.videoCreate",
+                component: AdminVideoCreate,
+            },
+            {
+                path: "/admin/videos/:id/edit",
+                name: "admin.videoEdit",
+                component: AdminVideoEdit,
+            },
+            {
                 path: "/admin/contents",
                 name: "admin.contentsIndex",
                 component: AdminContentsIndex,
@@ -173,9 +215,29 @@ const routes = [
                 component: AdminContentShow,
             },
             {
+                path: "/admin/contents/create",
+                name: "admin.contentCreate",
+                component: AdminContentCreate,
+            },
+            {
+                path: "/admin/contents/:id/edit",
+                name: "admin.contentEdit",
+                component: AdminContentEdit,
+            },
+            {
                 path: "/admin/faqs",
                 name: "admin.faqList",
                 component: AdminFaqList,
+            },
+            {
+                path: "/admin/faqs/create",
+                name: "admin.faqCreate",
+                component: AdminFaqCreate,
+            },
+            {
+                path: "/admin/faqs/:id",
+                name: "admin.faqEdit",
+                component: AdminFaqEdit,
             },
             {
                 path: "/admin/schedules",
@@ -183,9 +245,19 @@ const routes = [
                 component: AdminScheduleList,
             },
             {
-                path: "/admin/schedules/:id",
+                path: "/admin/schedule-occurrences/:id",
                 name: "admin.ScheduleShow",
                 component: AdminScheduleShow,
+            },
+            {
+                path: "/admin/schedules/create",
+                name: "admin.ScheduleCreate",
+                component: AdminScheduleCreate,
+            },
+            {
+                path: "/admin/schedule-occurrences/:id/edit",
+                name: "admin.ScheduleEdit",
+                component: AdminScheduleEdit,
             },
         ],
     },

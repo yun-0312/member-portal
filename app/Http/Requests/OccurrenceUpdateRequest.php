@@ -21,7 +21,7 @@ class OccurrenceUpdateRequest extends FormRequest
      */
     public function rules(): array
     {
-    $mode = $this->input('mode');
+        $mode = $this->input('mode');
 
         $rules = [
             'mode' => ['required', 'in:single,future,all'],
@@ -36,12 +36,23 @@ class OccurrenceUpdateRequest extends FormRequest
         if ($mode === 'future' || $mode === 'all') {
             // これ以降 / すべて → recurrence 必須
             $rules['recurrence'] = ['required', 'array'];
+
+            // ★追加: 繰り返しの適用開始日・時刻のバリデーション
+            $rules['recurrence.dtstart'] = ['required', 'date'];
+            $rules['recurrence.start_time'] = ['required', 'date_format:H:i'];
+            $rules['recurrence.end_time'] = ['required', 'date_format:H:i', 'after:recurrence.start_time'];
+
             $rules['recurrence.frequency'] = ['required', 'in:daily,weekly,monthly,yearly'];
-            $rules['recurrence.byweekday'] = ['required', 'array'];
-            $rules['recurrence.byweekday.*'] = ['string'];
-            $rules['recurrence.bysetpos'] = ['required', 'integer'];
+
+            // byweekday: daily 以外（weekly, monthly, yearly）の時は必須
+            $rules['recurrence.byweekday'] = ['required_unless:recurrence.frequency,daily', 'nullable', 'array'];
+            $rules['recurrence.byweekday.*'] = ['string', 'in:MO,TU,WE,TH,FR,SA,SU'];
+
+            // bysetpos: monthly の時だけ必須（他は nullable）
+            $rules['recurrence.bysetpos'] = ['required_if:recurrence.frequency,monthly', 'nullable', 'integer', 'in:1,2,3,4,-1'];
+
             $rules['recurrence.interval'] = ['required', 'integer', 'min:1'];
-            $rules['recurrence.until'] = ['nullable', 'date'];
+            $rules['recurrence.until'] = ['nullable', 'date', 'after_or_equal:recurrence.dtstart'];
         }
 
         return $rules;

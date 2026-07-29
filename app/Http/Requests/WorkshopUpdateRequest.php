@@ -25,7 +25,7 @@ class WorkshopUpdateRequest extends FormRequest
             'title' => ['sometimes', 'string', 'max:255'],
             'description' => ['nullable', 'string'],
             'start_at' => ['sometimes', 'date'],
-            'end_at' => ['sometimes', 'date'],
+            'end_at' => ['sometimes', 'date', 'after:start_at'],
             'location' => ['sometimes', 'string', 'max:255'],
             'lecture' => ['sometimes', 'string', 'max:255'],
         ];

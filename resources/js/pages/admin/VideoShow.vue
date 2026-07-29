@@ -5,21 +5,21 @@
         <!-- 1. ヘッダーナビゲーション & アクション -->
         <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-slate-200 pb-4">
             <div>
-            <router-link
-                :to="indexUrl"
-                class="inline-flex items-center gap-1 text-xs font-semibold text-slate-500 hover:text-slate-800 transition-colors mb-2"
-            >
-                <span>←</span>
-                <span>動画一覧に戻る</span>
-            </router-link>
             <h1 class="text-2xl md:text-3xl font-extrabold text-slate-800 tracking-tight flex items-center gap-2">
                 <span>🎬</span>
-                <span>研修動画詳細</span>
+                <span>研修会動画</span>
             </h1>
             </div>
 
             <!-- 編集・削除アクション -->
             <div v-if="video" class="flex items-center gap-2 self-start sm:self-auto">
+            <router-link
+                :to="indexUrl"
+                class="inline-flex items-center gap-1.5 px-4 py-2 bg-white hover:bg-gray-50 border border-gray-300 text-gray-700 font-bold text-xs md:text-sm rounded-xl shadow-2xs transition-all active:scale-95"
+            >
+                <span>←</span>
+                <span>動画一覧に戻る</span>
+            </router-link>
             <router-link
                 v-if="editUrl"
                 :to="editUrl"

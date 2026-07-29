@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Admin;
 
 use Illuminate\Http\Request;
 use App\Http\Controllers\Controller;
+use Illuminate\Support\Facades\DB;
 use App\Models\Schedule;
 use App\Models\ScheduleOccurrence;
 use App\Http\Requests\ScheduleStoreRequest;
@@ -31,7 +32,7 @@ class ScheduleController extends Controller
         ->get();
 
         $occurrences->transform(function ($occurrence) {
-            $occurrence->show_url = "/admin/occurrences/{$occurrence->id}";
+            $occurrence->show_url = "/admin/schedule-occurrences/{$occurrence->id}";
             return $occurrence;
         });
 
@@ -39,7 +40,7 @@ class ScheduleController extends Controller
             'calendar' => $this->buildMonthlyCalendar($occurrences, $month),
             'month_links' => $this->buildMonthLinks($month),
             'year_links' => $this->buildYearLinks(substr($month, 0, 4)),
-            'store_url' => route('admin.schedules.store'),
+            'store_url' => "/admin/schedules",
         ];
     }
 
@@ -72,58 +73,91 @@ class ScheduleController extends Controller
         ]);
     }
 
-    public function store(ScheduleStoreRequest $request)
+public function store(ScheduleStoreRequest $request)
     {
         $validated = $request->validated();
 
-        $schedule = Schedule::create([
-            'room_id'             => $validated['room_id'] ?? null,
-            'title'               => $validated['title'],
-            'schedule_category_id'=> $validated['schedule_category_id'],
-            'location'            => $validated['location'] ?? null,
-            'url'                 => $validated['url'] ?? null,
-            'created_by'          => $request->user()->id,
-        ]);
+        try {
+            return DB::transaction(function () use ($request, $validated) {
+                
+                // 1. スケジュールの親レコード作成
+                $schedule = Schedule::create([
+                    'room_id'              => $validated['room_id'] ?? null,
+                    'title'                => $validated['title'],
+                    'schedule_category_id' => $validated['schedule_category_id'],
+                    'location'             => $validated['location'] ?? null,
+                    'url'                  => $validated['url'] ?? null,
+                    'created_by'           => $request->user()->id,
+                ]);
 
-        $skipped = [];
+                $skipped = [];
 
-        // recurrence ありの場合
-        if (!empty($validated['recurrence'])) {
-            $recurrence = $schedule->recurrences()->create([
-                'frequency'   => $validated['recurrence']['frequency'],
-                'byweekday'   => $validated['recurrence']['byweekday'] ?? null,
-                'bysetpos'    => $validated['recurrence']['bysetpos'] ?? null,
-                'interval'    => $validated['recurrence']['interval'] ?? 1,
-                'until'       => $validated['recurrence']['until'] ?? null,
-                'start_after' => null,
-            ]);
+                // 2. recurrence ありの場合（繰り返し予定）
+                if (!empty($validated['recurrence'])) {
+                    $recReq = $validated['recurrence'];
 
-            $skipped = $this->generateOccurrencesFromRecurrence($schedule, $recurrence);
-        } else {
-            // 単発 occurrence 生成
-            $start = Carbon::parse($validated['start_at']);
-            $end   = Carbon::parse($validated['end_at']);
+                    $recurrence = $schedule->recurrences()->create([
+                        'frequency'   => $recReq['frequency'],
+                        'byweekday'   => $recReq['byweekday'] ?? null,
+                        'bysetpos'    => $recReq['bysetpos'] ?? null,
+                        'interval'    => $recReq['interval'] ?? 1,
+                        'until'       => $recReq['until'] ?? null,
+                        'start_after' => $recReq['dtstart'] ?? null,
+                    ]);
 
-            if ($this->isRoomTimeConflict($schedule->room_id, $start, $end)) {
+                    // Occurrence を生成
+                    $skipped = $this->generateOccurrencesFromRecurrence(
+                        $schedule, 
+                        $recurrence, 
+                        $recReq['start_time'], 
+                        $recReq['end_time'], 
+                        $schedule->id
+                    );
+
+                    // ★ 3. Occurrence が 1つも生成されなかった場合のバリデーションチェック
+                    if ($schedule->occurrences()->count() === 0) {
+                        // トランザクション内で例外を投げて DB 登録をロールバックさせる
+                        throw new \Exception(
+                            empty($skipped)
+                                ? '指定された期間内に該当する予定（曜日・週位置）が存在しません。'
+                                : '該当する予定がすべて会議室の重複のため登録できませんでした。',
+                            422
+                        );
+                    }
+
+                } else {
+                    // 単発 occurrence 生成
+                    $start = Carbon::parse($validated['start_at']);
+                    $end   = Carbon::parse($validated['end_at']);
+
+                    if ($this->isRoomTimeConflict($schedule->room_id, $start, $end)) {
+                        throw new \Exception('この時間帯は既に予約されています', 422);
+                    }
+
+                    $schedule->occurrences()->create([
+                        'start_at' => $start,
+                        'end_at'   => $end,
+                        'type'     => 'generated',
+                    ]);
+                }
+
                 return response()->json([
-                    'message' => 'この時間帯は既に予約されています',
-                ], 422);
-            }
-
-            $schedule->occurrences()->create([
-                'start_at' => $start,
-                'end_at'   => $end,
-                'type'     => 'generated',
-            ]);
+                    'message'  => empty($skipped)
+                        ? 'スケジュールを登録しました'
+                        : '一部の予定は重複のため登録されませんでした',
+                    'schedule' => $schedule->load(['recurrences', 'occurrences']),
+                    'skipped'  => $skipped,
+                ]);
+            });
+        } catch (\Exception $e) {
+            // エラーが発生した場合は 422 で返却（FormRequestと同じ形式でエラーレスポンスを返す）
+            return response()->json([
+                'message' => $e->getMessage(),
+                'errors'  => [
+                    'recurrence.until' => [$e->getMessage()], // Vue側の until フィールド下に赤字表示させる場合
+                ]
+            ], $e->getCode() === 422 ? 422 : 500);
         }
-
-        return response()->json([
-            'message'  => empty($skipped)
-                ? 'スケジュールを登録しました'
-                : '一部の予定は重複のため登録されませんでした',
-            'schedule' => $schedule->load(['recurrences', 'occurrences']),
-            'skipped'  => $skipped,
-        ]);
     }
 
     public function updateSchedule(ScheduleUpdateRequest $request, Schedule $schedule) {
@@ -136,7 +170,6 @@ class ScheduleController extends Controller
     }
 
     public function showOccurrence(ScheduleOccurrence $occurrence) {
-        // 関連モデル（Scheduleとその配下）を読み込み
         $occurrence->load([
             'schedule.room',
             'schedule.category',
@@ -170,17 +203,17 @@ class ScheduleController extends Controller
                 'room'                 => $schedule->room,
                 'category'             => $schedule->category,
                 'recurrences'          => $schedule->recurrences,
-                'update_url'           => "/admin/schedules/{$schedule->id}",
-                'destroy_url'          => "/admin/schedules/{$schedule->id}",
-                // 一覧で全 Occurrence も参照できるように設定
+                'show_url'             => "/admin/schedule-occurrences/{$schedule->id}",
+                'update_url'           => "/admin/schedule-occurrences/{$schedule->id}",
+                'destroy_url'          => "/admin/schedule-occurrences/{$schedule->id}",
                 'occurrences'          => $schedule->occurrences->map(function ($item) {
                     return [
                         'id'          => $item->id,
                         'start_at'    => $item->start_at,
                         'end_at'      => $item->end_at,
                         'type'        => $item->type,
-                        'update_url'  => "/admin/schedule-occurrences/{$item->id}",
-                        'destroy_url' => "/admin/schedule-occurrences/{$item->id}",
+                        'update_url'  => "/admin/schedule-occurrences/{$item->id}/edit",
+                        'destroy_url' => "/admin/schedule-occurrences/{$item->id}/delete",
                     ];
                 }),
             ],
@@ -219,10 +252,19 @@ class ScheduleController extends Controller
     // この予定のみ
     private function updateSingle(ScheduleOccurrence $occurrence, array $validated)
     {
+        $start = Carbon::parse($validated['start_at']);
+        $end   = Carbon::parse($validated['end_at']);
+
+        if ($this->isRoomTimeConflict($occurrence->schedule->room_id, $start, $end, $occurrence->id)) {
+            return response()->json([
+                'message' => 'この時間帯は既に予約されています',
+            ], 422);
+        }
+
         $occurrence->update([
             'recurrence_id' => null,
-            'start_at'      => Carbon::parse($validated['start_at']),
-            'end_at'        => Carbon::parse($validated['end_at']),
+            'start_at'      => $start,
+            'end_at'        => $end,
             'type'          => 'exception',
         ]);
 
@@ -234,33 +276,37 @@ class ScheduleController extends Controller
 
     // これ以降の予定
     private function updateFuture(ScheduleOccurrence $occurrence, ScheduleRecurrence $recurrence, array $validated) {
-        $date = Carbon::parse($occurrence->start_at);
+        $recReq = $validated['recurrence'];
+        $date   = Carbon::parse($recReq['dtstart'] ?? $occurrence->start_at);
 
-        // 旧 recurrence をこの予定の前日までに制限
         $recurrence->update([
             'until' => $date->copy()->subDay(),
         ]);
 
-        // 新 recurrence 作成
         $newRecurrence = $recurrence->schedule->recurrences()->create([
-            'frequency'   => $validated['recurrence']['frequency'],
-            'byweekday'   => $validated['recurrence']['byweekday'] ?? null,
-            'bysetpos'    => $validated['recurrence']['bysetpos'] ?? null,
-            'interval'    => $validated['recurrence']['interval'] ?? 1,
+            'frequency'   => $recReq['frequency'],
+            'byweekday'   => $recReq['byweekday'] ?? null,
+            'bysetpos'    => $recReq['bysetpos'] ?? null,
+            'interval'    => $recReq['interval'] ?? 1,
             'start_after' => $date,
-            'until'       => $validated['recurrence']['until'] ?? null,
+            'until'       => $recReq['until'] ?? null,
         ]);
 
-        // 以降の occurrence を削除
         ScheduleOccurrence::where('recurrence_id', $recurrence->id)
             ->where('start_at', '>=', $date)
             ->delete();
 
-        // 新 recurrence で occurrence を生成
-        $this->generateOccurrencesFromRecurrence($recurrence->schedule, $newRecurrence);
+        $skipped = $this->generateOccurrencesFromRecurrence(
+            $recurrence->schedule, 
+            $newRecurrence, 
+            $recReq['start_time'], 
+            $recReq['end_time'], 
+            $recurrence->schedule_id
+        );
 
         return response()->json([
-            'message' => 'この予定以降を更新しました',
+            'message' => empty($skipped) ? 'この予定以降を更新しました' : '一部の予定は重複のため更新されませんでした',
+            'skipped' => $skipped,
         ]);
     }
 
@@ -270,36 +316,41 @@ class ScheduleController extends Controller
         ScheduleRecurrence $recurrence,
         array $validated
     ) {
+        $recReq = $validated['recurrence'];
+
         $recurrence->update([
-            'frequency'   => $validated['recurrence']['frequency'],
-            'byweekday'   => $validated['recurrence']['byweekday'] ?? null,
-            'bysetpos'    => $validated['recurrence']['bysetpos'] ?? null,
-            'interval'    => $validated['recurrence']['interval'] ?? 1,
-            'until'       => $validated['recurrence']['until'] ?? null,
-            'start_after' => null,
+            'frequency'   => $recReq['frequency'],
+            'byweekday'   => $recReq['byweekday'] ?? null,
+            'bysetpos'    => $recReq['bysetpos'] ?? null,
+            'interval'    => $recReq['interval'] ?? 1,
+            'until'       => $recReq['until'] ?? null,
+            'start_after' => $recReq['dtstart'] ?? null,
         ]);
 
-        // 既存 occurrence を全削除
         $schedule->occurrences()->delete();
 
-        // 再生成
-        $this->generateOccurrencesFromRecurrence($schedule, $recurrence);
+        $skipped = $this->generateOccurrencesFromRecurrence(
+            $schedule, 
+            $recurrence, 
+            $recReq['start_time'], 
+            $recReq['end_time'], 
+            $schedule->id
+        );
 
         return response()->json([
-            'message' => '全ての予定を更新しました',
+            'message' => empty($skipped) ? '全ての予定を更新しました' : '一部の予定は重複のため更新されませんでした',
+            'skipped' => $skipped,
         ]);
     }
 
     public function destroy(Schedule $schedule)
     {
-        // recurrence がある場合は削除不可
         if ($schedule->recurrences()->exists()) {
             return response()->json([
                 'message' => 'このスケジュールは繰り返し予定のため削除できません。',
             ], 422);
         }
 
-        // occurrence がある場合は削除不可
         if ($schedule->occurrences()->exists()) {
             return response()->json([
                 'message' => 'このスケジュールには予定が存在するため削除できません。',
@@ -317,7 +368,6 @@ class ScheduleController extends Controller
         $recurrence = $occurrence->recurrence;
         $schedule = $occurrence->schedule;
 
-        // recurrence がない occurrence に future / all は使えない
         if (($mode === 'future' || $mode === 'all') && !$recurrence) {
             return response()->json([
                 'message' => 'この予定は繰り返し予定ではありません',
@@ -325,24 +375,19 @@ class ScheduleController extends Controller
         }
 
         switch ($mode) {
-
-            // この予定だけ削除
             case 'single':
                 $occurrence->delete();
                 return response()->json([
                     'message' => 'この予定を削除しました'
                 ]);
 
-            // これ以降を削除
             case 'future':
                 $date = Carbon::parse($occurrence->start_at);
 
-                // recurrence をこの occurrence の前日までに縮める
                 $recurrence->update([
                     'until' => $date->copy()->subDay(),
                 ]);
 
-                // 以降の occurrence を削除
                 ScheduleOccurrence::where('recurrence_id', $recurrence->id)
                     ->where('start_at', '>=', $date)
                     ->delete();
@@ -351,15 +396,9 @@ class ScheduleController extends Controller
                     'message' => 'この予定以降を削除しました'
                 ]);
 
-            // すべて削除
             case 'all':
-                // recurrence 削除
                 $recurrence->delete();
-
-                // 全 occurrence 削除
                 $schedule->occurrences()->delete();
-
-                // schedule 削除
                 $schedule->delete();
 
                 return response()->json([
@@ -374,127 +413,91 @@ class ScheduleController extends Controller
     }
 
     /**
-     * recurrence から occurrence を生成（daily / weekly / monthly / yearly 全対応）
+     * recurrence から occurrence を生成（リクエストから受け取った時刻を使用）
      */
-    private function generateOccurrencesFromRecurrence(Schedule $schedule, ScheduleRecurrence $recurrence)
-    {
-        $skipped = [];
-
-        // 開始位置
+    private function generateOccurrencesFromRecurrence(
+        Schedule $schedule,
+        ScheduleRecurrence $recurrence,
+        string $startTime,
+        string $endTime,
+        $ignoreScheduleId = null
+    ): array {
         $current = $recurrence->start_after
-            ? Carbon::parse($recurrence->start_after)->clone()
+            ? Carbon::parse($recurrence->start_after)->startOfDay()
             : Carbon::now()->startOfMonth();
 
-        // 終了位置
         $end = $recurrence->until
             ? Carbon::parse($recurrence->until)->endOfDay()
             : Carbon::now()->addYear()->endOfMonth();
 
-        switch ($recurrence->frequency) {
+        [$startHour, $startMin] = explode(':', $startTime);
+        [$endHour, $endMin]     = explode(':', $endTime);
 
-            // 毎日
+        $occurrencesToCreate = [];
+
+        switch ($recurrence->frequency) {
             case 'daily':
                 while ($current->lte($end)) {
-                    $start = $current->copy()->setTime(20, 0);
-                    $endAt = $start->copy()->addHour();
-
-                    if (!$this->isRoomTimeConflict($schedule->room_id, $start, $endAt)) {
-                        $schedule->occurrences()->create([
-                            'recurrence_id' => $recurrence->id,
-                            'start_at'      => $start,
-                            'end_at'        => $endAt,
-                            'type'          => 'generated',
-                        ]);
-                    } else {
-                        $skipped[] = $start->toDateTimeString();
-                    }
-
+                    $start = $current->copy()->setTime((int)$startHour, (int)$startMin);
+                    $endAt = $current->copy()->setTime((int)$endHour, (int)$endMin);
+                    $occurrencesToCreate[] = ['start' => $start, 'end' => $endAt];
                     $current->addDays($recurrence->interval);
                 }
                 break;
 
-            //  毎週
             case 'weekly':
                 $weekdays = $recurrence->byweekday ?? [];
+                $targetCarbonDays = array_map(fn($w) => $this->weekdayToCarbon($w), $weekdays);
 
                 while ($current->lte($end)) {
-                    foreach ($weekdays as $weekday) {
-                        $carbonWeekday = $this->weekdayToCarbon($weekday);
-
-                        $start = $current->copy()->next($carbonWeekday)->setTime(20, 0);
-                        if ($start->lt($current)) {
-                            $start->addWeek();
-                        }
-
-                        if ($start->lte($end)) {
-                            $endAt = $start->copy()->addHour();
-
-                            if (!$this->isRoomTimeConflict($schedule->room_id, $start, $endAt)) {
-                                $schedule->occurrences()->create([
-                                    'recurrence_id' => $recurrence->id,
-                                    'start_at'      => $start,
-                                    'end_at'        => $endAt,
-                                    'type'          => 'generated',
-                                ]);
-                            } else {
-                                $skipped[] = $start->toDateTimeString();
-                            }
-                        }
+                    if (in_array($current->dayOfWeek, $targetCarbonDays)) {
+                        $start = $current->copy()->setTime((int)$startHour, (int)$startMin);
+                        $endAt = $current->copy()->setTime((int)$endHour, (int)$endMin);
+                        $occurrencesToCreate[] = ['start' => $start, 'end' => $endAt];
                     }
 
-                    $current->addWeeks($recurrence->interval);
+                    if ($current->dayOfWeek === Carbon::SUNDAY && $recurrence->interval > 1) {
+                        $current->addWeeks($recurrence->interval - 1)->addDay();
+                    } else {
+                        $current->addDay();
+                    }
                 }
                 break;
 
-            // 毎月（第◯◯曜日）
             case 'monthly':
-                while ($current->lte($end)) {
-                    $date = $this->calculateDateFromRecurrence($recurrence, $current->year, $current->month);
-
-                    if ($date) {
-                        $start = $date->copy()->setTime(20, 0);
-                        $endAt = $start->copy()->addHour();
-
-                        if (!$this->isRoomTimeConflict($schedule->room_id, $start, $endAt)) {
-                            $schedule->occurrences()->create([
-                                'recurrence_id' => $recurrence->id,
-                                'start_at'      => $start,
-                                'end_at'        => $endAt,
-                                'type'          => 'generated',
-                            ]);
-                        } else {
-                            $skipped[] = $start->toDateTimeString();
-                        }
-                    }
-
-                    $current->addMonths($recurrence->interval);
-                }
-                break;
-
-            // 毎年（第◯◯曜日）
             case 'yearly':
+                $isYearly = $recurrence->frequency === 'yearly';
                 while ($current->lte($end)) {
-                    $date = $this->calculateDateFromRecurrence($recurrence, $current->year, $current->month);
-
-                    if ($date) {
-                        $start = $date->copy()->setTime(20, 0);
-                        $endAt = $start->copy()->addHour();
-
-                        if (!$this->isRoomTimeConflict($schedule->room_id, $start, $endAt)) {
-                            $schedule->occurrences()->create([
-                                'recurrence_id' => $recurrence->id,
-                                'start_at'      => $start,
-                                'end_at'        => $endAt,
-                                'type'          => 'generated',
-                            ]);
-                        } else {
-                            $skipped[] = $start->toDateTimeString();
-                        }
+                    $dates = $this->calculateDatesFromRecurrence($recurrence, $current->year, $current->month);
+                    foreach ($dates as $date) {
+                        $start = $date->copy()->setTime((int)$startHour, (int)$startMin);
+                        $endAt = $date->copy()->setTime((int)$endHour, (int)$endMin);
+                        $occurrencesToCreate[] = ['start' => $start, 'end' => $endAt];
                     }
-
-                    $current->addYears($recurrence->interval);
+                    if ($isYearly) {
+                        $current->addYears($recurrence->interval);
+                    } else {
+                        $current->addMonths($recurrence->interval);
+                    }
                 }
                 break;
+        }
+
+        $skipped = [];
+
+        // 重複チェックをしながら個別登録
+        foreach ($occurrencesToCreate as $slot) {
+            if ($this->isRoomTimeConflict($schedule->room_id, $slot['start'], $slot['end'], null, $ignoreScheduleId)) {
+                $skipped[] = $slot['start']->toDateTimeString();
+                continue;
+            }
+
+            $schedule->occurrences()->create([
+                'recurrence_id' => $recurrence->id,
+                'start_at'      => $slot['start'],
+                'end_at'        => $slot['end'],
+                'type'          => 'generated',
+            ]);
         }
 
         return $skipped;
@@ -503,33 +506,37 @@ class ScheduleController extends Controller
     /**
      * monthly / yearly 用：byweekday / bysetpos から日付を計算
      */
-    private function calculateDateFromRecurrence(ScheduleRecurrence $rec, int $year, int $month): ?Carbon
-    {
-        if (empty($rec->byweekday) || !isset($rec->byweekday[0])) {
-            return null;
+    private function calculateDatesFromRecurrence(ScheduleRecurrence $rec, int $year, int $month): array {
+        if (empty($rec->byweekday)) {
+            return [];
         }
 
-        $weekday = $rec->byweekday[0];
+        $dates = [];
         $weekpos = $rec->bysetpos;
 
-        $carbonWeekday = $this->weekdayToCarbon($weekday);
+        foreach ($rec->byweekday as $weekday) {
+            $carbonWeekday = $this->weekdayToCarbon($weekday);
 
-        // 「その月の第 n 曜日」を求める
-        $date = Carbon::create($year, $month, 1)->nthOfMonth($weekpos, $carbonWeekday)->setTime(20, 0);
+            if ($weekpos) {
+                $date = Carbon::create($year, $month, 1)->nthOfMonth($weekpos, $carbonWeekday);
+            } else {
+                $date = Carbon::create($year, $month, 1)->nthOfMonth(1, $carbonWeekday);
+            }
 
-        // start_after / until の範囲チェック
-        if ($rec->start_after && $date->lt(Carbon::parse($rec->start_after))) {
-            return null;
+            if ($rec->start_after && $date->lt(Carbon::parse($rec->start_after)->startOfDay())) {
+                continue;
+            }
+            if ($rec->until && $date->gt(Carbon::parse($rec->until)->endOfDay())) {
+                continue;
+            }
+
+            $dates[] = $date;
         }
-        if ($rec->until && $date->gt(Carbon::parse($rec->until))) {
-            return null;
-        }
 
-        return $date;
+        return $dates;
     }
 
-    private function weekdayToCarbon(string $weekday)
-    {
+    private function weekdayToCarbon(string $weekday) {
         return match ($weekday) {
             'MO' => Carbon::MONDAY,
             'TU' => Carbon::TUESDAY,
@@ -541,18 +548,23 @@ class ScheduleController extends Controller
         };
     }
 
-    private function isRoomTimeConflict($roomId, Carbon $start, Carbon $end): bool
-    {
-        return ScheduleOccurrence::whereHas('schedule', function ($q) use ($roomId) {
+    private function isRoomTimeConflict($roomId, Carbon $start, Carbon $end, $ignoreOccurrenceId = null, $ignoreScheduleId = null): bool {
+        if (!$roomId) {
+            return false;
+        }
+
+        return ScheduleOccurrence::whereHas('schedule', function ($q) use ($roomId, $ignoreScheduleId) {
                 $q->where('room_id', $roomId);
+                if ($ignoreScheduleId) {
+                    $q->where('id', '!=', $ignoreScheduleId);
+                }
+            })
+            ->when($ignoreOccurrenceId, function ($q) use ($ignoreOccurrenceId) {
+                $q->where('id', '!=', $ignoreOccurrenceId);
             })
             ->where(function ($query) use ($start, $end) {
-                $query->whereBetween('start_at', [$start, $end])
-                    ->orWhereBetween('end_at', [$start, $end])
-                    ->orWhere(function ($q) use ($start, $end) {
-                        $q->where('start_at', '<=', $start)
-                            ->where('end_at', '>=', $end);
-                    });
+                $query->where('start_at', '<', $end)
+                    ->where('end_at', '>', $start);
             })
             ->exists();
     }

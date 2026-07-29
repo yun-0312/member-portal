@@ -62,7 +62,7 @@ class User extends Authenticatable
     }
 
     public function isAdmin(): bool {
-        return $this->role->name === 'admin';
+        return $this->role?->name === 'admin';
     }
 
     public function role() {
@@ -82,9 +82,17 @@ class User extends Authenticatable
     }
 
     public function hasPermission(string $permissionName): bool {
-        return $this->role
-            ->permissions
-            ->contains('name', $permissionName);
+        if (!$this->role) {
+            return false;
+        }
+
+        // すでに Eager Load されている場合はコレクションから検索
+        if ($this->role->relationLoaded('permissions')) {
+            return $this->role->permissions->contains('name', $permissionName);
+        }
+
+        // ロードされていない場合は exists クエリで判定
+        return $this->role->permissions()->where('name', $permissionName)->exists();
     }
 
     public function workshopsCreated() {

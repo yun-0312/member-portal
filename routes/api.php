@@ -371,7 +371,7 @@ Route::middleware(['auth:sanctum'])->prefix('admin')->group(function () {
     });
     Route::prefix('occurrences')->group(function () {
         Route::get('/{occurrence}', [AdminScheduleController::class, 'showOccurrence'])
-            ->middleware(('permission:schedule.update'))
+            ->middleware('permission:schedule.update')
             ->name('admin.schedule-occurrences.show');
         Route::put('/{occurrence}', [AdminScheduleController::class, 'updateOccurrence'])
             ->middleware('permission:schedule.update')

@@ -17,7 +17,7 @@ return new class extends Migration
             $table->string('fileable_type', 191);
             $table->string('path');
             $table->string('name');
-            $table->string('type', 50);
+            $table->string('type');
             $table->timestamps();
 
             $table->index(['fileable_id', 'fileable_type']);

@@ -12,6 +12,7 @@ class WorkshopController extends BaseAdminContentController
     protected string $modelClass = Workshop::class;
     protected string $routePrefix = 'workshops';
     protected string $publishedDateColumn = 'start_at';
+    protected array $showExtraRelations = ['creator'];
 
     protected string $storeRequestClass = WorkshopStoreRequest::class;
     protected string $updateRequestClass = WorkshopUpdateRequest::class;

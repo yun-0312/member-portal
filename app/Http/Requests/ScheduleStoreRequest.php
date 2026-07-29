@@ -23,36 +23,46 @@ class ScheduleStoreRequest extends FormRequest
     {
         $hasRecurrence = $this->filled('recurrence');
 
-        // recurrence がある場合 → start_at / end_at は不要
+        // recurrence がある場合（繰り返し予定）
         if ($hasRecurrence) {
             return [
                 'room_id' => ['nullable', 'integer'],
                 'title' => ['required', 'string', 'max:255'],
                 'schedule_category_id' => ['required', 'integer'],
-                'location' => ['nullable', 'string'],
-                'url' => ['nullable', 'url'],
+                'location' => ['nullable', 'string', 'max:255'],
+                'url' => ['nullable', 'url', 'max:255'],
 
                 'recurrence' => ['required', 'array'],
+
+                // ★追加: 繰り返し開始日・時刻のバリデーション
+                'recurrence.dtstart' => ['required', 'date'],
+                'recurrence.start_time' => ['required', 'date_format:H:i'],
+                'recurrence.end_time' => ['required', 'date_format:H:i', 'after:recurrence.start_time'],
+
                 'recurrence.frequency' => ['required', 'in:daily,weekly,monthly,yearly'],
-                'recurrence.byweekday' => ['required', 'array'],
-                'recurrence.byweekday.*' => ['string'],
-                'recurrence.bysetpos' => ['required', 'integer'],
+
+                // byweekday: daily 以外（weekly, monthly, yearly）の時は必須
+                'recurrence.byweekday' => ['required_unless:recurrence.frequency,daily', 'nullable', 'array'],
+                'recurrence.byweekday.*' => ['string', 'in:MO,TU,WE,TH,FR,SA,SU'],
+
+                // bysetpos: monthly の時だけ必須（他は nullable）
+                'recurrence.bysetpos' => ['required_if:recurrence.frequency,monthly', 'nullable', 'integer', 'in:1,2,3,4,-1'],
+
                 'recurrence.interval' => ['required', 'integer', 'min:1'],
-                'recurrence.until' => ['nullable', 'date'],
+                'recurrence.until' => ['nullable', 'date', 'after_or_equal:recurrence.dtstart'],
             ];
         }
 
-        // recurrence がない場合 → start_at / end_at 必須（単発）
+        // recurrence がない場合（単発予定）
         return [
             'room_id' => ['nullable', 'integer'],
             'title' => ['required', 'string', 'max:255'],
             'schedule_category_id' => ['required', 'integer'],
-            'location' => ['nullable', 'string'],
-            'url' => ['nullable', 'url'],
+            'location' => ['nullable', 'string', 'max:255'],
+            'url' => ['nullable', 'url', 'max:255'],
 
             'start_at' => ['required', 'date'],
             'end_at' => ['required', 'date', 'after_or_equal:start_at'],
         ];
     }
-
 }

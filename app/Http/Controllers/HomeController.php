@@ -68,7 +68,7 @@ class HomeController extends Controller
                 'url'   => "/contents?category={$category->slug}",
             ]);
 
-        // DB管理外の特殊メニューを追加
+        // その他メニューを追加
         $extraCategories = collect([
             [
                 'key'   => 'workshop_videos',

@@ -12,7 +12,7 @@
             </div>
 
             <div class="flex items-center gap-2 flex-wrap">
-            <!-- ➕ 新規コンテンツ登録ボタン -->
+            <!--  新規コンテンツ登録ボタン -->
             <router-link
                 v-if="storeUrl"
                 :to="storeUrl"
@@ -242,9 +242,16 @@ const router = useRouter()
 const itemsData = ref(null)
 const loading = ref(true)
 const keywordInput = ref(route.query.keyword || '')
-const storeUrl = ref('/admin/contents/create') // 新規作成用URL (初期フォールバック値)
+const storeUrl = computed(() => {
+    return {
+        path: '/admin/contents/create',
+        query: {
+            category: route.query.category
+        }
+    }
+})
 
-// 💡 JSON構造の柔軟な吸収（display_modeが存在する場合はそれを優先し、無ければ直接リスト表示）
+//  JSON構造の柔軟な吸収（display_modeが存在する場合はそれを優先し、無ければ直接リスト表示）
 const displayMode = computed(() => {
     if (itemsData.value?.display_mode) {
         return itemsData.value.display_mode
@@ -303,9 +310,9 @@ const selectSubcategory = (sub) => {
 }
 
 const selectYear = (year) => {
-  const query = { ...route.query, year }
-  delete query.page
-  router.push({ query })
+    const query = { ...route.query, year }
+    delete query.page
+    router.push({ query })
 }
 
 const goBackUpper = () => {
@@ -346,18 +353,12 @@ const fetchItems = async (page = 1) => {
     loading.value = true
     try {
         const params = {
-        page,
-        ...route.query
+            page,
+            ...route.query
         }
         const res = await api.get(apiEndpoint, { params })
         itemsData.value = res.data
 
-        // store_url のセット（新規作成ボタン用のパスを正規化）
-        if (res.data?.store_url) {
-        storeUrl.value = res.data.store_url.includes('/create')
-            ? res.data.store_url
-            : `${res.data.store_url}/create`
-        }
     } catch (error) {
         console.error('管理者用データの取得に失敗しました:', error)
     } finally {

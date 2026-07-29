@@ -3,39 +3,76 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
-use App\Models\User;
-use App\Models\MedicalInstitution;
+use Illuminate\Http\Request;
 
 class ManagementController extends Controller
 {
-    public function index() {
-        return response()->json([
-            'stats' => [
-                'users' => User::count(),
-                'medical-institutions' => MedicalInstitution::count(),
-            ],
-            'links' => [
-                'users' => route('admin.users.index'),
-                'medical_institutions' => route('admin.medical-institutions.index'),
-                'notices' => route('admin.notices.index'),
-                'contents' => route('admin.contents.index'),
-                'workshops' => route('admin.workshops.index'),
-                'schedules' => route('admin.schedules.index'),
-                'videos' => route('admin.videos.index'),
-                'faqs' => route('admin.faqs.index'),
+    public function index(Request $request)
+    {
+        $user = $request->user();
 
-
-                'roles' => route('admin.roles.index'),
-                'content_categories' => route('admin.content-categories.index'),
-                'content_subcategories' => route('admin.content-subcategories.index'),
-                'group' => route('admin.groups.index'),
-                'group_categories' => route('admin.group-categories.index'),
-                'faq_categories' => route('admin.faq-categories.index'),
-                'notice_categories' => route('admin.notice-categories.index'),
-                'rooms' => route('admin.rooms.index'),
-                'permissions' => route('admin.permissions.index'),
-                'schedule_category' => route('admin.schedule-categories.index'),
+        $allLinks = [
+            'users' => [
+                'name' => 'ユーザー管理',
+                'url' => '/admin/users',
             ],
-        ]);
+            'medical_institutions' => [
+                'name' => '医療機関管理',
+                'url' => '/admin/medical-institutions',
+            ],
+            'roles' => [
+                'name' => 'ロール管理',
+                'url' => '/admin/roles',
+            ],
+            'notice_categories' => [
+                'name' => 'お知らせカテゴリー管理',
+                'url' => '/admin/notices-categories',
+            ],
+            'content_categories' => [
+                'name' => 'コンテンツカテゴリー管理',
+                'url' => '/admin/content-categories',
+            ],
+            'content_subcategories' => [
+                'name' => 'コンテンツサブカテゴリー管理',
+                'url' => '/admin/content-subCategories',
+            ],
+            'faq_categories' => [
+                'name' => 'コールセンター問い合わせ報告書カテゴリー管理',
+                'url' => '/admin/faq-categories',
+            ],
+            'schedule_category' => [
+                'name' => 'スケジュールカテゴリー管理',
+                'url' => '/admin/schedule_categories',
+            ],
+            'rooms' => [
+                'name' => '会議室管理',
+                'url' => '/admin/rooms',
+            ],
+            'permissions' => [
+                'name' => '権限管理',
+                'url' => '/admin/permissions',
+            ],
+        ];
+
+        // 1. admin の場合は全リンクを返却
+        if ($user->isAdmin()) {
+            return response()->json([
+                'links' => array_values($allLinks)
+            ]);
+        }
+
+        // 2. staff の場合は users と medical_institutions のみ返却
+        $roleName = $user->role?->name;
+        if ($roleName === 'staff') {
+            $staffKeys = ['users', 'medical_institutions'];
+            $staffLinks = array_intersect_key($allLinks, array_flip($staffKeys));
+
+            return response()->json([
+                'links' => array_values($staffLinks)
+            ]);
+        }
+
+        // 3. その他のロール
+        return response()->json(['links' => []], 403);
     }
 }
