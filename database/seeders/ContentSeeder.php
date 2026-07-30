@@ -196,7 +196,6 @@ committee')->first();
                                 'created_by'     => $staffUsers->random()->id,
                             ]);
 
-                            $content->roles()->attach($allRoleIds);
                         }
                     }
                 } else {
@@ -210,7 +209,6 @@ committee')->first();
                             'created_by'     => $staffUsers->random()->id,
                         ]);
 
-                        $content->roles()->attach($allRoleIds);
                     }
                 }
             }

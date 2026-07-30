@@ -31,10 +31,8 @@ class AuthController extends Controller
             ], 403);
         }
 
-        // remember が true の場合はセッション期限を延長
-        if ($request->remember) {
-            config(['session.lifetime' => 43200]); // 30日
-        }
+        $user = $result['user'];
+        $user->load('role');
 
         return response()->json([
             'message' => 'ログインに成功しました',
@@ -45,11 +43,6 @@ class AuthController extends Controller
 
     public function logout(Request $request, AuthService $authService) {
         $authService->logout($request->user());
-
-        //セッション破棄
-            Auth::guard('web')->logout();
-            $request->session()->invalidate();
-            $request->session()->regenerateToken();
 
         return response()->json([
             'message' => 'ログアウトしました',

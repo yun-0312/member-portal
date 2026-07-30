@@ -15,10 +15,10 @@ class HeaderController extends Controller
             'user' => [
                 'id'   => $user->id,
                 'name' => $user->name,
-                'role' => $user->role->name ?? 'admin',
+                'role' => $user->role?->name ?? 'admin',
             ],
             'menu' => [
-                ['label' => '管理画面', 'url' => '/admin/dashboard'],
+                ['label' => '管理画面', 'url' => '/admin/management'],
                 ['label' => 'ホーム', 'url' => '/admin/dashboard'],
                 ['label' => 'ログアウト', 'action' => 'logout'],
             ],

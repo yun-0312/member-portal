@@ -41,6 +41,14 @@ import AdminScheduleList from "../pages/admin/ScheduleList.vue";
 import AdminScheduleShow from "../pages/admin/ScheduleShow.vue";
 import AdminScheduleCreate from "../pages/admin/ScheduleCreate.vue";
 import AdminScheduleEdit from "../pages/admin/ScheduleEdit.vue";
+import AdminManagement from "../pages/admin/Management.vue";
+import AdminMedicalInstitutionList from "../pages/admin/MedicalInstitutionList.vue";
+import AdminMedicalInstitutionShow from "../pages/admin/MedicalInstitutionShow.vue";
+import AdminMedicalInstitutionUsers from "../pages/admin/MedicalInstitutionUsers.vue";
+import AdminUserList from "../pages/admin/UserList.vue";
+import AdminUserShow from "../pages/admin/UserShow.vue";
+import AdminUserCreate from "../pages/admin/UserCreate.vue";
+import AdminUserEdit from "../pages/admin/UserEdit.vue";
 
 const routes = [
     { path: "/", name: "login", component: Login },
@@ -116,7 +124,7 @@ const routes = [
         component: VideoList,
     },
     {
-        path: "/admin/users/:id",
+        path: "/users/:id/edit",
         name: "UserEdit",
         component: UserEdit,
     },
@@ -126,7 +134,7 @@ const routes = [
         component: UserProfile,
     },
     {
-        path: "/admin/medical-institutions/:id",
+        path: "/admin/medical-institutions/:id/edit",
         name: "MedicalInstitutionEdit",
         component: MedicalInstitutionEdit,
     },
@@ -258,6 +266,47 @@ const routes = [
                 path: "/admin/schedule-occurrences/:id/edit",
                 name: "admin.ScheduleEdit",
                 component: AdminScheduleEdit,
+            },
+            {
+                path: "/admin/management",
+                name: "admin.Management",
+                component: AdminManagement,
+            },
+            {
+                path: "/admin/medical-institutions",
+                name: "admin.MedicalInstitutionList",
+                component: AdminMedicalInstitutionList,
+            },
+            {
+                path: "/admin/medical-institutions/:id",
+                name: "admin.MedicalInstitutionShow",
+                component: AdminMedicalInstitutionShow,
+            },
+            {
+                path: "/admin/medical-institutions/:id/users",
+                name: "admin.MedicalInstitutionUsers",
+                component: AdminMedicalInstitutionUsers,
+            },
+            {
+                path: "/admin/users",
+                name: "admin.UserList",
+                component: AdminUserList,
+            },
+            {
+                path: "/admin/users/:id",
+                name: "admin.UserShow",
+                component: AdminUserShow,
+            },
+            {
+                path: "/admin/users/create",
+                name: "admin.UserCreate",
+                component: AdminUserCreate,
+            },
+            {
+                path: "/admin/users/:id/edit",
+                name: "admin.UserEdit",
+                component: AdminUserEdit,
+                meta: { requiresAuth: true, roles: ["admin"] },
             },
         ],
     },

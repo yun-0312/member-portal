@@ -187,7 +187,7 @@ Route::middleware(['auth:sanctum'])->prefix('admin')->group(function () {
         ->middleware('permission:content.update')
         ->name('admin.home.index');
     Route::get('/management', [ManagementController::class, 'index'])
-        ->middleware('permission:role.update')
+        ->middleware('permission:content.update')
         ->name('admin.management.index');
     //header
     Route::get('/header', [AdminHeaderController::class, 'index'])
@@ -419,12 +419,11 @@ Route::middleware(['auth:sanctum'])->prefix('admin')->group(function () {
             ->middleware('permission:user.create')
             ->name('admin.users.store');
         Route::put('/{user}', [AdminUserController::class, 'update'])
-            ->middleware('permission:user.update')
+            ->middleware('permission_or:user.update,medical_institution.update')
             ->name('admin.users.update');
         Route::delete('/{user}', [AdminUserController::class, 'destroy'])
             ->middleware('permission:user.delete')
             ->name('admin.users.destroy');
-
 
     });
 
@@ -502,7 +501,10 @@ Route::middleware(['auth:sanctum'])->prefix('admin')->group(function () {
     Route::prefix('medical-institutions')->group(function () {
         Route::get('/', [AdminMedicalInstitutionController::class, 'index'])
             ->name('admin.medical-institutions.index');
-        Route::get('/{user}', [AdminMedicalInstitutionController::class, 'show'])
+        Route::get('/export', [AdminMedicalInstitutionController::class, 'export'])
+            ->middleware(('permission:medical_institution.update'))
+            ->name('admin.medical-institutions.export');
+        Route::get('/{medicalInstitution}', [AdminMedicalInstitutionController::class, 'show'])
             ->name('admin.medical-institutions.show');
         Route::post('/', [AdminMedicalInstitutionController::class, 'store'])
             ->middleware('permission:medical_institution.create')
@@ -513,9 +515,6 @@ Route::middleware(['auth:sanctum'])->prefix('admin')->group(function () {
         Route::delete('/{medicalInstitution}', [AdminMedicalInstitutionController::class, 'destroy'])
             ->middleware('permission:medical_institution.delete')
             ->name('admin.medical-institutions.destroy');
-        Route::get('/export', [AdminMedicalInstitutionController::class, 'export'])
-            ->middleware(('permission:medical_institution.update'))
-            ->name('admin.medical-institutions.export');
         Route::get('/{medicalInstitution}/users', [AdminMedicalInstitutionController::class, 'users'])
             ->middleware('permission:medical_institution.update')
             ->name('admin.medical-institutions.users');

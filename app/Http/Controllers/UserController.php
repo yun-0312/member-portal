@@ -36,6 +36,7 @@ class UserController extends Controller
 
         if ($authUser->id === $user->id) {
             $userChangePasswordUrl = "/admin/users/{$user->id}";
+            $userUpdateUrl = "/users/{$user->id}/edit";
         }
 
         if (

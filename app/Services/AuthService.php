@@ -4,6 +4,7 @@ namespace App\Services;
 
 use Illuminate\Support\Facades\Auth;
 use Laravel\Sanctum\PersonalAccessToken;
+use APp\Models\User;
 
 class AuthService
 {
@@ -16,7 +17,9 @@ class AuthService
             ];
         }
 
-        $user = Auth::user();
+        $user = User::where('email', $credentials['email'])->first();
+
+        $user->tokens()->delete();
 
         $token = $user->createToken('api')->plainTextToken;
 

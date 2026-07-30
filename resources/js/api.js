@@ -1,5 +1,5 @@
-import axios from "axios"
-import router from "./router"
+import axios from "axios";
+import router from "./router";
 
 const api = axios.create({
     baseURL: "/api",
@@ -28,21 +28,23 @@ api.interceptors.response.use(
     (error) => {
         // 401 Unauthenticated（認証切れ）が発生した場合
         if (error.response && error.response.status === 401) {
-            // 1. ローカルストレージの古い情報をクリア
-            localStorage.removeItem('token');
-            localStorage.removeItem('user');
+            const currentPath = router.currentRoute.value.path;
 
-            // 2. AxiosのデフォルトヘッダーからAuthorizationを削除
-            delete api.defaults.headers.common['Authorization'];
+            if (currentPath !== "/" && currentPath !== "/login") {
+                // 1. ローカルストレージの古い情報をクリア
+                localStorage.removeItem("token");
+                localStorage.removeItem("user");
 
-            // 3. ログイン画面へ遷移（現在地がすでにログイン画面でない場合のみ）
-            if (router.currentRoute.value.path !== '/') {
-                router.push('/');
+                // 2. ヘッダー更新用イベントを発火して Vue 側の状態を同期させる
+                window.dispatchEvent(new Event("user-updated"));
+
+                // 3. ログイン画面へ遷移
+                router.push("/");
             }
         }
-        // 個別の catch ブロックでもエラーを受け取れるようにそのままエラーを投げる
+
         return Promise.reject(error);
-    }
+    },
 );
 
 export default api;

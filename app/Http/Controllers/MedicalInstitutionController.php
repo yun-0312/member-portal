@@ -15,7 +15,7 @@ class MedicalInstitutionController extends Controller
 
         return response()->json([
             'institution' => $medicalInstitution,
-            'edit_url' => "/admin/medical-institutions/{$medicalInstitution->id}",
+            'edit_url' => "/admin/medical-institutions/{$medicalInstitution->id}/edit",
             'users_url' => "/medical-institutions/{$medicalInstitution->id}/users",
         ]);
     }

@@ -39,6 +39,9 @@
             >
               {{ getLocationType(workshop.location) }}
             </span>
+            <h2 class="text-base font-bold text-slate-800">
+              {{ workshop.title }}
+            </h2>
 
           </div>
 

@@ -105,10 +105,13 @@
 
 <script setup>
 import { ref, reactive, onMounted } from 'vue'
-import { useRouter } from 'vue-router'
-import api from '../../api.js' // プロジェクトのaxiosインスタンスパスに合わせて調整してください
+import { useRouter, useRoute } from 'vue-router'
+import api from '../../api.js'
 
 const router = useRouter()
+const route = useRoute()
+
+const userId = route.params.id
 
 const loading = ref(true)
 const saving = ref(false)
@@ -126,12 +129,16 @@ const form = reactive({
 const fetchUserProfile = async () => {
   loading.value = true
   try {
-    // ログイン中のユーザー情報を取得するエンドポイント (例: /user または /me)
-    const res = await api.get('/user')
-    const user = res.data?.data || res.data
+    // API呼び出し
+    const res = await api.get(`/users/${userId}`)
 
-    form.name = user.name || ''
-    form.email = user.email || ''
+    // JSON構造にあわせて res.data.user を取得
+    const user = res.data?.user || res.data
+
+    if (user) {
+      form.name = user.name || ''
+      form.email = user.email || ''
+    }
   } catch (error) {
     console.error('ユーザー情報の取得に失敗しました:', error)
     errorMessage.value = 'ユーザー情報の読み込みに失敗しました。'
@@ -148,24 +155,24 @@ const handleSubmit = async () => {
   errors.value = {}
 
   try {
-    // PUT /user または /user/profile 等へ名前とメールアドレスのみ送信
-    const response = await api.put('/user', {
+    const response = await api.put(`/admin/users/${userId}`, {
       name: form.name,
       email: form.email
     })
 
     successMessage.value = 'ユーザー情報を正常に更新しました！'
-    
-    // バックエンドから返ってきた最新データを反映
+
+    // バックエンドから返ってきた最新データを反映（userオブジェクトを優先して参照）
     if (response.data) {
-      const updatedUser = response.data.data || response.data
-      form.name = updatedUser.name || form.name
-      form.email = updatedUser.email || form.email
+      const updatedUser = response.data.user || response.data.data || response.data
+      if (updatedUser) {
+        form.name = updatedUser.name || form.name
+        form.email = updatedUser.email || form.email
+      }
     }
   } catch (error) {
     console.error('ユーザー情報の更新に失敗しました:', error)
-    
-    // バリデーションエラー (422) の処理
+
     if (error.response?.status === 422 && error.response?.data?.errors) {
       errors.value = error.response.data.errors
     } else {

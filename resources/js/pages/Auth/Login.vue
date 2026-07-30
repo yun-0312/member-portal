@@ -110,27 +110,37 @@ const login = async () => {
     errorMessage.value = "";
 
     try {
-        // ★ csrf-cookie の取得は不要なので削除
         const res = await api.post("/login", {
             email: email.value,
             password: password.value,
-            // ★ remember は不要なので削除
         });
 
         const user = res.data.user;
         const token = res.data.token;
 
+        if (!token || !user) {
+            errorMessage.value = "認証情報の取得に失敗しました";
+            return;
+        }
+
         localStorage.setItem("user", JSON.stringify(user));
         localStorage.setItem("token", token);
 
         api.defaults.headers.common['Authorization'] = `Bearer ${token}`;
+        await new Promise(resolve => setTimeout(resolve, 50));
 
         window.dispatchEvent(new Event('user-updated'));
 
-        // ★ ログイン成功後の画面遷移（例: /admin や /dashboard など）
-        // router.push('/admin');
+        const roleName = (typeof user.role === 'object' ? user.role?.name : user.role) || user.role_name;
+
+        if (['admin', 'staff'].includes(roleName?.toLowerCase())) {
+            router.push('/admin/dashboard');
+        } else {
+            router.push('/dashboard');
+        }
 
     } catch (error) {
+        console.error("ログインエラー:", error);
         errorMessage.value =
             error.response?.data?.message || "ログインに失敗しました";
     }

@@ -29,7 +29,7 @@
                         >
                     </div>
                 </div>
-            </router-link
+            </router-link>
 
             <!-- 右側：ユーザー情報 & ナビゲーション -->
             <div class="flex items-center gap-3 sm:gap-5">
@@ -62,7 +62,7 @@
 
                             <!-- 2. 管理画面トップ（主導線ボタン） -->
                             <router-link
-                                v-else-if="item.url === '/admin/dashboard'"
+                                v-else-if="item.url === '/admin/management'"
                                 :to="item.url"
                                 active-class="!bg-indigo-600 !border-indigo-400 !text-white shadow-indigo-500/20"
                                 class="inline-flex items-center gap-1.5 bg-slate-800 hover:bg-slate-700 text-slate-200 hover:text-white border border-slate-700 hover:border-slate-500 px-3 py-1.5 rounded-lg text-xs font-semibold transition-all shadow-sm active:scale-95"

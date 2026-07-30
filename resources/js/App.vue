@@ -42,16 +42,16 @@ const normalizeRoleName = (value) => {
 const isAdminOrStaff = computed(() => {
     if (!user.value) return false;
 
-    const roleId = user.value.role_id ?? user.value.roleId;
+    // ロール名の取得（オブジェクト/文字列どちらにも対応）
     const roleName = normalizeRoleName(
-        user.value.role ?? user.value.role_name ?? user.value.roleName,
+        user.value.role ?? user.value.role_name ?? user.value.roleName
     );
 
-    if (roleId !== undefined && roleId !== null) {
-        return [1, 2].includes(Number(roleId));
+    if (roleName) {
+        return ["admin", "staff"].includes(roleName);
     }
 
-    return ["admin", "staff"].includes(roleName);
+    return false;
 });
 
 const fetchUser = () => {
@@ -89,19 +89,4 @@ window.addEventListener("user-updated", () => {
     }
 });
 
-// // admin または staff かどうかを判定
-// const isAdminOrStaff = computed(() => {
-//     if (!user.value) return false;
-
-//     const roleId = user.value.role_id ?? user.value.roleId;
-//     const roleName = normalizeRoleName(
-//         user.value.role ?? user.value.role_name ?? user.value.roleName,
-//     );
-
-//     if (roleId !== undefined && roleId !== null) {
-//         return [1, 2].includes(Number(roleId));
-//     }
-
-//     return ["admin", "staff"].includes(roleName);
-// });
 </script>

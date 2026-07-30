@@ -21,9 +21,12 @@ class UserUpdateRequest extends FormRequest
      */
     public function rules(): array
     {
+        $targetUser = $this->route('user');
+        $targetId = is_object($targetUser) ? $targetUser->id : $targetUser;
+
         return [
             'name' => ['sometimes', 'string', 'max:255'],
-            'email' => ['sometimes', 'email', 'max:255', 'unique:users,email,' . $this->user->id],
+            'email' => ['sometimes', 'email', 'max:255', 'unique:users,email,' . $targetId],
             'password' => ['sometimes', 'string', 'min:8'],
             'role_id' => ['sometimes', 'exists:roles,id'],
             'status' => ['sometimes', 'integer', 'between:0,9'],

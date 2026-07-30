@@ -28,13 +28,14 @@ class UserController extends Controller
         $users = $query->orderBy('id', 'desc')
             ->paginate($perPage)
             ->through(function ($user) {
-                $user->show_url = route('admin.users.show', $user->id);
+                $user->show_url = "/admin/users/{$user->id}";
                 return $user;
             })
             ->toArray();
 
-        $users['export_url'] = route('admin.users.export') . '?' . http_build_query($request->query());
-        $users['pending_url'] = route('admin.users.pending');
+        $users['export_url'] = '/admin/users/export' . '?' . http_build_query($request->query());
+        $users['pending_url'] = '/admin/users/pending';
+        $users['store_url'] = '/admin/users/create';
 
         return response()->json($users);
     }
@@ -44,8 +45,8 @@ class UserController extends Controller
 
         return response()->json([
             'user' => $user->load(['role', 'medicalInstitution', 'approvedBy']),
-            'update_url' => route('admin.users.update', $user->id),
-            'delete_url' => route('admin.users.destroy', $user->id),
+            'update_url' => "/admin/users/{$user->id}/edit",
+            'delete_url' => "admin/users/{$user->id}",
         ]);
     }
 
@@ -132,6 +133,13 @@ class UserController extends Controller
     public function destroy(User $user) {
         $this->authorize('delete', $user);
 
+        $isRepresentative = MedicalInstitution::where('representative_user_id', $user->id)->exists();
+        if ($isRepresentative) {
+        return response()->json([
+            'message' => 'このユーザーは医療機関の代表者に設定されているため削除できません。代表者を変更してから削除してください。',
+        ], 422);
+    }
+
         $user->delete();
 
         return response()->json([
@@ -143,12 +151,12 @@ class UserController extends Controller
         $this->authorize('view', User::class);
 
         $query = User::with(['role', 'medicalInstitution', 'approvedBy']);
-
         $query = $this->applyUserFilters($query, $request);
 
         $users = $query->orderBy('id')->get();
 
         $csv = fopen('php://temp', 'r+');
+        fwrite($csv, "\xEF\xBB\xBF");
 
         // ヘッダー行
         fputcsv($csv, [
@@ -161,6 +169,7 @@ class UserController extends Controller
             '承認日',
             '承認者',
             '作成日',
+            '削除日'
         ]);
 
         foreach ($users as $user) {
@@ -174,14 +183,19 @@ class UserController extends Controller
                 $user->approved_at,
                 optional($user->approvedBy)->name,
                 $user->created_at,
+                $user->delete_at,
             ]);
         }
 
         rewind($csv);
 
+            $filename = 'users_' . now()->format('Ymd') . '.csv';
+
         return response()->streamDownload(function () use ($csv) {
             fpassthru($csv);
-        }, 'users.csv');
+        }, $filename, [
+            'Content-Type' => 'text/csv; charset=UTF-8',
+        ]);
     }
 
     public function pending() {
@@ -199,28 +213,30 @@ class UserController extends Controller
     }
 
     private function applyUserFilters($query, Request $request) {
-        if ($request->filled('name')) {
-            $query->where('name', 'like', '%' . $request->name . '%');
-        }
+        if ($request->filled('keyword')) {
+            $rawKeyword = trim($request->keyword);
+            $keyword = '%' . trim($request->keyword) . '%';
 
-        if ($request->filled('email')) {
-            $query->where('email', 'like', '%' . $request->email . '%');
-        }
+            $query->where(function ($q) use ($keyword, $rawKeyword) {
+                // 1. ユーザー自身の氏名・メールアドレスで検索
+                $q->where('name', 'like', $keyword)
+                ->orWhere('email', 'like', $keyword)
 
-        if ($request->filled('role_id')) {
-            $query->where('role_id', $request->role_id);
-        }
+                // 2. 所属医療機関の「名前」「住所」で検索
+                ->orWhereHas('medicalInstitution', function ($qMed) use ($keyword) {
+                    $qMed->where('name', 'like', $keyword)
+                        ->orWhere('address', 'like', $keyword);
+                })
 
-        if ($request->filled('status')) {
-            $query->where('status', $request->status);
-        }
+                // 3. ロール（権限）の「名前」で検索
+                ->orWhereHas('role', function ($qRole) use ($keyword, $rawKeyword) {
+                    $qRole->where('name', 'like', $keyword);
 
-        if ($request->filled('medical_institution_id')) {
-            $query->where('medical_institution_id', $request->medical_institution_id);
-        }
-
-        if ($request->filled('approved_by')) {
-            $query->where('approved_by', $request->approved_by);
+                    if (strcasecmp($rawKeyword, 'STAFF') === 0) {
+                        $qRole->where('name', 'not like', '%MEDICAL%');
+                    }
+                });
+            });
         }
 
         return $query;
