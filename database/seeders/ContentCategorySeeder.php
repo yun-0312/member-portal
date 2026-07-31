@@ -139,19 +139,30 @@ class ContentCategorySeeder extends Seeder
         ];
 
         //ロール取得
-        $roles = Role::pluck('id', 'name');
+        $roles = Role::all()->pluck('id', 'name')->mapWithKeys(function ($id, $name) {
+            return [strtolower($name) => $id];
+        });
 
         foreach ($categories as $categoryData) {
-            $category = ContentCategory::create($categoryData);
+            $category = ContentCategory::updateOrCreate(
+                ['slug' => $categoryData['slug']],
+                $categoryData
+            );
+
+            $adminId = $roles->get('admin');
+            $staffId = $roles->get('staff');
+            $directorId = $roles->get('director');
+            $memberId = $roles->get('member');
+            $medicalStaffId = $roles->get('medical_staff');
 
             //デフォルト：全ロール閲覧可能
-            $allowedRoles = [
-                $roles['admin'],
-                $roles['staff'],
-                $roles['director'],
-                $roles['member'],
-                $roles['medical_staff'],
-            ];
+            $allowedRoles = array_filter([
+                $adminId,
+                $staffId,
+                $directorId,
+                $memberId,
+                $medicalStaffId,
+            ]);
 
             //理事会ニュース以下はmedical_staffを除外
             $restrictedSlugsForMedicalStaff = [
@@ -181,7 +192,7 @@ class ContentCategorySeeder extends Seeder
             }
 
             //target_roles登録
-            $category->roles()->attach(array_values($allowedRoles));
+            $category->roles()->sync(array_values($allowedRoles));
         }
 
     }
