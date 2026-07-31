@@ -4,12 +4,15 @@
 
         <!-- 1. ページヘッダー -->
         <div class="flex flex-col md:flex-row md:items-center md:justify-between border-b border-slate-200 pb-4 gap-4">
-            <div>
-            <h1 class="text-2xl md:text-3xl font-extrabold text-slate-800 tracking-tight flex items-center gap-2">
-                <span>❓</span> FAQ・よくある質問 (管理画面)
+        <div>
+            <h1 class="text-lg sm:text-2xl md:text-3xl font-extrabold text-slate-800 tracking-tight flex items-center gap-1.5 sm:gap-2 leading-tight">
+                <span class="text-base sm:text-2xl shrink-0">❓</span>
+                <span>FAQ・よくある質問 <span class="text-xs sm:text-base font-normal text-slate-500">(管理画面)</span></span>
             </h1>
-            <p class="text-xs md:text-sm text-slate-500 mt-1">FAQデータの閲覧・追加・編集・インポート・エクスポート管理</p>
-            </div>
+            <p class="text-[11px] sm:text-xs md:text-sm text-slate-500 mt-1 leading-snug">
+                FAQデータの閲覧・追加・編集・インポート・エクスポート管理
+            </p>
+        </div>
 
             <div class="flex items-center gap-2 flex-wrap self-start md:self-auto">
             <!-- ➕ 新規データ登録ボタン -->
@@ -193,24 +196,54 @@
             </article>
             </div>
 
-            <!-- 4. ページネーション -->
-            <div v-if="paginationLinks.length > 0 && lastPage > 1" class="flex items-center justify-center gap-1.5 pt-6">
-            <button
-                v-for="(link, idx) in paginationLinks"
-                :key="idx"
-                @click="changePage(link.url)"
-                :disabled="!link.url || link.active"
-                v-html="formatPaginationLabel(link.label)"
-                :class="[
-                'px-3.5 py-2 rounded-xl text-xs font-bold transition-all border',
-                link.active
-                    ? 'bg-blue-600 text-white border-blue-600 shadow-sm'
-                    : link.url
-                    ? 'bg-white text-slate-700 border-slate-200 hover:bg-slate-100'
-                    : 'bg-slate-100 text-slate-300 border-transparent cursor-not-allowed'
-                ]"
-            />
-            </div>
+            <!-- 4. ページネーション (レスポンシブ切り替え) -->
+            <div v-if="paginationLinks.length > 0 && lastPage > 1" class="pt-6">
+
+                <!-- スマホ用：コンパクト表示 (sm未満) -->
+                <div class="flex sm:hidden items-center justify-between gap-2 bg-white p-3 rounded-2xl border border-slate-200 shadow-sm">
+                    <button
+                        @click="changePage(getPrevPageUrl())"
+                        :disabled="currentPage === 1"
+                        class="px-3 py-1.5 rounded-xl text-xs font-bold border transition-all"
+                        :class="currentPage === 1 ? 'bg-slate-100 text-slate-300 border-transparent cursor-not-allowed' : 'bg-white text-slate-700 border-slate-200 active:bg-slate-100'"
+                    >
+                        &laquo; 前へ
+                    </button>
+
+                    <span class="text-xs font-bold text-slate-600 font-mono">
+                        {{ currentPage }} / {{ lastPage }} ページ
+                    </span>
+
+                    <button
+                        @click="changePage(getNextPageUrl())"
+                        :disabled="currentPage === lastPage"
+                        class="px-3 py-1.5 rounded-xl text-xs font-bold border transition-all"
+                        :class="currentPage === lastPage ? 'bg-slate-100 text-slate-300 border-transparent cursor-not-allowed' : 'bg-white text-slate-700 border-slate-200 active:bg-slate-100'"
+                    >
+                        次へ &raquo;
+                    </button>
+                </div>
+
+                <!-- PC・タブレット用：従来の番号ズラリ表示 (sm以上) -->
+                <div class="hidden sm:flex items-center justify-center gap-1.5">
+                    <button
+                        v-for="(link, idx) in paginationLinks"
+                        :key="idx"
+                        @click="changePage(link.url)"
+                        :disabled="!link.url || link.active"
+                        v-html="formatPaginationLabel(link.label)"
+                        :class="[
+                        'px-3.5 py-2 rounded-xl text-xs font-bold transition-all border',
+                        link.active
+                            ? 'bg-blue-600 text-white border-blue-600 shadow-sm'
+                            : link.url
+                            ? 'bg-white text-slate-700 border-slate-200 hover:bg-slate-100'
+                            : 'bg-slate-100 text-slate-300 border-transparent cursor-not-allowed'
+                        ]"
+                    />
+                </div>
+
+</div>
 
         </div>
 
@@ -319,6 +352,19 @@ const lastPage = computed(() => faqsData.value?.last_page || 1)
 const exportUrl = computed(() => faqsData.value?.export_url || null)
 const storeUrl = computed(() => faqsData.value?.store_url || '/admin/faqs')
 const importUrl = computed(() => faqsData.value?.import_url || null)
+
+// 現在のページ数と前後ページのURLを取得する算出プロパティ
+const currentPage = computed(() => faqsData.value?.current_page || 1)
+
+const getPrevPageUrl = () => {
+    const prevLink = paginationLinks.value.find(l => l.label.includes('previous') || l.label.includes('&laquo;'))
+    return prevLink?.url || null
+}
+
+const getNextPageUrl = () => {
+    const nextLink = paginationLinks.value.find(l => l.label.includes('next') || l.label.includes('&raquo;'))
+    return nextLink?.url || null
+}
 
 // 新規作成URLの補正
 const getCreateUrl = (url) => {

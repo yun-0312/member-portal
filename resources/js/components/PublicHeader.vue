@@ -20,18 +20,14 @@
         <nav class="flex items-center gap-4">
             <a
             href="/register-medical-staff"
-            class="group relative inline-flex items-center justify-center text-sm font-bold text-blue-700 bg-white hover:bg-blue-50 px-5 py-2.5 rounded-xl shadow-md hover:shadow-lg transition-all duration-200 active:scale-95"
+            class="group relative inline-flex items-center justify-center text-xs sm:text-sm font-bold text-blue-700 bg-white hover:bg-blue-50 p-2 sm:px-5 sm:py-2.5 rounded-xl shadow-md hover:shadow-lg transition-all duration-200 active:scale-95"
             >
-            <span>医療機関スタッフ会員登録</span>
-            <svg
-                class="w-4 h-4 ml-1.5 transition-transform duration-200 group-hover:translate-x-1"
-                fill="none"
-                viewBox="0 0 24 24"
-                stroke="currentColor"
-                stroke-width="2.5"
-            >
-                <path stroke-linecap="round" stroke-linejoin="round" d="M13.5 4.5L21 12m0 0l-7.5 7.5M21 12H3" />
-            </svg>
+                <!-- スマホ用：アイコン＋簡単な文字 -->
+                <span class="inline sm:hidden">👤登録+</span>
+                <!-- PC用：完全なテキスト -->
+                <span class="hidden sm:inline">医療機関スタッフ会員登録</span>
+
+                <svg class="w-4 h-4 ml-1">...</svg>
             </a>
         </nav>
 
