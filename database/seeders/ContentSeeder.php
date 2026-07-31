@@ -13,61 +13,39 @@ class ContentSeeder extends Seeder
 {
     public function run(): void
     {
-        $roles = Role::pluck('id', 'name');
+        // 🔍 ロール名をすべて小文字にして安全にIDを取得する
+        $roles = Role::all()->pluck('id', 'name')->mapWithKeys(function ($id, $name) {
+            return [strtolower($name) => $id];
+        });
 
-        $allRoleIds = [
-            $roles['admin'],
-            $roles['staff'],
-            $roles['member'],
-            $roles['director'],
-        ];
+        $adminId    = $roles->get('admin');
+        $staffId    = $roles->get('staff');
+        $directorId = $roles->get('director');
+        $memberId   = $roles->get('member');
 
-        $noMemberRoleIds = [
-            $roles['admin'],
-            $roles['staff'],
-            $roles['director'],
-        ];
+        // null を排除した全ロールIDと、memberを除外したロールID
+        $allRoleIds = array_filter([$adminId, $staffId, $directorId, $memberId]);
+        $noMemberRoleIds = array_filter([$adminId, $staffId, $directorId]);
 
-        // staff のみ
+        // staff のみ（存在しない場合のフォールバックを設定）
         $staffUsers = User::whereHas('role', fn($q) => $q->where('name', 'staff'))->get();
+        if ($staffUsers->isEmpty()) {
+            $staffUsers = User::limit(1)->get(); // 保険: 最初に見つかったユーザーを使用
+        }
 
-       // 委員会
+        // --- 1. 委員会 ---
         $committeeCategory = ContentCategory::where('slug', 'committee')->first();
         if ($committeeCategory) {
             $subcategories = ContentSubcategory::where('category_id', $committeeCategory->id)->get();
 
             foreach ($subcategories as $sub) {
-                for ($i = 1; $i <= 24; $i++) {
-
-                $content = Content::factory()->create([
-                    'category_id'    => $committeeCategory->id,
-                    'subcategory_id' => $sub->id,
-                    'title'          => $sub->name . '資料 ' . $i,
-                    'meeting_date' => fake()->dateTimeBetween('-2 year', 'now'),
-                    'published_at' => fake()->dateTimeBetween('-2 year', 'now'),
-                    'created_by'     => $staffUsers->random()->id,
-                    ]);
-
-                    $content->roles()->attach($allRoleIds);
-                }
-            }
-        }
-
-       // 四医会
-        $fourMedicalAssociationCategory = ContentCategory::where('slug', 'four-medical-association
-committee')->first();
-        if ($fourMedicalAssociationCategory) {
-            $subcategories = ContentSubcategory::where('category_id', $fourMedicalAssociationCategory->id)->get();
-
-            foreach ($subcategories as $sub) {
-                for ($i = 1; $i <= 24; $i++) {
-
+                for ($i = 1; $i <= 60; $i++) {
                     $content = Content::factory()->create([
-                        'category_id'    => $fourMedicalAssociationCategory->id,
+                        'category_id'    => $committeeCategory->id,
                         'subcategory_id' => $sub->id,
                         'title'          => $sub->name . '資料 ' . $i,
-                        'meeting_date' => fake()->dateTimeBetween('-2 year', 'now'),
-                        'published_at' => fake()->dateTimeBetween('-2 year', 'now'),
+                        'meeting_date'   => fake()->dateTimeBetween('-3 year', 'now'),
+                        'published_at'   => fake()->dateTimeBetween('-3 year', 'now'),
                         'created_by'     => $staffUsers->random()->id,
                     ]);
 
@@ -76,30 +54,51 @@ committee')->first();
             }
         }
 
-        // 理事会
-        $boardCategory = ContentCategory::where('slug', 'board-news')->first();
-        if ($boardCategory) {
-            for ($i = 1; $i <= 24; $i++) {
-                $content = Content::factory()->create([
-                    'category_id'     => $boardCategory->id,
-                    'subcategory_id' => null,
-                    'title'        => '理事会ニュース ' . $i,
-                    'meeting_date' => fake()->dateTimeBetween('-2 year', 'now'),
-                    'published_at' => fake()->dateTimeBetween('-2 year', 'now'),
-                    'created_by'   => $staffUsers->random()->id,
-                ]);
+        // --- 2. 四医会 (slug のタイポを修正) ---
+        $fourMedicalAssociationCategory = ContentCategory::where('slug', 'four-medical-association')->first();
+        if ($fourMedicalAssociationCategory) {
+            $subcategories = ContentSubcategory::where('category_id', $fourMedicalAssociationCategory->id)->get();
+
+            foreach ($subcategories as $sub) {
+                for ($i = 1; $i <= 60; $i++) {
+                    $content = Content::factory()->create([
+                        'category_id'    => $fourMedicalAssociationCategory->id,
+                        'subcategory_id' => $sub->id,
+                        'title'          => $sub->name . '資料 ' . $i,
+                        'meeting_date'   => fake()->dateTimeBetween('-3 year', 'now'),
+                        'published_at'   => fake()->dateTimeBetween('-3 year', 'now'),
+                        'created_by'     => $staffUsers->random()->id,
+                    ]);
 
                     $content->roles()->attach($allRoleIds);
+                }
             }
         }
 
-        // 会報・記念誌（subcategory）
+        // --- 3. 理事会 ---
+        $boardCategory = ContentCategory::where('slug', 'board-news')->first();
+        if ($boardCategory) {
+            for ($i = 1; $i <= 60; $i++) {
+                $content = Content::factory()->create([
+                    'category_id'     => $boardCategory->id,
+                    'subcategory_id'  => null,
+                    'title'           => '理事会ニュース ' . $i,
+                    'meeting_date'    => fake()->dateTimeBetween('-3 year', 'now'),
+                    'published_at'    => fake()->dateTimeBetween('-3 year', 'now'),
+                    'created_by'      => $staffUsers->random()->id,
+                ]);
+
+                $content->roles()->attach($allRoleIds);
+            }
+        }
+
+        // --- 4. 会報・記念誌 ---
         $magazinesCategory = ContentCategory::where('slug', 'bulletin-magazine')->first();
         if ($magazinesCategory) {
             $subcategories = ContentSubcategory::where('category_id', $magazinesCategory->id)->get();
 
             foreach ($subcategories as $sub) {
-                for ($i = 1; $i <= 3; $i++) {
+                for ($i = 1; $i <= 20; $i++) {
                     $content = Content::factory()->create([
                         'category_id'    => $magazinesCategory->id,
                         'subcategory_id' => $sub->id,
@@ -113,7 +112,7 @@ committee')->first();
             }
         }
 
-        // 諸規定（subcategory）
+        // --- 5. 諸規定 ---
         $rulesCategory = ContentCategory::where('slug', 'regulations')->first();
         if ($rulesCategory) {
             $subcategories = ContentSubcategory::where('category_id', $rulesCategory->id)->get();
@@ -131,7 +130,7 @@ committee')->first();
             }
         }
 
-        // その他（subcategory）
+        // --- 6. その他（議事録） ---
         $othersCategory = ContentCategory::where('slug', 'others-minutes')->first();
         if ($othersCategory) {
             $subcategories = ContentSubcategory::where('category_id', $othersCategory->id)->get();
@@ -149,14 +148,14 @@ committee')->first();
             }
         }
 
-        // 理事会専用（subcategory）
-        $boardCategory = ContentCategory::where('slug', 'board-exclusive')->first();
-        if ($boardCategory) {
-            $subcategories = ContentSubcategory::where('category_id', $boardCategory->id)->get();
+        // --- 7. 理事会専用 ---
+        $boardExclusiveCategory = ContentCategory::where('slug', 'board-exclusive')->first();
+        if ($boardExclusiveCategory) {
+            $subcategories = ContentSubcategory::where('category_id', $boardExclusiveCategory->id)->get();
 
             foreach ($subcategories as $sub) {
                 $content = Content::factory()->create([
-                    'category_id'    => $boardCategory->id,
+                    'category_id'    => $boardExclusiveCategory->id,
                     'subcategory_id' => $sub->id,
                     'title'          => $sub->name,
                     'published_at'   => fake()->dateTimeBetween('-3 years', 'now'),
@@ -167,7 +166,7 @@ committee')->first();
             }
         }
 
-        //書類系（download)
+        // --- 8. 書類系（download）---
         $downloadSlugs = [
             'disaster-manual',
             'health-check-manual',
@@ -182,12 +181,11 @@ committee')->first();
             $category = ContentCategory::where('slug', $slug)->first();
 
             if ($category) {
-                // subcategory がある場合は subcategory ごとに作成
                 $subcategories = ContentSubcategory::where('category_id', $category->id)->get();
 
                 if ($subcategories->count() > 0) {
                     foreach ($subcategories as $sub) {
-                        for ($i = 1; $i <= 30; $i++) {
+                        for ($i = 1; $i <= 50; $i++) {
                             $content = Content::factory()->create([
                                 'category_id'    => $category->id,
                                 'subcategory_id' => $sub->id,
@@ -196,11 +194,12 @@ committee')->first();
                                 'created_by'     => $staffUsers->random()->id,
                             ]);
 
+                            // 🔍 書類系にもロール権限をアタッチ
+                            $content->roles()->attach($allRoleIds);
                         }
                     }
                 } else {
-                    // subcategory がない場合は category 直下に作成
-                    for ($i = 1; $i <= 10; $i++) {
+                    for ($i = 1; $i <= 50; $i++) {
                         $content = Content::factory()->create([
                             'category_id'    => $category->id,
                             'subcategory_id' => null,
@@ -209,6 +208,8 @@ committee')->first();
                             'created_by'     => $staffUsers->random()->id,
                         ]);
 
+                        //  書類系にもロール権限をアタッチ
+                        $content->roles()->attach($allRoleIds);
                     }
                 }
             }
