@@ -418,7 +418,7 @@ const props = defineProps({
 
 const router = useRouter()
 const route = useRoute()
-const occurrenceId = route.params.id
+const currentOccurrenceId = ref(route.params.id)
 
 // モード選択（false: 単発, true: 定期繰り返し）
 const isRecurring = ref(false)
@@ -576,7 +576,7 @@ onMounted(async () => {
         const [categoriesRes, roomsRes, scheduleRes] = await Promise.all([
             axios.get('/api/admin/schedule-categories', { withCredentials: true }),
             axios.get('/api/admin/rooms', { withCredentials: true }),
-            axios.get(`/api/admin/occurrences/${occurrenceId}`, { withCredentials: true }),
+            axios.get(`/api/admin/schedule-occurrences/${currentOccurrenceId.value}`, { withCredentials: true }),
         ])
 
         categories.value = Array.isArray(categoriesRes.data) ? categoriesRes.data : categoriesRes.data.data || []
@@ -587,6 +587,10 @@ onMounted(async () => {
         const occurrence = resData.occurrence || null
 
         targetScheduleId.value = schedule.id
+
+        if (occurrence && occurrence.id) {
+            currentOccurrenceId.value = occurrence.id
+        }
 
         // 基本情報のセット
         form.title = schedule.title || ''
@@ -629,7 +633,12 @@ onMounted(async () => {
 
     } catch (err) {
         console.error('データの取得に失敗しました:', err)
-        alert('スケジュールの読み込みに失敗しました。')
+        if (err.response && err.response.status === 404) {
+            alert('指定された予定はすでに削除されているか、存在しません。')
+            router.push(props.indexUrl)
+        } else {
+            alert('スケジュールの読み込みに失敗しました。')
+        }
     } finally {
         loading.value = false
     }
@@ -674,14 +683,14 @@ const submitForm = async () => {
     }
 
     try {
-        // ① スケジュール本体の更新（/api/admin/schedules/{schedule_id}）
+        // ① スケジュール本体の更新
         await axios.put(`/api/admin/schedules/${targetScheduleId.value}`, schedulePayload, {
             withCredentials: true,
             headers: { 'Accept': 'application/json' },
         })
 
-        // ② 発生回・繰り返しの更新（/api/admin/schedule-occurrences/{occurrenceId}）
-        const res = await axios.put(`/api/admin/schedule-occurrences/${occurrenceId}`, occurrencePayload, {
+        // 💡 修正3: 動的に保持している currentOccurrenceId.value を使う
+        const res = await axios.put(`/api/admin/schedule-occurrences/${currentOccurrenceId.value}`, occurrencePayload, {
             withCredentials: true,
             headers: { 'Accept': 'application/json' },
         })
@@ -691,6 +700,7 @@ const submitForm = async () => {
             skippedDates.value = res.data.skipped
             showSkippedModal.value = true
         } else {
+            // 💡 一覧画面へ遷移
             router.push(props.indexUrl)
         }
     } catch (err) {
@@ -700,6 +710,10 @@ const submitForm = async () => {
                 alert(resData.message)
             }
             errors.value = resData.errors || {}
+        } else if (err.response && err.response.status === 404) {
+            // 💡 万が一対象Occurrenceが消えていた場合は、スケジュール全体更新のみ成功として一覧へ遷移
+            alert('対象の予定情報が変更されたため、一覧画面へ戻ります。')
+            router.push(props.indexUrl)
         } else {
             console.error('更新エラー:', err)
             alert('更新処理に失敗しました。')

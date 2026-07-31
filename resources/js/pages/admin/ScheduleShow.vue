@@ -1,5 +1,26 @@
 <template>
   <div class="max-w-4xl mx-auto p-4 md:p-6 space-y-6">
+    <!-- 💡 削除完了トースト通知（画面にとどまった場合用） -->
+    <transition
+      enter-active-class="transition duration-300 ease-out"
+      enter-from-class="transform -translate-y-2 opacity-0"
+      enter-to-class="transform translate-y-0 opacity-100"
+      leave-active-class="transition duration-200 ease-in"
+      leave-from-class="transform translate-y-0 opacity-100"
+      leave-to-class="transform -translate-y-2 opacity-0"
+    >
+      <div
+        v-if="successMessage"
+        class="bg-emerald-50 border border-emerald-200 text-emerald-800 px-4 py-3 rounded-xl flex items-center justify-between shadow-2xs text-sm font-medium"
+      >
+        <div class="flex items-center gap-2">
+          <span>✅</span>
+          <span>{{ successMessage }}</span>
+        </div>
+        <button @click="successMessage = null" class="text-emerald-500 hover:text-emerald-700">✕</button>
+      </div>
+    </transition>
+
     <!-- 1. ローディング表示 -->
     <div v-if="loading" class="flex flex-col items-center justify-center py-20 space-y-3">
       <div class="w-8 h-8 border-4 border-blue-600 border-t-transparent rounded-full animate-spin"></div>
@@ -261,6 +282,7 @@ const scheduleData = ref(null)
 const loading = ref(true)
 const error = ref(null)
 const deleting = ref(false)
+const successMessage = ref(null)
 
 // 削除モーダル関連の状態
 const showDeleteModal = ref(false)
@@ -271,7 +293,7 @@ const fetchScheduleData = async (id) => {
   loading.value = true
   error.value = null
   try {
-    const response = await axios.get(`/api/admin/occurrences/${id}`, {
+    const response = await axios.get(`/api/admin/schedule-occurrences/${id}`, {
       headers: {
         'Accept': 'application/json',
       }
@@ -332,33 +354,54 @@ const closeDeleteModal = () => {
   targetOccurrenceId.value = null
 }
 
+const showSuccessMessage = (msg) => {
+  successMessage.value = msg
+  setTimeout(() => {
+    successMessage.value = null
+  }, 3000)
+}
 
 const executeDelete = async (mode) => {
   if (!targetOccurrenceId.value) return
 
   deleting.value = true
   try {
-    // 削除対象のOccurrenceを検索
     const targetOcc = schedule.value?.occurrences?.find(o => o.id === targetOccurrenceId.value)
 
-    // JSONの destroy_url があればそれを優先、無ければデフォルトパスを指定
-    const deleteApiUrl = targetOcc?.destroy_url || `/api/admin/occurrences/${targetOccurrenceId.value}`
+    const rawUrl = targetOcc?.destroy_url || `/admin/schedule-occurrences/${targetOccurrenceId.value}`
+    const cleanUrl = rawUrl.replace(/^\/api/, '')
+    const deleteApiUrl = `/api${cleanUrl}`
 
-    await axios.delete(deleteApiUrl, {
+    // 削除を実行するIDと現在表示中のIDを保持
+    const deletedId = targetOccurrenceId.value
+    const currentId = occurrence.value?.id
+
+    const response = await axios.request({
+      method: 'DELETE',
+      url: deleteApiUrl,
       data: { mode: mode },
-      headers: { 'Accept': 'application/json' }
+      headers: {
+        'Accept': 'application/json',
+        'Content-Type': 'application/json'
+      }
     })
 
     closeDeleteModal()
 
-    // 単発予定（!isRecurring）の場合、または全体削除・未来一括削除・表示中アイテムの削除の場合
-    if (!isRecurring.value || mode === 'all' || mode === 'future' || targetOccurrenceId.value === occurrence.value?.id) {
-      // 削除後は一覧画面へ逃がす（データ再取得による404エラーを防ぐ）
-      router.push(props.indexUrl)
+    const apiMsg = response.data?.message || 'スケジュールを削除しました。'
+
+    const isCurrentDeleted = Number(deletedId) === Number(currentId)
+
+    if (isCurrentDeleted || mode === 'all' || mode === 'future' || !isRecurring.value) {
+      router.push({
+        path: props.indexUrl,
+        query: { message: apiMsg }
+      })
     } else {
-      // リスト内の「別の発生回」のみを削除した場合はデータを再読み込み
-      fetchScheduleData(occurrence.value.id)
+      showSuccessMessage(apiMsg)
+      fetchScheduleData(currentId)
     }
+
   } catch (err) {
     console.error('削除失敗:', err)
     alert(err.response?.data?.message || '削除処理に失敗しました。')

@@ -73,13 +73,12 @@ class ScheduleController extends Controller
         ]);
     }
 
-public function store(ScheduleStoreRequest $request)
-    {
+    public function store(ScheduleStoreRequest $request) {
         $validated = $request->validated();
 
         try {
             return DB::transaction(function () use ($request, $validated) {
-                
+
                 // 1. スケジュールの親レコード作成
                 $schedule = Schedule::create([
                     'room_id'              => $validated['room_id'] ?? null,
@@ -107,14 +106,14 @@ public function store(ScheduleStoreRequest $request)
 
                     // Occurrence を生成
                     $skipped = $this->generateOccurrencesFromRecurrence(
-                        $schedule, 
-                        $recurrence, 
-                        $recReq['start_time'], 
-                        $recReq['end_time'], 
+                        $schedule,
+                        $recurrence,
+                        $recReq['start_time'],
+                        $recReq['end_time'],
                         $schedule->id
                     );
 
-                    // ★ 3. Occurrence が 1つも生成されなかった場合のバリデーションチェック
+                    // 3. Occurrence が 1つも生成されなかった場合のバリデーションチェック
                     if ($schedule->occurrences()->count() === 0) {
                         // トランザクション内で例外を投げて DB 登録をロールバックさせる
                         throw new \Exception(
@@ -150,11 +149,10 @@ public function store(ScheduleStoreRequest $request)
                 ]);
             });
         } catch (\Exception $e) {
-            // エラーが発生した場合は 422 で返却（FormRequestと同じ形式でエラーレスポンスを返す）
             return response()->json([
                 'message' => $e->getMessage(),
                 'errors'  => [
-                    'recurrence.until' => [$e->getMessage()], // Vue側の until フィールド下に赤字表示させる場合
+                    'recurrence.until' => [$e->getMessage()],
                 ]
             ], $e->getCode() === 422 ? 422 : 500);
         }
@@ -187,7 +185,7 @@ public function store(ScheduleStoreRequest $request)
                 'start_at'    => $occurrence->start_at,
                 'end_at'      => $occurrence->end_at,
                 'type'        => $occurrence->type,
-                'update_url'  => "/admin/schedule-occurrences/{$occurrence->id}",
+                'update_url'  => "/admin/schedule-occurrences/{$occurrence->id}/edit",
                 'destroy_url' => "/admin/schedule-occurrences/{$occurrence->id}",
             ],
             'schedule' => [
@@ -204,7 +202,7 @@ public function store(ScheduleStoreRequest $request)
                 'category'             => $schedule->category,
                 'recurrences'          => $schedule->recurrences,
                 'show_url'             => "/admin/schedule-occurrences/{$schedule->id}",
-                'update_url'           => "/admin/schedule-occurrences/{$schedule->id}",
+                'update_url'           => "/admin/schedule-occurrences/{$schedule->id}/edit",
                 'destroy_url'          => "/admin/schedule-occurrences/{$schedule->id}",
                 'occurrences'          => $schedule->occurrences->map(function ($item) {
                     return [
@@ -213,7 +211,7 @@ public function store(ScheduleStoreRequest $request)
                         'end_at'      => $item->end_at,
                         'type'        => $item->type,
                         'update_url'  => "/admin/schedule-occurrences/{$item->id}/edit",
-                        'destroy_url' => "/admin/schedule-occurrences/{$item->id}/delete",
+                        'destroy_url' => "/admin/schedule-occurrences/{$item->id}",
                     ];
                 }),
             ],
@@ -230,7 +228,7 @@ public function store(ScheduleStoreRequest $request)
 
         if (($mode === 'future' || $mode === 'all') && !$recurrence) {
             return response()->json([
-                'message' => 'この予定は繰り返し予定ではありません',
+                'message' => 'この予定は繰り返し予定ではありません。新しく予定を作成してください。',
             ], 422);
         }
 
@@ -297,10 +295,10 @@ public function store(ScheduleStoreRequest $request)
             ->delete();
 
         $skipped = $this->generateOccurrencesFromRecurrence(
-            $recurrence->schedule, 
-            $newRecurrence, 
-            $recReq['start_time'], 
-            $recReq['end_time'], 
+            $recurrence->schedule,
+            $newRecurrence,
+            $recReq['start_time'],
+            $recReq['end_time'],
             $recurrence->schedule_id
         );
 
@@ -330,10 +328,10 @@ public function store(ScheduleStoreRequest $request)
         $schedule->occurrences()->delete();
 
         $skipped = $this->generateOccurrencesFromRecurrence(
-            $schedule, 
-            $recurrence, 
-            $recReq['start_time'], 
-            $recReq['end_time'], 
+            $schedule,
+            $recurrence,
+            $recReq['start_time'],
+            $recReq['end_time'],
             $schedule->id
         );
 

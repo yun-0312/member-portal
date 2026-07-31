@@ -18,9 +18,9 @@ use App\Notifications\UserRegisteredByAdmin;
 class UserController extends Controller
 {
     public function index(Request $request) {
-        $this->authorize('view', User::class);
-
-        $query = User::query()->with(['role', 'medicalInstitution']);
+        $query = User::query()
+            ->visibleTo($request->user())
+            ->with(['role', 'medicalInstitution']);
         $query = $this->applyUserFilters($query, $request);
 
         $perPage = $request->input('per_page', 30);
@@ -40,14 +40,22 @@ class UserController extends Controller
         return response()->json($users);
     }
 
-    public function show(User  $user) {
+    public function show(User $user) {
         $this->authorize('view', $user);
 
-        return response()->json([
+        $currentUser = auth()->user();
+
+        $response = [
             'user' => $user->load(['role', 'medicalInstitution', 'approvedBy']),
-            'update_url' => "/admin/users/{$user->id}/edit",
-            'delete_url' => "admin/users/{$user->id}",
-        ]);
+        ];
+
+        // admin の場合のみキーを追加
+        if ($currentUser && $currentUser->isAdmin()) {
+            $response['update_url'] = "/admin/users/{$user->id}/edit";
+            $response['delete_url'] = "/admin/users/{$user->id}";
+        }
+
+        return response()->json($response);
     }
 
     public function store(UserStoreRequest $request) {
@@ -99,8 +107,14 @@ class UserController extends Controller
         }
 
         //代理承認の判定
-        if ($request->has('status') && $request->status === UserStatus::Active) {
-            if ($user->status === UserStatus::Pending) {
+        $requestedStatus = $request->input('status');
+        if ($requestedStatus !== null) {
+            // 現在のステータスが Pending から Active に変更される場合
+            $isPendingToActive =
+                ($user->status === UserStatus::Pending || $user->status == UserStatus::Pending->value) &&
+                ($requestedStatus == UserStatus::Active || $requestedStatus == UserStatus::Active->value);
+
+            if ($isPendingToActive) {
                 $validated['approved_at'] = now();
                 $validated['approved_by'] = auth()->id();
             }
@@ -198,19 +212,19 @@ class UserController extends Controller
         ]);
     }
 
-    public function pending() {
-        $this->authorize('view', User::class);
+        public function pending(Request $request) {
+            $users = User::query()
+                ->visibleTo($request->user())
+                ->with(['role', 'medicalInstitution.representative'])
+                ->whereNull('approved_at')
+                ->whereNull('approved_by')
+                ->orderBy('created_at')
+                ->get();
 
-        $users = User::with(['role', 'medicalInstitution'])
-            ->whereNull('approved_at')
-            ->whereNull('approved_by')
-            ->orderBy('created_at')
-            ->get();
-
-        return response()->json([
-            'data' => $users,
-        ]);
-    }
+            return response()->json([
+                'data' => $users,
+            ]);
+        }
 
     private function applyUserFilters($query, Request $request) {
         if ($request->filled('keyword')) {

@@ -33,21 +33,21 @@ class ContentCategoryController extends BaseAdminMasterController
     public function index(Request $request) {
         $query = $this->newModel()->query();
 
-        if (!empty($this->extraRelations)) {
-            $query->with($this->extraRelations);
-        }
+        $query->with(array_merge($this->extraRelations ?? [], [
+            'subcategories.roles'
+        ]));
 
         $items = $query
             ->orderBy($this->sortColumn, $this->sortDirection)
             ->paginate($request->input('per_page', 20))
             ->through(function ($category) {
                 // コンテンツ自身の show_url
-                $category->show_url = route("admin.{$this->routePrefix}.show", $category->id);
+                $category->show_url = "/admin/{$this->routePrefix}/$category->id";
 
                 // 紐づく subcategoryにshow_url を付与
                 if ($category->subcategories) {
                     $category->subcategories->transform(function ($subcategory) {
-                        $subcategory->show_url = route('admin.content-subcategories.show', $subcategory->id);
+                        $subcategory->show_url = "/admin/content-subcategories/$subcategory->id";
                         return $subcategory;
                     });
                 }
@@ -56,8 +56,8 @@ class ContentCategoryController extends BaseAdminMasterController
             });
 
         $response = $items->toArray();
-        $response['store_url'] = route("admin.{$this->routePrefix}.store");
-        $response['subcategory_store_url'] = route("admin.content-subcategories.store");
+        $response['store_url'] = "/admin/$this->routePrefix";
+        $response['subcategory_store_url'] = '/admin/content-subcategories';
 
         return response()->json($response);
     }

@@ -27,6 +27,10 @@ class ContentSubcategory extends Model
         return $this->hasMany(Content::class, 'subcategory_id');
     }
 
+    public function roles() {
+        return $this->morphToMany(Role::class, 'targetable', 'role_targetables');
+    }
+
     public function parent()
     {
         return $this->belongsTo(ContentSubcategory::class, 'parent_id');

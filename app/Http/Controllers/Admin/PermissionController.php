@@ -28,20 +28,22 @@ class PermissionController extends BaseAdminMasterController
             $permission->load($this->extraRelations);
         }
 
+        // $roleId = $permission->roles->first()?->id ?? null;
+
         return response()->json([
             'permission' => [
                 'id' => $permission->id,
                 'name' => $permission->name,
                 'slug' => $permission->slug,
-                'update_url' => route('admin.permissions.update', $permission->id),
-                'destroy_url' => route('admin.permissions.destroy', $permission->id),
-                'add_role_url' => route('admin.role-permissions.store', $permission->id),
-                'index_url' => route('admin.permissions.index'),
+                'update_url' => "/admin/permissions/$permission->id/edit",
+                'destroy_url' => "admin/permissions/$permission->id",
+                'add_role_url' => "/admin/roles/{role_id}/permissions/$permission->id",
+                'index_url' => '/admin/permissions',
                 'roles' => $permission->roles->map(function ($role) use ($permission) {
                     return [
                         'id' => $role->id,
                         'name' => $role->name,
-                        'remove_url' => route('admin.role-permissions.destroy', ['role' => $role->id, 'permission' => $permission->id]),
+                        'remove_url' => "/admin/roles/$role->id/permissions/$permission->id",
                     ];
                 }),
             ],

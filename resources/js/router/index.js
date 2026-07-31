@@ -46,9 +46,30 @@ import AdminMedicalInstitutionList from "../pages/admin/MedicalInstitutionList.v
 import AdminMedicalInstitutionShow from "../pages/admin/MedicalInstitutionShow.vue";
 import AdminMedicalInstitutionUsers from "../pages/admin/MedicalInstitutionUsers.vue";
 import AdminUserList from "../pages/admin/UserList.vue";
+import AdminPendingUserList from "../pages/admin/PendingUserList.vue";
 import AdminUserShow from "../pages/admin/UserShow.vue";
 import AdminUserCreate from "../pages/admin/UserCreate.vue";
 import AdminUserEdit from "../pages/admin/UserEdit.vue";
+import AdminFaqCategoryList from "../pages/admin/FaqCategoryList.vue";
+import AdminFaqCategoryShow from "../pages/admin/FaqCategoryShow.vue";
+import AdminFaqCategoryCreate from "../pages/admin/FaqCategoryCreate.vue";
+import AdminScheduleCategoryList from "../pages/admin/ScheduleCategoryList.vue";
+import AdminScheduleCategoryShow from "../pages/admin/ScheduleCategoryShow.vue";
+import AdminScheduleCategoryCreate from "../pages/admin/ScheduleCategoryCreate.vue";
+import AdminNoticeCategoryList from "../pages/admin/NoticeCategoryList.vue";
+import AdminNoticeCategoryShow from "../pages/admin/NoticeCategoryShow.vue";
+import AdminNoticeCategoryCreate from "../pages/admin/NoticeCategoryCreate.vue";
+import AdminPermissionList from "../pages/admin/PermissionList.vue";
+import AdminPermissionShow from "../pages/admin/PermissionShow.vue";
+import AdminPermissionCreate from "../pages/admin/PermissionCreate.vue";
+import AdminRoomList from "../pages/admin/RoomList.vue";
+import AdminRoomShow from "../pages/admin/RoomShow.vue";
+import AdminRoomCreate from "../pages/admin/RoomCreate.vue";
+import AdminRoleList from "../pages/admin/RoleList.vue";
+import AdminRoleShow from "../pages/admin/RoleShow.vue";
+import AdminRoleCreate from "../pages/admin/RoleCreate.vue";
+import AdminContentCategoryList from "../pages/admin/ContentCategoryList.vue";
+import AdminContentCategoryShow from "../pages/admin/ContentCategoryShow.vue";
 
 const routes = [
     { path: "/", name: "login", component: Login },
@@ -293,6 +314,11 @@ const routes = [
                 component: AdminUserList,
             },
             {
+                path: "/admin/users/pending",
+                name: "admin.PendingUserList",
+                component: AdminPendingUserList,
+            },
+            {
                 path: "/admin/users/:id",
                 name: "admin.UserShow",
                 component: AdminUserShow,
@@ -307,6 +333,106 @@ const routes = [
                 name: "admin.UserEdit",
                 component: AdminUserEdit,
                 meta: { requiresAuth: true, roles: ["admin"] },
+            },
+            {
+                path: "/admin/faq-categories",
+                name: "admin.FaqCategoryList",
+                component: AdminFaqCategoryList,
+            },
+            {
+                path: "/admin/faq-categories/:id",
+                name: "admin.FaqCategoryShow",
+                component: AdminFaqCategoryShow,
+            },
+            {
+                path: "/admin/faq-categories/create",
+                name: "admin.FaqCategoryCreate",
+                component: AdminFaqCategoryCreate,
+            },
+            {
+                path: "/admin/schedule-categories",
+                name: "admin.ScheduleCategoryList",
+                component: AdminScheduleCategoryList,
+            },
+            {
+                path: "/admin/schedule-categories/:id",
+                name: "admin.ScheduleCategoryShow",
+                component: AdminScheduleCategoryShow,
+            },
+            {
+                path: "/admin/schedule-categories/create",
+                name: "admin.ScheduleCategoryCreate",
+                component: AdminScheduleCategoryCreate,
+            },
+            {
+                path: "/admin/notice-categories",
+                name: "admin.NoticeCategoryList",
+                component: AdminNoticeCategoryList,
+            },
+            {
+                path: "/admin/notice-categories/:id",
+                name: "admin.NoticeCategoryShow",
+                component: AdminNoticeCategoryShow,
+            },
+            {
+                path: "/admin/notice-categories/create",
+                name: "admin.NoticeCategoryCreate",
+                component: AdminNoticeCategoryCreate,
+            },
+            {
+                path: "/admin/permissions",
+                name: "admin.PermissionList",
+                component: AdminPermissionList,
+            },
+            {
+                path: "/admin/permissions/:id",
+                name: "admin.PermissionShow",
+                component: AdminPermissionShow,
+            },
+            {
+                path: "/admin/permissions/create",
+                name: "admin.PermissionCreate",
+                component: AdminPermissionCreate,
+            },
+            {
+                path: "/admin/rooms",
+                name: "admin.RoomList",
+                component: AdminRoomList,
+            },
+            {
+                path: "/admin/rooms/:id",
+                name: "admin.RoomShow",
+                component: AdminRoomShow,
+            },
+            {
+                path: "/admin/rooms/create",
+                name: "admin.RoomCreate",
+                component: AdminRoomCreate,
+            },
+            {
+                path: "/admin/roles",
+                name: "admin.RoleList",
+                component: AdminRoleList,
+            },
+            {
+                path: "/admin/roles/:id",
+                name: "admin.RoleShow",
+                component: AdminRoleShow,
+            },
+            {
+                path: "/admin/roles/create",
+                name: "admin.RoleCreate",
+                component: AdminRoleCreate,
+            },
+            {
+                path: "/admin/content-categories",
+                name: "admin.ContentCategoryList",
+                component: AdminContentCategoryList,
+            },
+            {
+                path: "/admin/content-categories/:id",
+                name: "admin.ContentCategoryShow",
+                component: AdminContentCategoryShow,
             },
         ],
     },

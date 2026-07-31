@@ -26,7 +26,7 @@ class ManagementController extends Controller
             ],
             'notice_categories' => [
                 'name' => 'お知らせカテゴリー管理',
-                'url' => '/admin/notices-categories',
+                'url' => '/admin/notice-categories',
             ],
             'content_categories' => [
                 'name' => 'コンテンツカテゴリー管理',
@@ -34,7 +34,7 @@ class ManagementController extends Controller
             ],
             'content_subcategories' => [
                 'name' => 'コンテンツサブカテゴリー管理',
-                'url' => '/admin/content-subCategories',
+                'url' => '/admin/content-subcategories',
             ],
             'faq_categories' => [
                 'name' => 'コールセンター問い合わせ報告書カテゴリー管理',
@@ -42,7 +42,7 @@ class ManagementController extends Controller
             ],
             'schedule_category' => [
                 'name' => 'スケジュールカテゴリー管理',
-                'url' => '/admin/schedule_categories',
+                'url' => '/admin/schedule-categories',
             ],
             'rooms' => [
                 'name' => '会議室管理',

@@ -369,7 +369,7 @@ Route::middleware(['auth:sanctum'])->prefix('admin')->group(function () {
             ->middleware('permission:schedule.delete')
             ->name('admin.schedules.destroy');
     });
-    Route::prefix('occurrences')->group(function () {
+    Route::prefix('schedule-occurrences')->group(function () {
         Route::get('/{occurrence}', [AdminScheduleController::class, 'showOccurrence'])
             ->middleware('permission:schedule.update')
             ->name('admin.schedule-occurrences.show');
@@ -413,7 +413,6 @@ Route::middleware(['auth:sanctum'])->prefix('admin')->group(function () {
             ->middleware('permission:user.update')
             ->name('admin.users.options');
         Route::get('/{user}', [AdminUserController::class, 'show'])
-            ->middleware('permission:user.update')
             ->name('admin.users.show');
         Route::post('/', [AdminUserController::class, 'store'])
             ->middleware('permission:user.create')
@@ -516,7 +515,6 @@ Route::middleware(['auth:sanctum'])->prefix('admin')->group(function () {
             ->middleware('permission:medical_institution.delete')
             ->name('admin.medical-institutions.destroy');
         Route::get('/{medicalInstitution}/users', [AdminMedicalInstitutionController::class, 'users'])
-            ->middleware('permission:medical_institution.update')
             ->name('admin.medical-institutions.users');
     });
 

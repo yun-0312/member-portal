@@ -23,16 +23,6 @@ class NoticeCategorySeeder extends Seeder
                 'slug' => 'circulate',
                 'sort_order' => 2,
             ],
-            [
-                'name' => '理事向け',
-                'slug' => 'director',
-                'sort_order' => 3,
-            ],
-            [
-                'name' => '全体向け',
-                'slug' => 'general',
-                'sort_order' => 4,
-            ],
         ];
 
         foreach ($categories as $category) {

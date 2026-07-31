@@ -23,6 +23,9 @@
 
             </div>
         </div>
+        <div v-if="flashMessage" class="bg-emerald-50 border border-emerald-200 text-emerald-800 p-4 rounded-xl mb-4 font-bold text-sm">
+        ✅ {{ flashMessage }}
+        </div>
 
         <!-- 2. 月移動ナビゲーション -->
         <div v-if="scheduleData" class="bg-white p-4 shadow-xs border border-slate-200/80 space-y-3 rounded-xl">
@@ -208,6 +211,7 @@ const router = useRouter()
 
 const scheduleData = ref(null)
 const loading = ref(true)
+const flashMessage = ref(null)
 
 // スケジュールデータ取得
 const fetchSchedules = async (month = null) => {
@@ -230,7 +234,7 @@ const getCreateRoute = (storeUrl) => {
     return '/admin/schedules/create'
 }
 
-// ★ 修正箇所：日付セルクリック時に新規作成画面へ遷移する関数
+// 日付セルクリック時に新規作成画面へ遷移する関数
 const openCreateFormByDate = (dateStr) => {
     router.push({
         path: '/admin/schedules/create',
@@ -380,5 +384,11 @@ watch(
 
 onMounted(() => {
     fetchSchedules(route.query.month)
+    if (route.query.message) {
+        flashMessage.value = route.query.message
+        setTimeout(() => {
+            flashMessage.value = null
+        }, 3000)
+    }
 })
 </script>

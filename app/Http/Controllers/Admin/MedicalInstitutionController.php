@@ -11,9 +11,11 @@ use App\Models\MedicalInstitution;
 class MedicalInstitutionController extends Controller
 {
     public function index(Request $request) {
-        $this->authorize('view', MedicalInstitution::class);
 
-        $query = MedicalInstitution::orderBy('id', 'desc');
+        $query = MedicalInstitution::query()
+            ->visibleTo($request->user())
+            ->orderBy('id', 'desc');
+
         $query = $this->applyFilters($query, $request);
 
         $institutions = $query
@@ -32,14 +34,23 @@ class MedicalInstitutionController extends Controller
     }
 
     public function show(MedicalInstitution $medicalInstitution) {
+        $this->authorize('view', $medicalInstitution);
+
         $medicalInstitution->load('representative');
 
-        return response()->json([
+        $response = [
             'institution' => $medicalInstitution,
-            'edit_url' => "/admin/medical-institutions/{$medicalInstitution->id}/edit",
-            'delete_url' => "/admin/medical-institutions/{$medicalInstitution->id}",
             'users_url' => "/admin/medical-institutions/{$medicalInstitution->id}/users",
-        ]);
+        ];
+
+        $currentUser = auth()->user();
+
+        if ($currentUser && $currentUser->isAdmin()) {
+            $response['edit_url'] = "/admin/medical-institutions/{$medicalInstitution->id}/edit";
+            $response['delete_url'] = "/admin/medical-institutions/{$medicalInstitution->id}";
+        }
+
+        return response()->json($response);
     }
 
     public function store (MedicalInstitutionStoreRequest $request) {
