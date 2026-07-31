@@ -142,22 +142,48 @@
         </div>
 
         <!-- 4. ページネーション -->
-        <div v-if="paginationLinks.length > 0 && lastPage > 1" class="flex items-center justify-center gap-1.5 pt-6">
-          <button
-            v-for="(link, idx) in paginationLinks"
-            :key="idx"
-            @click="changePage(link.url)"
-            :disabled="!link.url || link.active"
-            v-html="formatPaginationLabel(link.label)"
-            :class="[
-              'px-3.5 py-2 rounded-xl text-xs font-bold transition-all border',
-              link.active
-                ? 'bg-blue-600 text-white border-blue-600 shadow-sm'
-                : link.url
-                ? 'bg-white text-slate-700 border-slate-200 hover:bg-slate-100'
-                : 'bg-slate-100 text-slate-300 border-transparent cursor-not-allowed'
-            ]"
-          />
+        <div v-if="paginationLinks.length > 0 && lastPage > 1" class="pt-6">
+          <!-- スマホ表示 (md未満) -->
+          <div class="flex md:hidden items-center justify-between gap-2 bg-white p-3 rounded-2xl border border-slate-200 shadow-xs">
+            <button
+              @click="changePage(getPrevPageUrl())"
+              :disabled="currentPage === 1"
+              class="px-4 py-2 rounded-xl text-xs font-bold transition-all border bg-white text-slate-700 border-slate-200 hover:bg-slate-50 disabled:bg-slate-100 disabled:text-slate-300 disabled:border-transparent disabled:cursor-not-allowed active:scale-95"
+            >
+              ← 前へ
+            </button>
+
+            <span class="text-xs font-bold text-slate-600 font-mono">
+              {{ currentPage }} / {{ lastPage }}
+            </span>
+
+            <button
+              @click="changePage(getNextPageUrl())"
+              :disabled="currentPage === lastPage"
+              class="px-4 py-2 rounded-xl text-xs font-bold transition-all border bg-white text-slate-700 border-slate-200 hover:bg-slate-50 disabled:bg-slate-100 disabled:text-slate-300 disabled:border-transparent disabled:cursor-not-allowed active:scale-95"
+            >
+              次へ →
+            </button>
+          </div>
+
+          <!--  PC表示 (md以上) -->
+          <div class="hidden md:flex items-center justify-center gap-1.5">
+            <button
+              v-for="(link, idx) in paginationLinks"
+              :key="idx"
+              @click="changePage(link.url)"
+              :disabled="!link.url || link.active"
+              v-html="formatPaginationLabel(link.label)"
+              :class="[
+                'px-3.5 py-2 rounded-xl text-xs font-bold transition-all border',
+                link.active
+                  ? 'bg-blue-600 text-white border-blue-600 shadow-sm'
+                  : link.url
+                  ? 'bg-white text-slate-700 border-slate-200 hover:bg-slate-100'
+                  : 'bg-slate-100 text-slate-300 border-transparent cursor-not-allowed'
+              ]"
+            />
+          </div>
         </div>
 
       </div>
@@ -191,6 +217,7 @@ const categoryInput = ref(route.query.category || '')
 // データの安全な算出プロパティ
 const faqList = computed(() => faqsData.value?.data || [])
 const paginationLinks = computed(() => faqsData.value?.links || [])
+const currentPage = computed(() => faqsData.value?.current_page || 1)
 const lastPage = computed(() => faqsData.value?.last_page || 1)
 const exportUrl = computed(() => faqsData.value?.export_url || null)
 
@@ -290,6 +317,30 @@ const changePage = (url) => {
       page: page
     }
   })
+}
+
+//  スマホ用: 前のページのURL取得
+const getPrevPageUrl = () => {
+  if (currentPage.value <= 1) return null
+  const prevLink = paginationLinks.value.find(link =>
+    link.label.includes('Previous') ||
+    link.label.includes('previous') ||
+    link.label.includes('&laquo;') ||
+    link.label.includes('前へ')
+  )
+  return prevLink ? prevLink.url : null
+}
+
+//  スマホ用: 次のページのURL取得
+const getNextPageUrl = () => {
+  if (currentPage.value >= lastPage.value) return null
+  const nextLink = paginationLinks.value.find(link =>
+    link.label.includes('Next') ||
+    link.label.includes('next') ||
+    link.label.includes('&raquo;') ||
+    link.label.includes('次へ')
+  )
+  return nextLink ? nextLink.url : null
 }
 
 const formatDate = (dateString) => {

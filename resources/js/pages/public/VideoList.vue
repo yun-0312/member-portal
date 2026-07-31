@@ -152,22 +152,48 @@
             </div>
 
             <!-- 4. ページネーション -->
-            <div v-if="paginationLinks.length > 0 && lastPage > 1" class="flex items-center justify-center gap-1.5 pt-6">
-            <button
-                v-for="(link, idx) in paginationLinks"
-                :key="idx"
-                @click="changePage(link.url)"
-                :disabled="!link.url || link.active"
-                v-html="formatPaginationLabel(link.label)"
-                :class="[
-                'px-3.5 py-2 rounded-xl text-xs font-bold transition-all border',
-                link.active
-                    ? 'bg-blue-600 text-white border-blue-600 shadow-sm'
-                    : link.url
-                    ? 'bg-white text-slate-700 border-slate-200 hover:bg-slate-100'
-                    : 'bg-slate-100 text-slate-300 border-transparent cursor-not-allowed'
-                ]"
-            />
+            <div v-if="paginationLinks.length > 0 && lastPage > 1" class="pt-6">
+                <!--  スマホ表示 (md未満) -->
+                <div class="flex md:hidden items-center justify-between gap-2 bg-white p-3 rounded-2xl border border-slate-200 shadow-xs">
+                    <button
+                        @click="changePage(getPrevPageUrl())"
+                        :disabled="currentPage === 1"
+                        class="px-4 py-2 rounded-xl text-xs font-bold transition-all border bg-white text-slate-700 border-slate-200 hover:bg-slate-50 disabled:bg-slate-100 disabled:text-slate-300 disabled:border-transparent disabled:cursor-not-allowed active:scale-95"
+                    >
+                        ← 前へ
+                    </button>
+
+                    <span class="text-xs font-bold text-slate-600 font-mono">
+                        {{ currentPage }} / {{ lastPage }}
+                    </span>
+
+                    <button
+                        @click="changePage(getNextPageUrl())"
+                        :disabled="currentPage === lastPage"
+                        class="px-4 py-2 rounded-xl text-xs font-bold transition-all border bg-white text-slate-700 border-slate-200 hover:bg-slate-50 disabled:bg-slate-100 disabled:text-slate-300 disabled:border-transparent disabled:cursor-not-allowed active:scale-95"
+                    >
+                        次へ →
+                    </button>
+                </div>
+
+                <!--  PC表示 (md以上) -->
+                <div class="hidden md:flex items-center justify-center gap-1.5">
+                    <button
+                        v-for="(link, idx) in paginationLinks"
+                        :key="idx"
+                        @click="changePage(link.url)"
+                        :disabled="!link.url || link.active"
+                        v-html="formatPaginationLabel(link.label)"
+                        :class="[
+                        'px-3.5 py-2 rounded-xl text-xs font-bold transition-all border',
+                        link.active
+                            ? 'bg-blue-600 text-white border-blue-600 shadow-sm'
+                            : link.url
+                            ? 'bg-white text-slate-700 border-slate-200 hover:bg-slate-100'
+                            : 'bg-slate-100 text-slate-300 border-transparent cursor-not-allowed'
+                        ]"
+                    />
+                </div>
             </div>
 
         </div>
@@ -180,7 +206,7 @@
 
         </div>
 
-        <!-- 🎬 動画再生モーダル -->
+        <!--  動画再生モーダル -->
         <div
         v-if="selectedVideo"
         class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/80 backdrop-blur-sm animate-fade-in"
@@ -289,10 +315,11 @@
     // データの算出プロパティ
     const videoList = computed(() => videosData.value?.data || [])
     const paginationLinks = computed(() => videosData.value?.links || [])
+    const currentPage = computed(() => videosData.value?.current_page || 1)
     const lastPage = computed(() => videosData.value?.last_page || 1)
 
     // ==========================================
-    // 🎥 プロバイダー判定 & URL解析ロジック
+    //  プロバイダー判定 & URL解析ロジック
     // ==========================================
 
     // プロバイダーの種類を取得 (youtube, vimeo, zoom, unknown)
@@ -451,6 +478,30 @@
             page: page
             }
         })
+    }
+
+    // スマホ用: 前のページのURL取得
+    const getPrevPageUrl = () => {
+        if (currentPage.value <= 1) return null
+        const prevLink = paginationLinks.value.find(link =>
+            link.label.includes('Previous') ||
+            link.label.includes('previous') ||
+            link.label.includes('&laquo;') ||
+            link.label.includes('前へ')
+        )
+        return prevLink ? prevLink.url : null
+    }
+
+    // スマホ用: 次のページのURL取得
+    const getNextPageUrl = () => {
+        if (currentPage.value >= lastPage.value) return null
+        const nextLink = paginationLinks.value.find(link =>
+            link.label.includes('Next') ||
+            link.label.includes('next') ||
+            link.label.includes('&raquo;') ||
+            link.label.includes('次へ')
+        )
+        return nextLink ? nextLink.url : null
     }
 
     const formatDate = (dateString) => {

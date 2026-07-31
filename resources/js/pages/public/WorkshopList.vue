@@ -86,26 +86,52 @@
     </div>
 
     <!-- ページネーション -->
-    <div v-if="lastPage > 1" class="flex justify-center items-center gap-2 pt-4">
-      <button
-        @click="fetchWorkshops(currentPage - 1)"
-        :disabled="currentPage === 1"
-        class="px-3 py-1.5 rounded border border-slate-300 text-xs font-medium text-slate-600 disabled:opacity-40 disabled:cursor-not-allowed hover:bg-slate-50"
-      >
-        前へ
-      </button>
+    <div v-if="lastPage > 1" class="pt-4">
+      <!-- 📱 スマホ表示 (md未満) -->
+      <div class="flex md:hidden items-center justify-between gap-2 bg-white p-3 rounded-2xl border border-slate-200 shadow-xs">
+        <button
+          @click="fetchWorkshops(currentPage - 1)"
+          :disabled="currentPage === 1"
+          class="px-4 py-2 rounded-xl text-xs font-bold transition-all border bg-white text-slate-700 border-slate-200 hover:bg-slate-50 disabled:bg-slate-100 disabled:text-slate-300 disabled:border-transparent disabled:cursor-not-allowed active:scale-95"
+        >
+          ← 前へ
+        </button>
 
-      <span class="text-xs text-slate-600 font-mono px-2">
-        {{ currentPage }} / {{ lastPage }}
-      </span>
+        <span class="text-xs font-bold text-slate-600 font-mono">
+          {{ currentPage }} / {{ lastPage }}
+        </span>
 
-      <button
-        @click="fetchWorkshops(currentPage + 1)"
-        :disabled="currentPage === lastPage"
-        class="px-3 py-1.5 rounded border border-slate-300 text-xs font-medium text-slate-600 disabled:opacity-40 disabled:cursor-not-allowed hover:bg-slate-50"
-      >
-        次へ
-      </button>
+        <button
+          @click="fetchWorkshops(currentPage + 1)"
+          :disabled="currentPage === lastPage"
+          class="px-4 py-2 rounded-xl text-xs font-bold transition-all border bg-white text-slate-700 border-slate-200 hover:bg-slate-50 disabled:bg-slate-100 disabled:text-slate-300 disabled:border-transparent disabled:cursor-not-allowed active:scale-95"
+        >
+          次へ →
+        </button>
+      </div>
+
+      <!-- 💻 PC表示 (md以上) -->
+      <div class="hidden md:flex justify-center items-center gap-2">
+        <button
+          @click="fetchWorkshops(currentPage - 1)"
+          :disabled="currentPage === 1"
+          class="px-4 py-2 rounded-xl text-xs font-bold transition-all border bg-white text-slate-700 border-slate-200 hover:bg-slate-100 disabled:bg-slate-100 disabled:text-slate-300 disabled:border-transparent disabled:cursor-not-allowed"
+        >
+          ← 前へ
+        </button>
+
+        <span class="text-xs font-bold text-slate-600 font-mono px-3">
+          {{ currentPage }} / {{ lastPage }}
+        </span>
+
+        <button
+          @click="fetchWorkshops(currentPage + 1)"
+          :disabled="currentPage === lastPage"
+          class="px-4 py-2 rounded-xl text-xs font-bold transition-all border bg-white text-slate-700 border-slate-200 hover:bg-slate-100 disabled:bg-slate-100 disabled:text-slate-300 disabled:border-transparent disabled:cursor-not-allowed"
+        >
+          次へ →
+        </button>
+      </div>
     </div>
   </div>
 </template>
