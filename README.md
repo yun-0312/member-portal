@@ -90,46 +90,40 @@ Password: password<br />
 ・医師会事務員ユーザー<br />
 Email: staff@example.com<br />
 Password: password<br />
-・システム管理者ユーザー（permissionやお知らせカテゴリの追加・削除ができる）<br />
+・システム管理者ユーザー<br />
 Email: system@example.com<br />
 Password: password<br />
 
 ## 実装機能一覧
 ### 会員向け機能
-・ログイン/ログアウト
-・パスワードリセット
-・医療機関スタッフによる新規会員登録申請 / 管理者承認
-・お知らせ一覧
-・スケジュール一覧（カレンダー）
-・研修会一覧
-・書類一覧（ファイルダウンロード）
-・研修会動画一覧
-・問い合わせ報告一覧
+・ログイン/ログアウト<br />
+・パスワードリセット<br />
+・医療機関スタッフによる新規会員登録申請 / 管理者承認<br />
+・お知らせ一覧<br />
+・スケジュール一覧（カレンダー）<br />
+・研修会一覧<br />
+・書類一覧（ファイルダウンロード）<br />
+・研修会動画一覧<br />
+・問い合わせ報告一覧<br />
 
-# メール機能
-Resend（メール送信API）を使用して本番環境のメール送信を実装しています。
-現在実装済みのメール機能は以下の通りです。
-・会員登録時のメール認証（Verify Email）
-・メールアドレス変更時のメール認証（Verify Email）
-・会員登録が承認された時の登録完了メール（Welcome）
-※会員向けの通知メール機能は今後追加予定です。
+### メール機能
+Resend（メール送信API）を使用して本番環境のメール送信を実装しています。<br />
+現在実装済みのメール機能は以下の通りです。<br />
+・会員登録時のメール認証（Verify Email）<br />
+・メールアドレス変更時のメール認証（Verify Email）<br />
+・会員登録が承認された時の登録完了メール（Welcome）<br />
+※会員向けの通知メール機能は今後追加予定です。<br />
 
-# 管理者向け機能
-・会員管理（検索/編集）
-・医療機関管理（検索/編集）
-・コンテンツ投稿・編集
-・ロール管理（RBAC）
-・医療機関代表者設定
-・ロールターゲット機能（特定ロールのみ閲覧可能）
+### 管理者向け機能
+・会員管理（検索/編集）<br />
+・医療機関管理（検索/編集）<br />
+・コンテンツ投稿・編集<br />
+・ロール管理（RBAC）<br />
+・医療機関代表者設定<br />
+・ロールターゲット機能（特定ロールのみ閲覧可能）<br />
 
 ## 使用技術
-<img src="https://img.shields.io/badge/-PHP-777BB4.svg?logo=php&style=plastic">
-<img src="https://img.shields.io/badge/-Laravel-E74430.svg?logo=laravel&style=plastic">
-<img src="https://img.shields.io/badge/-Vue-42B883.svg?logo=vue.js&style=plastic">
-<img src="https://img.shields.io/badge/-MySQL-4479A1.svg?logo=mysql&style=plastic">
-<img src="https://img.shields.io/badge/-Docker-1488C6.svg?logo=docker&style=plastic">
-<img src="https://img.shields.io/badge/-TailwindCSS-06B6D4.svg?logo=tailwindcss&style=plastic">
-<img src="https://img.shields.io/badge/-Railway-0F0F0F.svg?logo=railway&style=plastic"> <br />
+<img src="https://img.shields.io/badge/-PHP-777BB4.svg?logo=php&style=plastic"><img src="https://img.shields.io/badge/-Laravel-E74430.svg?logo=laravel&style=plastic"><img src="https://img.shields.io/badge/-Vue-42B883.svg?logo=vue.js&style=plastic"><img src="https://img.shields.io/badge/-MySQL-4479A1.svg?logo=mysql&style=plastic"><img src="https://img.shields.io/badge/-Docker-1488C6.svg?logo=docker&style=plastic"><img src="https://img.shields.io/badge/-TailwindCSS-06B6D4.svg?logo=tailwindcss&style=plastic"><img src="https://img.shields.io/badge/-Railway-0F0F0F.svg?logo=railway&style=plastic"> <br />
   ・php 8.3<br />
   ・Laravel 10<br />
 　・Vue 3<br />
@@ -154,11 +148,10 @@ Resend（メール送信API）を使用して本番環境のメール送信を�
   9.RBAC（権限管理）<br />
   10.研修会管理<br />
   11.動画管理<br />
-　12.問い合わせ報告管理<br />
-　13.スケジュール管理<br />
+12.問い合わせ報告管理<br />
+13.スケジュール管理<br />
 
 ### テストの実行方法
-このプロジェクトでは、`RefreshDatabase` と `Factory` を使用しており、テスト実行時に自動でマイグレーションとテストデータの生成が行われます。<br />
 以下のコマンドでテストを実行してください。
 ``` bash
 ./vendor/bin/sail artisan test
@@ -168,7 +161,7 @@ Resend（メール送信API）を使用して本番環境のメール送信を�
 <img width="1191" height="1114" alt="Image" src="https://github.com/user-attachments/assets/239f30bf-60f0-4cf2-bf3c-f4083d059932" />
 
 ## URL
-　・会員画面：http://localhost/<br />
-  　・phpMyAdmin：http://localhost:8080/<br />
-    ・MailPit：http://localhost:8025<br />
-    ・RailWay本番環境：https://member-portal-production-960b.up.railway.app
+・会員画面：http://localhost/<br />
+ ・phpMyAdmin：http://localhost:8080/<br />
+・MailPit：http://localhost:8025<br />
+・RailWay本番環境：https://member-portal-production-960b.up.railway.app
