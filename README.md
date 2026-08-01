@@ -72,6 +72,7 @@ composer install
 
 ## サンプルユーザーアカウント（動作確認用）
 UsersTableSeederで登録されるメール認証済みのテストユーザーです。<br />
+ユーザーによって見ることができるページが違います。
 
 ・ログインURL：http://localhost/
 
@@ -93,6 +94,21 @@ Password: password<br />
 ・システム管理者ユーザー<br />
 Email: system@example.com<br />
 Password: password<br />
+
+### システム管理者ユーザー（system）
+``` text
+システム管理者は、一般の管理者とは異なり、
+システムの根幹に関わる設定のみを扱う特別ロールです。
+
+・permission の CRUD
+・お知らせカテゴリ（Notice-category）の CRUD
+・コード変更が必要な設定項目の管理
+・その他の管理機能にはアクセス不可（安全性のため）
+
+RBAC の観点から、
+「一般管理者が触れるべきでない領域」を system ロールに分離することで、
+運用時の安全性と権限の明確化を実現しています。
+```
 
 ## 実装機能一覧
 ### 会員向け機能
