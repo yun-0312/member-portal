@@ -12,6 +12,6 @@ class MedicalInstitutionSeeder extends Seeder
      */
     public function run(): void
     {
-        MedicalInstitution::factory()->count(60)->create();
+        MedicalInstitution::factory()->count(150)->create();
     }
 }

@@ -68,8 +68,77 @@
 
         <!-- メインコンテンツ -->
         <div v-else class="space-y-4">
-            <!-- テーブルカード -->
-            <div class="bg-white rounded-2xl border border-slate-200 shadow-2xs overflow-hidden">
+            <!-- 📱 スマホ表示: カード型レイアウト (sm未満で表示) -->
+            <div class="block sm:hidden space-y-3">
+                <div
+                    v-for="user in users"
+                    :key="user.id"
+                    class="bg-white p-4 rounded-2xl border border-slate-200 shadow-2xs space-y-3"
+                >
+                    <!-- ヘッダー: 氏名、代表者バッジ、ステータス -->
+                    <div class="flex items-start justify-between gap-2 border-b border-slate-100 pb-2.5">
+                        <div class="space-y-1">
+                            <span class="font-mono text-xs text-slate-400">#{{ user.id }}</span>
+                            <div class="flex flex-wrap items-center gap-1.5">
+                                <h3 class="font-bold text-slate-900 text-base">{{ user.name }}</h3>
+                                <!-- 代表者バッジ -->
+                                <span
+                                    v-if="isRepresentative(user)"
+                                    class="px-2 py-0.5 bg-amber-100 text-amber-800 border border-amber-300 rounded text-[10px] font-bold"
+                                >
+                                    ★ 代表者
+                                </span>
+                            </div>
+                            <p class="text-xs text-slate-400 font-mono break-all">{{ user.email }}</p>
+                        </div>
+                        <span
+                            :class="getStatusBadgeClass(user.status)"
+                            class="px-2 py-0.5 rounded-full text-xs font-semibold inline-flex items-center gap-1 shrink-0"
+                        >
+                            <span class="w-1.5 h-1.5 rounded-full bg-current"></span>
+                            <span>{{ getStatusLabel(user.status) }}</span>
+                        </span>
+                    </div>
+
+                    <!-- ボディ: 権限 & 区分 -->
+                    <div class="grid grid-cols-2 gap-2 text-xs">
+                        <div>
+                            <span class="text-slate-400 block mb-1">権限</span>
+                            <span
+                                :class="getRoleBadgeClass(user.role?.name)"
+                                class="px-2 py-0.5 rounded-md font-bold tracking-wide uppercase border inline-block"
+                            >
+                                {{ user.role?.name || 'Unassigned' }}
+                            </span>
+                        </div>
+                        <div>
+                            <span class="text-slate-400 block mb-1">区分</span>
+                            <span class="font-medium text-slate-700">
+                                {{ isRepresentative(user) ? '代表者' : '一般メンバー' }}
+                            </span>
+                        </div>
+                    </div>
+
+                    <!-- フッター: 詳細リンク -->
+                    <div v-if="user.show_url" class="pt-2 border-t border-slate-100 flex justify-end">
+                        <router-link
+                            :to="getRelativePath(user.show_url)"
+                            class="inline-flex items-center gap-1 text-xs font-semibold text-indigo-600 hover:text-indigo-800 bg-indigo-50 px-3 py-1.5 rounded-lg transition-colors"
+                        >
+                            <span>詳細を見る</span>
+                            <span>→</span>
+                        </router-link>
+                    </div>
+                </div>
+
+                <!-- 件数ゼロ時 -->
+                <div v-if="users.length === 0" class="bg-white p-8 rounded-2xl border border-slate-200 text-center text-slate-400 text-sm">
+                    この医療機関に所属しているユーザーはいません。
+                </div>
+            </div>
+
+            <!-- 💻 PC表示: テーブルレイアウト (sm以上で表示) -->
+            <div class="hidden sm:block bg-white rounded-2xl border border-slate-200 shadow-2xs overflow-hidden">
                 <div class="overflow-x-auto">
                     <table class="w-full text-left border-collapse">
                         <thead>
@@ -191,7 +260,6 @@ const fetchMembers = async () => {
         const id = route.params.id
         const response = await api.get(`/admin/medical-institutions/${id}/users`)
 
-        // ※レスポンスキーが "date" でも "data" でも柔軟に対応
         users.value = response.data.date || response.data.data || []
     } catch (err) {
         console.error('医療機関メンバー一覧の取得失敗:', err)

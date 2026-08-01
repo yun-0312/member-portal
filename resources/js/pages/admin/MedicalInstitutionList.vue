@@ -96,8 +96,77 @@
 
         <!-- メインコンテンツ -->
         <div v-else class="space-y-4">
-            <!-- テーブルカード -->
-            <div class="bg-white rounded-2xl border border-slate-200 shadow-2xs overflow-hidden">
+            <!-- 📱 スマホ表示: カード型レイアウト (sm未満で表示) -->
+            <div class="block sm:hidden space-y-3">
+                <div
+                    v-for="item in institutions"
+                    :key="item.id"
+                    class="bg-white p-4 rounded-2xl border border-slate-200 shadow-2xs space-y-3"
+                >
+                    <!-- ヘッダー: 医療機関名・ID -->
+                    <div class="flex items-start justify-between gap-2 border-b border-slate-100 pb-2.5">
+                        <div class="space-y-0.5">
+                            <span class="font-mono text-xs text-slate-400">#{{ item.id }}</span>
+                            <h3 class="font-bold text-slate-900 text-base leading-snug">{{ item.name }}</h3>
+                        </div>
+                    </div>
+
+                    <!-- ボディ: 住所・連絡先 -->
+                    <div class="space-y-1.5 text-xs text-slate-600">
+                        <div class="flex items-start gap-1.5">
+                            <span class="shrink-0">📍</span>
+                            <div>
+                                <span class="font-mono text-slate-400 mr-1">〒{{ formatPostcode(item.postcode) }}</span>
+                                <span>{{ item.address }}</span>
+                            </div>
+                        </div>
+                        <div class="flex items-center gap-1.5">
+                            <span class="shrink-0">📞</span>
+                            <span class="font-mono text-slate-700 font-medium">{{ item.phone }}</span>
+                        </div>
+                    </div>
+
+                    <!-- 代表者情報エリア -->
+                    <div class="bg-slate-50 p-2.5 rounded-xl text-xs space-y-1 border border-slate-100">
+                        <span class="text-[10px] text-slate-400 font-semibold uppercase tracking-wider block">代表者</span>
+                        <div v-if="item.representative" class="space-y-1">
+                            <div class="font-semibold text-slate-800 flex items-center justify-between gap-2">
+                                <span>👤 {{ item.representative.name }}</span>
+                                <!-- ロールバッジ -->
+                                <span
+                                    :class="getRoleBadgeClass(item.representative.role?.name)"
+                                    class="px-2 py-0.5 rounded-md text-[10px] font-bold tracking-wide uppercase border shrink-0"
+                                >
+                                    {{ item.representative.role?.name || 'Unassigned' }}
+                                </span>
+                            </div>
+                            <p class="text-[11px] text-slate-400 font-mono break-all">
+                                {{ item.representative.email }}
+                            </p>
+                        </div>
+                        <span v-else class="text-slate-400 italic block">未設定</span>
+                    </div>
+
+                    <!-- フッター: 操作アクション -->
+                    <div v-if="item.show_url" class="pt-2 border-t border-slate-100 flex justify-end">
+                        <router-link
+                            :to="item.show_url"
+                            class="inline-flex items-center gap-1 text-xs font-semibold text-indigo-600 hover:text-indigo-800 bg-indigo-50 px-3 py-1.5 rounded-lg transition-colors"
+                        >
+                            <span>詳細を見る</span>
+                            <span>→</span>
+                        </router-link>
+                    </div>
+                </div>
+
+                <!-- 件数ゼロ時 -->
+                <div v-if="institutions.length === 0" class="bg-white p-8 rounded-2xl border border-slate-200 text-center text-slate-400 text-sm">
+                    該当する医療機関が見つかりませんでした。
+                </div>
+            </div>
+
+            <!-- 💻 PC表示: テーブルレイアウト (sm以上で表示) -->
+            <div class="hidden sm:block bg-white rounded-2xl border border-slate-200 shadow-2xs overflow-hidden">
                 <div class="overflow-x-auto">
                     <table class="w-full text-left border-collapse">
                         <thead>
@@ -181,17 +250,46 @@
                 </div>
             </div>
 
-            <!-- ペジネーション -->
+<!-- 📄 レスポンシブ対応ペジネーション -->
             <div v-if="paginationData && paginationData.links" class="flex flex-col sm:flex-row items-center justify-between gap-4 bg-white p-4 rounded-2xl border border-slate-200 shadow-2xs">
                 <!-- 件数情報 -->
-                <div class="text-xs text-slate-500">
+                <div class="text-xs text-slate-500 text-center sm:text-left">
                     全 <span class="font-bold text-slate-800">{{ paginationData.total }}</span> 件中
                     <span class="font-bold text-slate-800">{{ paginationData.from || 0 }}</span> -
                     <span class="font-bold text-slate-800">{{ paginationData.to || 0 }}</span> 件を表示
                 </div>
 
-                <!-- ページ移動ボタン -->
-                <nav class="flex items-center gap-1">
+                <!--  スマホ表示: 「前へ」「次へ」だけのシンプルナビゲーション -->
+                <div class="flex sm:hidden items-center justify-between gap-3 w-full">
+                    <button
+                        @click="fetchData(getPrevPageUrl())"
+                        :disabled="!getPrevPageUrl()"
+                        :class="[
+                            'flex-1 py-2 px-4 text-xs font-semibold rounded-xl border transition-all text-center',
+                            getPrevPageUrl()
+                                ? 'bg-white text-slate-700 border-slate-300 active:bg-slate-100 cursor-pointer shadow-2xs'
+                                : 'bg-slate-50 text-slate-300 border-slate-200 cursor-not-allowed'
+                        ]"
+                    >
+                        ‹ 前のページ
+                    </button>
+
+                    <button
+                        @click="fetchData(getNextPageUrl())"
+                        :disabled="!getNextPageUrl()"
+                        :class="[
+                            'flex-1 py-2 px-4 text-xs font-semibold rounded-xl border transition-all text-center',
+                            getNextPageUrl()
+                                ? 'bg-white text-slate-700 border-slate-300 active:bg-slate-100 cursor-pointer shadow-2xs'
+                                : 'bg-slate-50 text-slate-300 border-slate-200 cursor-not-allowed'
+                        ]"
+                    >
+                        次のページ ›
+                    </button>
+                </div>
+
+                <!--  PC表示: 数字つきのフルナビゲーション (sm以上で表示) -->
+                <nav class="hidden sm:flex items-center gap-1 flex-wrap justify-end">
                     <button
                         v-for="(link, index) in paginationData.links"
                         :key="index"
@@ -281,6 +379,24 @@ const formatPaginationLabel = (label) => {
     if (label.includes('previous') || label.includes('前')) return '‹ 前へ'
     if (label.includes('next') || label.includes('次')) return '次へ ›'
     return label
+}
+
+// スマホ用: 「前へ」ボタンのURL取得
+const getPrevPageUrl = () => {
+    if (!paginationData.value?.links) return null
+    const prevLink = paginationData.value.links.find(
+        link => link.label.includes('previous') || link.label.includes('前')
+    )
+    return prevLink ? prevLink.url : null
+}
+
+// スマホ用: 「次へ」ボタンのURL取得
+const getNextPageUrl = () => {
+    if (!paginationData.value?.links) return null
+    const nextLink = paginationData.value.links.find(
+        link => link.label.includes('next') || link.label.includes('次')
+    )
+    return nextLink ? nextLink.url : null
 }
 
 // 代表者のロールに応じたバッジスタイルの適用

@@ -21,7 +21,6 @@ class MedicalInstitutionRepresentativeSeeder extends Seeder
                 ->whereIn('role_id', [
                     Role::where('name', 'director')->value('id'),
                     Role::where('name', 'member')->value('id'),
-                    Role::where('name', 'medical_staff')->value('id'),
                 ])
                 ->inRandomOrder()
                 ->first();

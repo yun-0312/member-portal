@@ -17,17 +17,42 @@ class UserInstitutionAssignSeeder extends Seeder
     {
         $institutions = MedicalInstitution::all();
 
+        if ($institutions->isEmpty()) {
+            return;
+        }
+
         $memberId = Role::where('name', 'member')->value('id');
         $directorId = Role::where('name', 'director')->value('id');
         $medicalStaffId = Role::where('name', 'medical_staff')->value('id');
 
-        User::whereIn('role_id', [$memberId, $directorId, $medicalStaffId])
+        $priorityUsers = User::whereIn('role_id', [$directorId, $memberId])
+            ->whereNull('medical_institution_id')
             ->get()
-            ->each(function ($user) use ($institutions) {
-                if ($user->medical_institution_id === null) {
-                    $user->medical_institution_id = $institutions->random()->id;
-                    $user->save();
-                }
-            });
+            ->shuffle();
+
+        $remainingUsers = collect();
+
+        // 各医療機関に最低1人を確実に割り当てる
+        foreach ($institutions as $institution) {
+            if ($priorityUsers->isNotEmpty()) {
+                $user = $priorityUsers->pop(); // 優先リストから1人取り出して割り当て
+                $user->medical_institution_id = $institution->id;
+                $user->save();
+            }
+        }
+
+        // 使われなかった director / member を余りリストに追加
+        $remainingUsers = $remainingUsers->merge($priorityUsers);
+
+        $medicalStaffUsers = User::where('role_id', $medicalStaffId)
+            ->whereNull('medical_institution_id')
+            ->get();
+        $remainingUsers = $remainingUsers->merge($medicalStaffUsers);
+
+        foreach ($remainingUsers as $user) {
+            $user->medical_institution_id = $institutions->random()->id;
+            $user->save();
+        }
+
     }
 }

@@ -40,7 +40,7 @@ class UserSeeder extends Seeder
         User::factory()->admin()->count(1)->create();
         User::factory()->staff()->count(10)->create();
         User::factory()->director()->count(10)->create();
-        User::factory()->member()->count(50)->create();
-        User::factory()->medicalStaff()->count(30)->create();
+        User::factory()->member()->count(200)->create();
+        User::factory()->medicalStaff()->count(50)->create();
     }
 }
