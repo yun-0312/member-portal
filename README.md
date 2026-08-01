@@ -95,7 +95,7 @@ Password: password<br />
 Email: system@example.com<br />
 Password: password<br />
 
-※システム管理者ユーザー（system）
+#### ※システム管理者ユーザー（system）
 システム管理者は、一般の管理者とは異なり、
 システムの根幹に関わる設定のみを扱う特別ロールです。
 
