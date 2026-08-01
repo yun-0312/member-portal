@@ -3,6 +3,9 @@
         <!-- ログイン前 -->
         <PublicHeader v-if="!user" />
 
+        <!-- system_admin の場合 (専用ヘッダー) -->
+        <SystemAdminHeader v-else-if="isSystemAdmin" />
+
         <!-- admin または staff の場合 -->
         <AdminHeader v-else-if="isAdminOrStaff" />
 
@@ -21,6 +24,7 @@ import { useRouter } from "vue-router";
 import PublicHeader from "./components/PublicHeader.vue";
 import UserHeader from "./components/UserHeader.vue";
 import AdminHeader from "./components/AdminHeader.vue";
+import SystemAdminHeader from "./components/SystemAdminHeader.vue";
 
 const router = useRouter();
 const user = ref(null);
@@ -38,6 +42,16 @@ const normalizeRoleName = (value) => {
 
     return null;
 };
+
+const isSystemAdmin = computed(() => {
+    if (!user.value) return false;
+
+    const roleName = normalizeRoleName(
+        user.value.role ?? user.value.role_name ?? user.value.roleName
+    );
+
+    return roleName === "system_admin";
+});
 
 const isAdminOrStaff = computed(() => {
     if (!user.value) return false;
@@ -79,7 +93,14 @@ window.addEventListener("user-updated", () => {
     fetchUser();
 
     if (user.value) {
-        if (isAdminOrStaff.value) {
+        // 取得した user.value から直接判定（Computedの遅延を回避）
+        const roleName = normalizeRoleName(
+            user.value.role ?? user.value.role_name ?? user.value.roleName
+        );
+
+        if (roleName === "system_admin") {
+            router.push({ name: "System" });
+        } else if (["admin", "staff"].includes(roleName)) {
             router.push({ name: "AdminDashboard" });
         } else {
             router.push({ name: "PublicDashboard" });

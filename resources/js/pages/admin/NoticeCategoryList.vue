@@ -2,7 +2,8 @@
     <CategoryMasterList
         title="お知らせカテゴリー管理"
         api-endpoint="/admin/notice-categories"
-        :columns="['slug', 'sort_order']"
+        :columns="['slug', 'sort_order']",
+        back-url="/system"
     />
 </template>
 

@@ -45,6 +45,8 @@ import AdminManagement from "../pages/admin/Management.vue";
 import AdminMedicalInstitutionList from "../pages/admin/MedicalInstitutionList.vue";
 import AdminMedicalInstitutionShow from "../pages/admin/MedicalInstitutionShow.vue";
 import AdminMedicalInstitutionUsers from "../pages/admin/MedicalInstitutionUsers.vue";
+import AdminMedicalInstitutionCreate from "../pages/admin/MedicalInstitutionCreate.vue";
+import AdminMedicalInstitutionEdit from "../pages/admin/MedicalInstitutionEdit.vue";
 import AdminUserList from "../pages/admin/UserList.vue";
 import AdminPendingUserList from "../pages/admin/PendingUserList.vue";
 import AdminUserShow from "../pages/admin/UserShow.vue";
@@ -59,6 +61,7 @@ import AdminScheduleCategoryCreate from "../pages/admin/ScheduleCategoryCreate.v
 import AdminNoticeCategoryList from "../pages/admin/NoticeCategoryList.vue";
 import AdminNoticeCategoryShow from "../pages/admin/NoticeCategoryShow.vue";
 import AdminNoticeCategoryCreate from "../pages/admin/NoticeCategoryCreate.vue";
+import AdminNoticeCategoryEdit from "../pages/admin/NoticeCategoryEdit.vue";
 import AdminPermissionList from "../pages/admin/PermissionList.vue";
 import AdminPermissionShow from "../pages/admin/PermissionShow.vue";
 import AdminPermissionCreate from "../pages/admin/PermissionCreate.vue";
@@ -70,6 +73,8 @@ import AdminRoleShow from "../pages/admin/RoleShow.vue";
 import AdminRoleCreate from "../pages/admin/RoleCreate.vue";
 import AdminContentCategoryList from "../pages/admin/ContentCategoryList.vue";
 import AdminContentCategoryShow from "../pages/admin/ContentCategoryShow.vue";
+
+import System from "../pages/admin/System.vue";
 
 const routes = [
     { path: "/", name: "login", component: Login },
@@ -155,9 +160,10 @@ const routes = [
         component: UserProfile,
     },
     {
-        path: "/admin/medical-institutions/:id/edit",
+        path: "/medical-institutions/:id/edit",
         name: "MedicalInstitutionEdit",
         component: MedicalInstitutionEdit,
+        meta: { requiresAuth: true },
     },
     {
         path: "/medical-institutions/:id/users",
@@ -309,6 +315,16 @@ const routes = [
                 component: AdminMedicalInstitutionUsers,
             },
             {
+                path: "/admin/medical-institutions/create",
+                name: "admin.MedicalInstitutionCreate",
+                component: AdminMedicalInstitutionCreate,
+            },
+            {
+                path: "/admin/medical-institutions/:id/edit",
+                name: "admin.MedicalInstitutionEdit",
+                component: AdminMedicalInstitutionEdit,
+            },
+            {
                 path: "/admin/users",
                 name: "admin.UserList",
                 component: AdminUserList,
@@ -380,6 +396,11 @@ const routes = [
                 component: AdminNoticeCategoryCreate,
             },
             {
+                path: "/admin/notice-categories/:id/edit",
+                name: "admin.NoticeCategoryEdit",
+                component: AdminNoticeCategoryEdit,
+            },
+            {
                 path: "/admin/permissions",
                 name: "admin.PermissionList",
                 component: AdminPermissionList,
@@ -435,6 +456,15 @@ const routes = [
                 component: AdminContentCategoryShow,
             },
         ],
+    },
+    {
+        path: "/system",
+        name: "System",
+        component: System,
+        meta: {
+            requiresAuth: true,
+            role: "system_admin",
+        },
     },
 ];
 

@@ -35,7 +35,7 @@
 
             <!-- 管理トップへ戻るボタン -->
             <router-link
-                to="/admin/management"
+                :to="backUrl"
                 class="inline-flex items-center gap-1 px-3 py-2 bg-white hover:bg-slate-100 border border-slate-200 text-slate-700 text-xs sm:text-sm font-semibold rounded-xl transition-all active:scale-95 shadow-2xs cursor-pointer shrink-0"
                 title="管理トップに戻る"
             >
@@ -393,6 +393,10 @@ const props = defineProps({
     columns: {
         type: Array,
         default: () => ['sort_order']
+    },
+    backUrl: {
+        type: String,
+        default: '/admin/management'
     }
 })
 

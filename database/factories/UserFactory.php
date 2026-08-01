@@ -77,6 +77,14 @@ class UserFactory extends Factory
         ]);
     }
 
+    //systemAdmin作成
+    public function systemAdmin() {
+        return $this->state(fn () => [
+            'role_id' => Role::where('name', 'system_admin')->value('id'),
+            'medical_institution_id' => null,
+        ]);
+    }
+
     /**
      * Indicate that the model's email address should be unverified.
      */

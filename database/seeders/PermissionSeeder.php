@@ -73,6 +73,11 @@ class PermissionSeeder extends Seeder
             'category.update',
             'category.delete',
 
+            //'notice-category管理
+            'notice_category.create',
+            'notice_category.update',
+            'notice_category.delete',
+
         ];
 
         foreach ($permissions as $name) {

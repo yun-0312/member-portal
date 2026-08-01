@@ -29,7 +29,7 @@
 
         <!-- 入力フォーム -->
         <form @submit.prevent="submitForm" class="bg-white rounded-2xl border border-slate-200 p-6 sm:p-8 shadow-2xs space-y-6">
-            
+
             <!-- 氏名 (name) -->
             <div>
                 <label class="block text-xs sm:text-sm font-bold text-slate-700 mb-2">
@@ -54,6 +54,7 @@
                 <input
                     v-model="form.email"
                     type="email"
+                    autocomplete="username"
                     required
                     placeholder="user@example.com"
                     class="w-full px-4 py-2.5 bg-slate-50 border rounded-xl text-sm focus:bg-white focus:ring-2 focus:ring-indigo-500 focus:outline-none transition-all"
@@ -62,20 +63,41 @@
                 <p v-if="errors.email" class="mt-1.5 text-xs text-rose-500 font-medium">{{ errors.email[0] }}</p>
             </div>
 
-            <!-- パスワード (password) -->
-            <div>
-                <label class="block text-xs sm:text-sm font-bold text-slate-700 mb-2">
-                    パスワード (8文字以上) <span class="text-rose-500">*</span>
-                </label>
-                <input
-                    v-model="form.password"
-                    type="password"
-                    required
-                    placeholder="••••••••"
-                    class="w-full px-4 py-2.5 bg-slate-50 border rounded-xl text-sm focus:bg-white focus:ring-2 focus:ring-indigo-500 focus:outline-none transition-all"
-                    :class="errors.password ? 'border-rose-400 bg-rose-50/20' : 'border-slate-200'"
-                />
-                <p v-if="errors.password" class="mt-1.5 text-xs text-rose-500 font-medium">{{ errors.password[0] }}</p>
+            <!-- パスワード & パスワード確認 (2列レイアウト) -->
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-6">
+                <!-- パスワード (password) -->
+                <div>
+                    <label class="block text-xs sm:text-sm font-bold text-slate-700 mb-2">
+                        パスワード (8文字以上) <span class="text-rose-500">*</span>
+                    </label>
+                    <input
+                        v-model="form.password"
+                        type="password"
+                        autocomplete="new-password"
+                        required
+                        placeholder="••••••••"
+                        class="w-full px-4 py-2.5 bg-slate-50 border rounded-xl text-sm focus:bg-white focus:ring-2 focus:ring-indigo-500 focus:outline-none transition-all"
+                        :class="errors.password ? 'border-rose-400 bg-rose-50/20' : 'border-slate-200'"
+                    />
+                    <p v-if="errors.password" class="mt-1.5 text-xs text-rose-500 font-medium">{{ errors.password[0] }}</p>
+                </div>
+
+                <!-- 🔑 確認用パスワード (password_confirmation) -->
+                <div>
+                    <label class="block text-xs sm:text-sm font-bold text-slate-700 mb-2">
+                        パスワード確認 <span class="text-rose-500">*</span>
+                    </label>
+                    <input
+                        v-model="form.password_confirmation"
+                        type="password"
+                        autocomplete="new-password"
+                        required
+                        placeholder="••••••••"
+                        class="w-full px-4 py-2.5 bg-slate-50 border rounded-xl text-sm focus:bg-white focus:ring-2 focus:ring-indigo-500 focus:outline-none transition-all"
+                        :class="errors.password_confirmation ? 'border-rose-400 bg-rose-50/20' : 'border-slate-200'"
+                    />
+                    <p v-if="errors.password_confirmation" class="mt-1.5 text-xs text-rose-500 font-medium">{{ errors.password_confirmation[0] }}</p>
+                </div>
             </div>
 
             <div class="grid grid-cols-1 sm:grid-cols-2 gap-6">
@@ -168,7 +190,7 @@
 <script setup>
 import { ref, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
-import api from '../../api' // ※配置場所に応じて '../../api' または '@/api'
+import api from '../../api'
 
 const router = useRouter()
 
@@ -177,12 +199,13 @@ const form = ref({
     name: '',
     email: '',
     password: '',
+    password_confirmation: '', // 👈 追加
     role_id: '',
-    status: 1, // デフォルトで「有効(1)」
+    status: 1,
     medical_institution_id: null,
 })
 
-// ドレクトダウン用データ
+// ドロップダウン用データ
 const roles = ref([])
 const medicalInstitutions = ref([])
 
@@ -195,42 +218,34 @@ const successMessage = ref(null)
 // ロール一覧＆医療機関一覧を取得
 const fetchFormOptions = async () => {
     try {
-        // ロール一覧を取得 (APIエンドポイントはプロジェクトに合わせ調整)
-        const rolesRes = await api.get('/admin/roles').catch(() => null)
-        if (rolesRes) {
-            roles.value = rolesRes.data.data || rolesRes.data || []
-        } else {
-            // ダミーロールデータ（API未実装時のフォールバック例）
-            roles.value = [
-                { id: 1, name: 'Admin' },
-                { id: 2, name: 'Medical Staff' },
-                { id: 3, name: 'Member' }
-            ]
-        }
-
-        // 医療機関一覧を取得
-        const instRes = await api.get('/admin/medical-institutions').catch(() => null)
-        if (instRes) {
-            medicalInstitutions.value = instRes.data.data || instRes.data.date || []
-        }
+        const res = await api.get('/admin/users/options')
+        roles.value = res.data.roles || []
+        medicalInstitutions.value = res.data.medical_institutions || []
     } catch (err) {
         console.error('マスターデータの取得失敗:', err)
+        errorMessage.value = 'フォーム用データの読み込みに失敗しました。'
     }
 }
 
 // フォーム送信
 const submitForm = async () => {
-    submitting.value = true
     errors.value = {}
     errorMessage.value = null
     successMessage.value = null
 
+    // 🔒 フロント側でパスワード一致チェック
+    if (form.value.password !== form.value.password_confirmation) {
+        errors.value.password_confirmation = ['パスワードが一致しません。']
+        return
+    }
+
+    submitting.value = true
+
     try {
-        const response = await api.post('/admin/users', form.value)
+        await api.post('/admin/users', form.value)
 
         successMessage.value = 'ユーザーの登録が完了しました。'
 
-        // 登録完了後、一覧画面や詳細画面へリダイレクト（例: 1.5秒後）
         setTimeout(() => {
             router.push('/admin/users')
         }, 1500)
@@ -238,7 +253,6 @@ const submitForm = async () => {
     } catch (err) {
         console.error('ユーザー登録エラー:', err)
         if (err.response && err.response.status === 422) {
-            // バリデーションエラー (422) のレスポンスをセット
             errors.value = err.response.data.errors || {}
         } else {
             errorMessage.value = '登録処理中にエラーが発生しました。入力内容を確認してください。'

@@ -46,7 +46,7 @@
                 <!-- 削除ボタン -->
                 <button
                     v-if="deleteUrl"
-                    @click="handleDelete"
+                    @click="openDeleteModal"
                     :disabled="deleting"
                     class="inline-flex items-center gap-1.5 px-3.5 py-2 bg-white hover:bg-rose-50 border border-rose-200 text-rose-600 hover:text-rose-700 text-xs sm:text-sm font-semibold rounded-xl shadow-2xs transition-all active:scale-95 cursor-pointer disabled:opacity-50"
                 >
@@ -254,6 +254,42 @@
             </div>
         </div>
     </div>
+    <!-- 🗑️ 削除確認モーダル -->
+    <div v-if="showDeleteModal" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/50 backdrop-blur-xs">
+        <div class="bg-white rounded-2xl max-w-md w-full p-6 shadow-xl space-y-4 border border-slate-100">
+            <div class="flex items-center gap-3 text-rose-600">
+                <span class="text-2xl">⚠️</span>
+                <h3 class="text-lg font-bold text-slate-800">ユーザーの削除確認</h3>
+            </div>
+
+            <p class="text-sm text-slate-600">
+                「<span class="font-bold text-slate-800">{{ user?.name }}</span>」を本当に削除しますか？この操作は取り消せません。
+            </p>
+
+            <!-- モーダル内エラー表示 -->
+            <div v-if="deleteError" class="p-3 bg-rose-50 border border-rose-200 text-rose-700 rounded-xl text-xs font-medium">
+                {{ deleteError }}
+            </div>
+
+            <div class="flex items-center justify-end gap-3 pt-2">
+                <button
+                    @click="showDeleteModal = false"
+                    :disabled="deleting"
+                    class="px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-600 text-xs sm:text-sm font-semibold rounded-xl transition-all cursor-pointer"
+                >
+                    キャンセル
+                </button>
+                <button
+                    @click="executeDelete"
+                    :disabled="deleting"
+                    class="px-4 py-2 bg-rose-600 hover:bg-rose-700 disabled:bg-rose-300 text-white text-xs sm:text-sm font-semibold rounded-xl shadow-sm transition-all cursor-pointer flex items-center gap-2"
+                >
+                    <span v-if="deleting" class="w-3.5 h-3.5 border-2 border-white border-t-transparent rounded-full animate-spin"></span>
+                    <span>{{ deleting ? '削除中...' : '削除する' }}</span>
+                </button>
+            </div>
+        </div>
+    </div>
 </template>
 
 <script setup>
@@ -272,6 +308,7 @@ const loading = ref(true)
 const error = ref(null)
 const deleting = ref(false)
 const deleteError = ref(null)
+const showDeleteModal = ref(false)
 
 // 詳細データの取得
 const fetchUserDetail = async () => {
@@ -293,20 +330,23 @@ const fetchUserDetail = async () => {
     }
 }
 
-// ユーザー削除処理
-const handleDelete = async () => {
-    if (!deleteUrl.value) return
+// 削除ボタンが押されたらモーダルを開く
+const openDeleteModal = () => {
     deleteError.value = null
+    showDeleteModal.value = true
+}
 
-    if (!confirm(`「${user.value?.name}」を本当に削除しますか？この操作は取り消せません。`)) {
-        return
-    }
+// モーダル内の「削除する」ボタンで実際にAPIを実行する
+const executeDelete = async () => {
+    if (!deleteUrl.value) return
 
     deleting.value = true
     try {
         const relativeUrl = getRelativePath(deleteUrl.value)
         await api.delete(relativeUrl)
-        alert('ユーザーを削除しました。')
+
+        // 成功したらモーダルを閉じて一覧へ遷移
+        showDeleteModal.value = false
         router.push('/admin/users')
     } catch (err) {
         console.error('ユーザー削除失敗:', err)

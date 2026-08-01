@@ -27,7 +27,7 @@ class MedicalInstitutionController extends Controller
             })
             ->toArray();
 
-        $institutions['store_url'] = "/admin/medical-institutions/";
+        $institutions['store_url'] = "/admin/medical-institutions/create";
         $institutions['export_url'] = "/admin/medical-institutions/export" . '?' . http_build_query($request->query());
 
         return response()->json($institutions);

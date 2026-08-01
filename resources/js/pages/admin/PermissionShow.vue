@@ -187,13 +187,13 @@ const init = async () => {
 
 // ロールの追加（add_role_url の {role_id} を置換してPOST）
 const addRole = async () => {
-    if (!selectedRoleId.value || !permission.value.add_role_url) return
-
-    const url = permission.value.add_role_url.replace('{role_id}', selectedRoleId.value)
+    if (!selectedRoleId.value) return
 
     processing.value = true
     try {
-        await api.post(url)
+        await api.post(`/admin/roles/${selectedRoleId.value}/permissions`, {
+            permission_id: permission.value.id
+        })
         // 画面を再取得して最新化
         await fetchPermission()
         selectedRoleId.value = ''

@@ -39,6 +39,24 @@
             </div>
         </div>
 
+        <!--  成功メッセージ表示エリア -->
+        <div
+            v-if="successMessage"
+            class="p-4 bg-emerald-50 border border-emerald-200 text-emerald-800 rounded-2xl text-xs sm:text-sm font-medium flex items-center justify-between shadow-2xs"
+        >
+            <div class="flex items-center gap-2.5">
+                <span class="text-base">✅</span>
+                <span>{{ successMessage }}</span>
+            </div>
+            <!-- 閉じるボタン -->
+            <button
+                @click="successMessage = ''"
+                class="text-emerald-500 hover:text-emerald-700 font-bold p-1 rounded-lg transition-colors cursor-pointer"
+            >
+                ✕
+            </button>
+        </div>
+
         <!-- 🔍 検索フォームエリア -->
         <div class="bg-white p-4 sm:p-5 rounded-2xl border border-slate-200 shadow-2xs">
             <form @submit.prevent="handleSearch" class="flex flex-col sm:flex-row items-center gap-3">
@@ -250,7 +268,7 @@
                 </div>
             </div>
 
-<!-- 📄 レスポンシブ対応ペジネーション -->
+            <!-- 📄 レスポンシブ対応ペジネーション -->
             <div v-if="paginationData && paginationData.links" class="flex flex-col sm:flex-row items-center justify-between gap-4 bg-white p-4 rounded-2xl border border-slate-200 shadow-2xs">
                 <!-- 件数情報 -->
                 <div class="text-xs text-slate-500 text-center sm:text-left">
@@ -314,12 +332,17 @@
 
 <script setup>
 import { ref, onMounted } from 'vue'
-import api from '../../api' // Axiosインスタンス
+import { useRoute } from 'vue-router'
+import api from '../../api'
+
+const route = useRoute()
 
 const institutions = ref([])
 const paginationData = ref(null)
 const loading = ref(true)
 const error = ref(null)
+
+const successMessage = ref('')
 
 // 検索キーワード用の状態
 const searchKeyword = ref('')
@@ -433,6 +456,11 @@ const exportData = () => {
 }
 
 onMounted(() => {
+    if (route.query.message) {
+        successMessage.value = route.query.message
+        window.history.replaceState({}, '', window.location.pathname)
+    }
+
     fetchData()
 })
 </script>

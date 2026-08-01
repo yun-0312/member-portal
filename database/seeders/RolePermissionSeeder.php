@@ -13,11 +13,28 @@ class RolePermissionSeeder extends Seeder
      */
     public function run(): void
     {
-        $all = Permission::pluck('id');
 
-        //admin（全権限）
+        // システム管理者（system_admin）専用のパーミッション名を定義
+        $systemAdminOnlyPermissions = [
+            'permission.create',
+            'permission.update',
+            'permission.delete',
+            'notice_category.create',
+            'notice_category.update',
+            'notice_category.delete',
+        ];
+
+        // system_admin（system管理者）：system管理者のみ扱える権限を付与
+        $systemAdminPermissions = Permission::whereIn('name', $systemAdminOnlyPermissions)->pluck('id');
+
+        Role::where('name', 'system_admin')->first()
+            ->permissions()->sync($systemAdminPermissions);
+
+        // admin（一般管理者）：system_admin専用権限を除外した権限を付与
+        $adminPermissions = Permission::whereNotIn('name', $systemAdminOnlyPermissions)->pluck('id');
+
         Role::where('name', 'admin')->first()
-            ->permissions()->sync($all);
+            ->permissions()->sync($adminPermissions);
 
         //staff
         $staffPermissions = Permission::whereIn('name', [
@@ -44,10 +61,5 @@ class RolePermissionSeeder extends Seeder
         Role::where('name', 'member')->first()
             ->permissions()->sync($directorMemberPermissions);
 
-        //medical_staff
-        Role::where('name', 'medical_staff')->first()
-            ->permissions()->sync(
-                Permission::where('name', 'medical_institution.view')->pluck('id')
-            );
     }
 }

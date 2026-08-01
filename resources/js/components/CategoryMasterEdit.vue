@@ -6,9 +6,9 @@
             <div class="flex items-center justify-between border-b border-slate-200 pb-4">
                 <div>
                     <h1 class="text-2xl md:text-3xl font-extrabold text-slate-800">
-                        ➕ {{ title }}
+                        ✏️ {{ title }}
                     </h1>
-                    <p class="text-xs text-slate-500 mt-1">必要な情報を入力して登録してください</p>
+                    <p class="text-xs text-slate-500 mt-1">必要な情報を変更して更新してください</p>
                 </div>
                 <router-link
                     v-if="indexUrl"
@@ -33,8 +33,14 @@
                 </button>
             </div>
 
+            <!-- ローディング表示 -->
+            <div v-if="loading" class="flex flex-col items-center justify-center py-20 text-slate-400 gap-3">
+                <div class="w-8 h-8 border-4 border-indigo-600 border-t-transparent rounded-full animate-spin"></div>
+                <p class="text-sm font-medium">データを読み込み中…</p>
+            </div>
+
             <!-- 入力フォーム -->
-            <form @submit.prevent="handleSubmit" class="bg-white rounded-2xl border border-slate-200/80 p-6 shadow-sm space-y-5">
+            <form v-else @submit.prevent="handleSubmit" class="bg-white rounded-2xl border border-slate-200/80 p-6 shadow-sm space-y-5">
 
                 <!-- 名称 (基本必須) -->
                 <div>
@@ -84,7 +90,7 @@
                     />
                 </div>
 
-                <!-- 親カテゴリー選択 (サブカテゴリー登録時用) -->
+                <!-- 親カテゴリー選択 (サブカテゴリー編集時用) -->
                 <div v-if="hasField('parent_id')">
                     <label class="block text-xs font-bold text-slate-600 mb-1">
                         親カテゴリー <span class="text-rose-500">*</span>
@@ -115,7 +121,7 @@
                         :disabled="isSubmitting"
                         class="px-5 py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-semibold rounded-xl shadow-2xs transition-all disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
                     >
-                        {{ isSubmitting ? '保存中...' : '登録する' }}
+                        {{ isSubmitting ? '更新中...' : '更新する' }}
                     </button>
                 </div>
             </form>
@@ -125,15 +131,21 @@
 </template>
 
 <script setup>
-import { ref, reactive } from 'vue'
+import { ref, reactive, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import api from '@/api.js'
 
 const props = defineProps({
     title: {
         type: String,
-        default: 'カテゴリー新規登録'
+        default: 'カテゴリー編集'
     },
+    // 初期データの取得用 API URL (GET /admin/notice-categories/1 など)
+    fetchUrl: {
+        type: String,
+        required: true
+    },
+    // 送信先 API URL (PUT /admin/notice-categories/1 など)
     submitUrl: {
         type: String,
         required: true
@@ -147,7 +159,7 @@ const props = defineProps({
         type: Array,
         default: () => ['slug', 'sort_order']
     },
-    // サブカテゴリー登録用の親カテゴリー選択肢リスト
+    // サブカテゴリー用の親カテゴリー選択肢リスト
     parentOptions: {
         type: Array,
         default: () => []
@@ -155,6 +167,7 @@ const props = defineProps({
 })
 
 const router = useRouter()
+const loading = ref(true)
 const isSubmitting = ref(false)
 const errorMessage = ref('')
 
@@ -169,7 +182,30 @@ const form = reactive({
 
 const hasField = (fieldName) => props.fields.includes(fieldName)
 
-// フォーム送信処理
+// 1. 初期データの取得 (GET)
+const fetchCategory = async () => {
+    loading.value = true
+    errorMessage.value = ''
+
+    try {
+        const res = await api.get(props.fetchUrl)
+        // レスポンスが res.data または res.data.data などに対応
+        const data = res.data.data || res.data.category || res.data
+
+        form.name = data.name ?? ''
+        form.slug = data.slug ?? ''
+        form.sort_order = data.sort_order ?? 0
+        form.section = data.section ?? ''
+        form.parent_id = data.parent_id ?? ''
+    } catch (error) {
+        console.error('データ取得エラー:', error)
+        errorMessage.value = 'データの読み込みに失敗しました。'
+    } finally {
+        loading.value = false
+    }
+}
+
+// 2. フォーム更新処理 (PUT)
 const handleSubmit = async () => {
     isSubmitting.value = true
     errorMessage.value = ''
@@ -183,7 +219,7 @@ const handleSubmit = async () => {
     })
 
     try {
-        await api.post(props.submitUrl, payload)
+        await api.put(props.submitUrl, payload)
 
         // 成功したら一覧画面等へリダイレクト
         if (props.indexUrl) {
@@ -192,14 +228,17 @@ const handleSubmit = async () => {
             router.back()
         }
     } catch (error) {
-        console.error('登録エラー:', error)
+        console.error('更新エラー:', error)
 
-        // バリデーションエラー等のメッセージを表示
         errorMessage.value = error.response?.data?.message
             || error.response?.data?.error
-            || '登録に失敗しました。入力内容をご確認ください。'
+            || '更新に失敗しました。入力内容をご確認ください。'
     } finally {
         isSubmitting.value = false
     }
 }
+
+onMounted(() => {
+    fetchCategory()
+})
 </script>

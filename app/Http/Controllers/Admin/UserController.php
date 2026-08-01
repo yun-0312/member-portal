@@ -256,4 +256,17 @@ class UserController extends Controller
         return $query;
     }
 
+    public function representatives(Request $request) {
+        $this->authorize('view', User::class);
+
+        $query = User::select('id', 'name', 'email');
+
+        //  指定された医療機関IDで絞り込み
+        if ($institutionId = $request->input('medical_institution_id')) {
+            $query->where('medical_institution_id', $institutionId);
+        }
+
+        return response()->json($query->get());
+    }
+
 }

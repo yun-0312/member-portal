@@ -33,14 +33,10 @@
         <div class="bg-white rounded-2xl border border-slate-200/80 p-6 shadow-sm space-y-4">
             <h2 class="text-sm font-bold text-slate-500 uppercase">基本情報</h2>
             <div class="grid grid-cols-2 gap-4 text-sm">
-            <div>
-                <span class="text-slate-400 text-xs block">ID</span>
-                <span class="font-mono font-bold text-slate-700">#{{ role.id }}</span>
-            </div>
-            <div>
-                <span class="text-slate-400 text-xs block">スラッグ (Slug)</span>
-                <span class="font-mono text-slate-700">{{ role.slug || '-' }}</span>
-            </div>
+                <div>
+                    <span class="text-slate-400 text-xs block">ID</span>
+                    <span class="font-mono font-bold text-slate-700">#{{ role.id }}</span>
+                </div>
             </div>
         </div>
 

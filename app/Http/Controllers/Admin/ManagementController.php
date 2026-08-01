@@ -32,10 +32,6 @@ class ManagementController extends Controller
                 'name' => 'コンテンツカテゴリー管理',
                 'url' => '/admin/content-categories',
             ],
-            'content_subcategories' => [
-                'name' => 'コンテンツサブカテゴリー管理',
-                'url' => '/admin/content-subcategories',
-            ],
             'faq_categories' => [
                 'name' => 'コールセンター問い合わせ報告書カテゴリー管理',
                 'url' => '/admin/faq-categories',

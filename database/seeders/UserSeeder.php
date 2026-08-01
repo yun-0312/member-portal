@@ -20,6 +20,7 @@ class UserSeeder extends Seeder
             ['director@example.com', 3, 1],
             ['member@example.com', 4, 1],
             ['medical@example.com', 5, 1],
+            ['system@example.com', 6, null],
         ];
 
         foreach ($users as [$email, $roleId, $institutionId]) {

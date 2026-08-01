@@ -193,6 +193,7 @@ class ContentCategorySeeder extends Seeder
 
             //target_roles登録
             $category->roles()->sync(array_values($allowedRoles));
+
         }
 
     }

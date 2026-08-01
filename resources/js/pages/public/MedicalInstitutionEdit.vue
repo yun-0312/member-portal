@@ -15,7 +15,7 @@
     <!-- フォームカード -->
     <div v-else class="bg-white rounded-xl border border-slate-200 shadow-sm p-6">
       <form @submit.prevent="handleSubmit" class="space-y-4">
-        
+
         <!-- 全体エラーメッセージ -->
         <div
           v-if="errorMessage"
@@ -87,7 +87,7 @@
 
         <hr class="border-slate-100 my-4" />
 
-        <!-- 💡 代表者（名前のみ表示） -->
+        <!-- 代表者（名前のみ表示） -->
         <div>
           <label class="block text-xs font-semibold text-slate-700 mb-1.5">
             代表者 <span class="text-rose-500">*</span>

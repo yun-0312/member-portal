@@ -1,66 +1,174 @@
-<p align="center"><a href="https://laravel.com" target="_blank"><img src="https://raw.githubusercontent.com/laravel/art/master/logo-lockup/5%20SVG/2%20CMYK/1%20Full%20Color/laravel-logolockup-cmyk-red.svg" width="400" alt="Laravel Logo"></a></p>
+# 🩺医師会会員専用サイト
 
-<p align="center">
-<a href="https://github.com/laravel/framework/actions"><img src="https://github.com/laravel/framework/workflows/tests/badge.svg" alt="Build Status"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/dt/laravel/framework" alt="Total Downloads"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/v/laravel/framework" alt="Latest Stable Version"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/l/laravel/framework" alt="License"></a>
-</p>
+## プロジェクトの概要
+このプロジェクトは、医師会会員向けの専用サイトです。</br>
+Laravel（API）と Vue（SPA）を用いたフルスタック構成で、会員向け機能と管理者向け機能を備えています。
 
-## About Laravel
+会員はログイン後に医師会からのお知らせ、研修会情報、会員情報の確認・変更などを行うことができ、
+管理者は CMS 画面からお知らせ配信、会員管理、研修会管理、ロール設定などを行えます。
 
-Laravel is a web application framework with expressive, elegant syntax. We believe development must be an enjoyable and creative experience to be truly fulfilling. Laravel takes the pain out of development by easing common tasks used in many web projects, such as:
+Tailwind CSS によるレスポンシブ対応、Railway へのデプロイ、Mailpit を用いたメール開発環境など、
+実運用を想定した構成で開発しています。
 
-- [Simple, fast routing engine](https://laravel.com/docs/routing).
-- [Powerful dependency injection container](https://laravel.com/docs/container).
-- Multiple back-ends for [session](https://laravel.com/docs/session) and [cache](https://laravel.com/docs/cache) storage.
-- Expressive, intuitive [database ORM](https://laravel.com/docs/eloquent).
-- Database agnostic [schema migrations](https://laravel.com/docs/migrations).
-- [Robust background job processing](https://laravel.com/docs/queues).
-- [Real-time event broadcasting](https://laravel.com/docs/broadcasting).
+## 本番環境（Railway）
+https://member-portal-production-960b.up.railway.app
 
-Laravel is accessible, powerful, and provides tools required for large, robust applications.
+## 環境構築（Laravel Sail)
+  1. リポジトリをクローンし、プロジェクトフォルダに移動
+``` bash
+git clone git@github.com:yun-0312/member-portal.git
+cd member-portal
+```
+ 2. Sailを起動
+``` bash
+./vendor/bin/sail up -d
+```
+初回は依存関係がないので以下を実行
+``` bash
+composer install
+```
+ 3. 「.env」の設定
+``` text
+    # データベース設定(Sailのデフォルト)
+     DB_CONNECTION=mysql
+     DB_HOST=mysql
+     DB_PORT=3306
+     DB_DATABASE=laravel
+     DB_USERNAME=sail
+     DB_PASSWORD=password
 
-## Learning Laravel
+    # MailPit設定(Sailのデフォルト)
+    MAIL_MAILER=smtp
+    MAIL_HOST=mailpit
+    MAIL_PORT=1025
+    MAIL_USERNAME=null
+    MAIL_PASSWORD=null
+    MAIL_ENCRYPTION=null
+    MAIL_FROM_ADDRESS="hello@example.com"
+    MAIL_FROM_NAME="${APP_NAME}"
 
-Laravel has the most extensive and thorough [documentation](https://laravel.com/docs) and video tutorial library of all modern web application frameworks, making it a breeze to get started with the framework.
+```
+ 4. アプリケーションキー作成
+``` bash
+./vendor/bin/sail artisan key:generate
+```
+ 5. マイグレーション、シーディング実行
+``` bash
+./vendor/bin/sail artisan migrate --seed
+```
+ 6. ストレージリンクを作成
+``` bash
+./vendor/bin/sail artisan storage:link
+```
+## フロントエンド（Vue）
+  1. Node コンテナに入る（Sail）
+``` bash
+./vendor/bin/sail npm install
+```
+ 2. 開発サーバー起動
+``` bash
+./vendor/bin/sail npm run dev
+```
 
-You may also try the [Laravel Bootcamp](https://bootcamp.laravel.com), where you will be guided through building a modern Laravel application from scratch.
+## サンプルユーザーアカウント（動作確認用）
+UsersTableSeederで登録されるメール認証済みのテストユーザーです。<br />
 
-If you don't feel like reading, [Laracasts](https://laracasts.com) can help. Laracasts contains thousands of video tutorials on a range of topics including Laravel, modern PHP, unit testing, and JavaScript. Boost your skills by digging into our comprehensive video library.
+・ログインURL：http://localhost/
 
-## Laravel Sponsors
+・会員ユーザー（一般会員）<br />
+Email: member@example.com<br />
+Password: password<br />
+・医療機関スタッフユーザー<br />
+Email: medical@example.com<br />
+Password: password<br />
+・理事ユーザー<br />
+Email: director@test.com<br />
+Password: password<br />
+・管理者ユーザー<br />
+Email: admin@example.com<br />
+Password: password<br />
+・医師会事務員ユーザー<br />
+Email: staff@example.com<br />
+Password: password<br />
+・システム管理者ユーザー（permissionやお知らせカテゴリの追加・削除ができる）<br />
+Email: system@example.com<br />
+Password: password<br />
 
-We would like to extend our thanks to the following sponsors for funding Laravel development. If you are interested in becoming a sponsor, please visit the [Laravel Partners program](https://partners.laravel.com).
+## 実装機能一覧
+### 会員向け機能
+・ログイン/ログアウト
+・パスワードリセット
+・医療機関スタッフによる新規会員登録申請 / 管理者承認
+・お知らせ一覧
+・スケジュール一覧（カレンダー）
+・研修会一覧
+・書類一覧（ファイルダウンロード）
+・研修会動画一覧
+・問い合わせ報告一覧
 
-### Premium Partners
+# メール機能
+Resend（メール送信API）を使用して本番環境のメール送信を実装しています。
+現在実装済みのメール機能は以下の通りです。
+・会員登録時のメール認証（Verify Email）
+・メールアドレス変更時のメール認証（Verify Email）
+・会員登録が承認された時の登録完了メール（Welcome）
+※会員向けの通知メール機能は今後追加予定です。
 
-- **[Vehikl](https://vehikl.com/)**
-- **[Tighten Co.](https://tighten.co)**
-- **[WebReinvent](https://webreinvent.com/)**
-- **[Kirschbaum Development Group](https://kirschbaumdevelopment.com)**
-- **[64 Robots](https://64robots.com)**
-- **[Curotec](https://www.curotec.com/services/technologies/laravel/)**
-- **[Cyber-Duck](https://cyber-duck.co.uk)**
-- **[DevSquad](https://devsquad.com/hire-laravel-developers)**
-- **[Jump24](https://jump24.co.uk)**
-- **[Redberry](https://redberry.international/laravel/)**
-- **[Active Logic](https://activelogic.com)**
-- **[byte5](https://byte5.de)**
-- **[OP.GG](https://op.gg)**
+# 管理者向け機能
+・会員管理（検索/編集）
+・医療機関管理（検索/編集）
+・コンテンツ投稿・編集
+・ロール管理（RBAC）
+・医療機関代表者設定
+・ロールターゲット機能（特定ロールのみ閲覧可能）
 
-## Contributing
+## 使用技術
+<img src="https://img.shields.io/badge/-PHP-777BB4.svg?logo=php&style=plastic">
+<img src="https://img.shields.io/badge/-Laravel-E74430.svg?logo=laravel&style=plastic">
+<img src="https://img.shields.io/badge/-Vue-42B883.svg?logo=vue.js&style=plastic">
+<img src="https://img.shields.io/badge/-MySQL-4479A1.svg?logo=mysql&style=plastic">
+<img src="https://img.shields.io/badge/-Docker-1488C6.svg?logo=docker&style=plastic">
+<img src="https://img.shields.io/badge/-TailwindCSS-06B6D4.svg?logo=tailwindcss&style=plastic">
+<img src="https://img.shields.io/badge/-Railway-0F0F0F.svg?logo=railway&style=plastic"> <br />
+  ・php 8.3<br />
+  ・Laravel 10<br />
+　・Vue 3<br />
+  ・MySQL 8<br />
+  ・Tailwind CSS<br />
+  ・Docker<br />
+  ・MailPit（ローカル環境でのメール送信確認）<br />
+  ・Railway（デプロイ）<br />
 
-Thank you for considering contributing to the Laravel framework! The contribution guide can be found in the [Laravel documentation](https://laravel.com/docs/contributions).
+## テスト
+現在はテストコードを作成中です。<br />
+今後以下の機能を対象に Feature / Unit テストを追加予定です。<br />
 
-## Code of Conduct
+  1.ログイン/ログアウト<br />
+  2.メール認証<br />
+  3.パスワードリセット<br />
+  4.会員情報取得<br />
+  5.会員情報更新<br />
+  6.お知らせ管理<br />
+  7.文書管理<br />
+  8.管理者による会員管理<br />
+  9.RBAC（権限管理）<br />
+  10.研修会管理<br />
+  11.動画管理<br />
+　12.問い合わせ報告管理<br />
+　13.スケジュール管理<br />
 
-In order to ensure that the Laravel community is welcoming to all, please review and abide by the [Code of Conduct](https://laravel.com/docs/contributions#code-of-conduct).
+### テストの実行方法
+このプロジェクトでは、`RefreshDatabase` と `Factory` を使用しており、テスト実行時に自動でマイグレーションとテストデータの生成が行われます。<br />
+以下のコマンドでテストを実行してください。
+``` bash
+./vendor/bin/sail artisan test
+```
 
-## Security Vulnerabilities
+## ER図
+<img width="1191" height="1114" alt="Image" src="https://github.com/user-attachments/assets/239f30bf-60f0-4cf2-bf3c-f4083d059932" />
 
-If you discover a security vulnerability within Laravel, please send an e-mail to Taylor Otwell via [taylor@laravel.com](mailto:taylor@laravel.com). All security vulnerabilities will be promptly addressed.
-
-## License
-
-The Laravel framework is open-sourced software licensed under the [MIT license](https://opensource.org/licenses/MIT).
+## URL
+　・会員画面：http://localhost/<br />
+  　・phpMyAdmin：http://localhost:8080/<br />
+    ・MailPit：http://localhost:8025<br />
+    ・RailWay本番環境：https://member-portal-production-960b.up.railway.app

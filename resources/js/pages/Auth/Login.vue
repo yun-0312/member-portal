@@ -131,14 +131,6 @@ const login = async () => {
 
         window.dispatchEvent(new Event('user-updated'));
 
-        const roleName = (typeof user.role === 'object' ? user.role?.name : user.role) || user.role_name;
-
-        if (['admin', 'staff'].includes(roleName?.toLowerCase())) {
-            router.push('/admin/dashboard');
-        } else {
-            router.push('/dashboard');
-        }
-
     } catch (error) {
         console.error("ログインエラー:", error);
         errorMessage.value =

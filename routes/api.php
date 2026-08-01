@@ -38,6 +38,7 @@ use App\Http\Controllers\Admin\FileController;
 use App\Http\Controllers\Admin\ManagementController;
 use App\Http\Controllers\Admin\NoticeRolesController;
 use App\Http\Controllers\Admin\ContentRolesController;
+use App\Http\Controllers\Admin\SystemAdminHomeController;
 use App\Http\Controllers\Admin\VideoRolesController;
 use Illuminate\Http\Request;
 use App\Models\User;
@@ -220,24 +221,6 @@ Route::middleware(['auth:sanctum'])->prefix('admin')->group(function () {
             ->name('admin.notices.roles.destroy');
     });
 
-    // NoticeCategory
-    Route::prefix('notice-categories')->group(function () {
-        Route::get('/', [NoticeCategoryController::class, 'index'])
-            ->middleware('permission:category.update')
-            ->name('admin.notice-categories.index');
-        Route::get('/{noticeCategory}', [NoticeCategoryController::class, 'show'])
-            ->middleware('permission:category.update')
-            ->name('admin.notice-categories.show');
-        Route::post('/', [NoticeCategoryController::class, 'store'])
-            ->middleware('permission:category.create')
-            ->name('admin.notice-categories.store');
-        Route::put('/{noticeCategory}', [NoticeCategoryController::class, 'update'])
-            ->middleware('permission:category.update')
-            ->name('admin.notice-categories.update');
-        Route::delete('/{noticeCategory}', [NoticeCategoryController::class, 'destroy'])
-            ->middleware('permission:category.delete')
-            ->name('admin.notice-categories.destroy');
-    });
 
     // Content
     Route::prefix('contents')->group(function () {
@@ -412,6 +395,9 @@ Route::middleware(['auth:sanctum'])->prefix('admin')->group(function () {
         Route::get('/options', [AdminUserController::class, 'options'])
             ->middleware('permission:user.update')
             ->name('admin.users.options');
+        Route::get('/representatives', [AdminUserController::class, 'representatives'])
+            ->middleware('permission:user.update')
+            ->name('admin.users.options');
         Route::get('/{user}', [AdminUserController::class, 'show'])
             ->name('admin.users.show');
         Route::post('/', [AdminUserController::class, 'store'])
@@ -429,7 +415,7 @@ Route::middleware(['auth:sanctum'])->prefix('admin')->group(function () {
     // Role
     Route::prefix('roles')->group(function () {
         Route::get('/', [RoleController::class, 'index'])
-            ->middleware('permission:role.update')
+            ->middleware('permission_or:role.update,permission.update')
             ->name('admin.roles.index');
         Route::get('/{role}', [RoleController::class, 'show'])
             ->middleware('permission:role.update')
@@ -443,38 +429,6 @@ Route::middleware(['auth:sanctum'])->prefix('admin')->group(function () {
         Route::delete('/{role}', [RoleController::class, 'destroy'])
             ->middleware('permission:role.delete')
             ->name('admin.roles.destroy');
-    });
-
-    // Permission
-    Route::prefix('permissions')->group(function () {
-        Route::get('/', [PermissionController::class, 'index'])
-            ->middleware('permission:permission.update')
-            ->name('admin.permissions.index');
-        Route::get('/{permission}', [PermissionController::class, 'show'])
-            ->middleware('permission:permission.update')
-            ->name('admin.permissions.show');
-        Route::post('/', [PermissionController::class, 'store'])
-            ->middleware('permission:permission.create')
-            ->name('admin.permissions.store');
-        Route::put('/{permission}', [PermissionController::class, 'update'])
-            ->middleware('permission:permission.update')
-            ->name('admin.permissions.update');
-        Route::delete('/{permission}', [PermissionController::class, 'destroy'])
-            ->middleware('permission:permission.delete')
-            ->name('admin.permissions.destroy');
-    });
-
-    //RolePermission
-    Route::prefix('roles')->group(function () {
-        Route::get('/{role}/permissions', [RolePermissionController::class, 'index'])
-            ->middleware('permission:role.update')
-            ->name('admin.role-permissions.index');
-        Route::post('/{role}/permissions', [RolePermissionController::class, 'store'])
-            ->middleware('permission:role.update')
-            ->name('admin.role-permissions.store');
-        Route::delete('/{role}/permissions/{permission}', [RolePermissionController::class, 'destroy'])
-                    ->middleware('permission:role.update')
-                    ->name('admin.role-permissions.destroy');
     });
 
     // Room
@@ -588,6 +542,64 @@ Route::middleware(['auth:sanctum'])->prefix('admin')->group(function () {
         Route::delete('/{file}', [FileController::class, 'destroy'])
             ->middleware('permission:content.update')
             ->name('admin.files.destroy');
+    });
+
+    //system-admin home
+    Route::prefix('system')->group(function () {
+        Route::get('/', [SystemAdminHomeController::class, 'index'])
+            ->middleware('permission:permission.update')
+            ->name('admin.system.index');
+    });
+
+    // Permission
+    Route::prefix('permissions')->group(function () {
+        Route::get('/', [PermissionController::class, 'index'])
+            ->middleware('permission:permission.update')
+            ->name('admin.permissions.index');
+        Route::get('/{permission}', [PermissionController::class, 'show'])
+            ->middleware('permission:permission.update')
+            ->name('admin.permissions.show');
+        Route::post('/', [PermissionController::class, 'store'])
+            ->middleware('permission:permission.create')
+            ->name('admin.permissions.store');
+        Route::put('/{permission}', [PermissionController::class, 'update'])
+            ->middleware('permission:permission.update')
+            ->name('admin.permissions.update');
+        Route::delete('/{permission}', [PermissionController::class, 'destroy'])
+            ->middleware('permission:permission.delete')
+            ->name('admin.permissions.destroy');
+    });
+
+    //RolePermission
+    Route::prefix('roles')->group(function () {
+        Route::get('/{role}/permissions', [RolePermissionController::class, 'index'])
+            ->middleware('permission:permission.update')
+            ->name('admin.role-permissions.index');
+        Route::post('/{role}/permissions', [RolePermissionController::class, 'store'])
+            ->middleware('permission:permission.update')
+            ->name('admin.role-permissions.store');
+        Route::delete('/{role}/permissions/{permission}', [RolePermissionController::class, 'destroy'])
+                    ->middleware('permission:permission.update')
+                    ->name('admin.role-permissions.destroy');
+    });
+
+    // NoticeCategory
+    Route::prefix('notice-categories')->group(function () {
+        Route::get('/', [NoticeCategoryController::class, 'index'])
+            ->middleware('permission:notice_category.update')
+            ->name('admin.notice-categories.index');
+        Route::get('/{noticeCategory}', [NoticeCategoryController::class, 'show'])
+            ->middleware('permission:notice_category.update')
+            ->name('admin.notice-categories.show');
+        Route::post('/', [NoticeCategoryController::class, 'store'])
+            ->middleware('permission:notice_category.create')
+            ->name('admin.notice-categories.store');
+        Route::put('/{noticeCategory}', [NoticeCategoryController::class, 'update'])
+            ->middleware('permission:notice_category.update')
+            ->name('admin.notice-categories.update');
+        Route::delete('/{noticeCategory}', [NoticeCategoryController::class, 'destroy'])
+            ->middleware('permission:notice_category.delete')
+            ->name('admin.notice-categories.destroy');
     });
 
 });
