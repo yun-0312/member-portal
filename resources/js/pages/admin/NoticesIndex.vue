@@ -15,7 +15,7 @@
                 <div class="flex items-center gap-3 self-start md:self-auto">
                     <router-link
                         v-if="noticesData?.store_url"
-                        to="/admin/notices/create"
+                        :to="{ path: '/admin/notices/create', query: route.query }"
                         class="inline-flex items-center gap-1.5 text-xs md:text-sm font-bold text-white bg-blue-600 hover:bg-blue-700 px-4 py-2 rounded-xl shadow-sm hover:shadow transition-all active:scale-95"
                     >
                         <span>➕</span>
@@ -125,10 +125,10 @@
                             </h2>
 
                             <!-- 本文 -->
-                            <p
-                                class="text-xs md:text-sm text-slate-600 leading-relaxed whitespace-pre-wrap"
+                            <div
+                                class="prose prose-slate prose-sm max-w-none text-slate-600 leading-relaxed"
                                 v-html="formatBodyWithLinks(notice.body)"
-                            ></p>
+                            ></div>
 
                             <!-- 📎 添付ファイルエリア -->
                             <div v-if="notice.files && notice.files.length" class="pt-2 flex flex-wrap gap-2">
@@ -317,16 +317,14 @@ onMounted(() => {
 const formatBodyWithLinks = (text) => {
     if (!text) return ''
 
-    const escapedText = text
-        .replace(/&/g, '&amp;')
-        .replace(/</g, '&lt;')
-        .replace(/>/g, '&gt;')
-        .replace(/"/g, '&quot;')
-        .replace(/'/g, '&#039;')
+    // すでに HTML タグ（<p> や <img>）が含まれている場合はそのまま描画
+    if (/<[a-z][\s\S]*>/i.test(text)) {
+        return text
+    }
 
+    // プレーンテキストデータの場合は URL を自動リンク化
     const urlRegex = /(https?:\/\/[^\s<]+)/g
-
-    return escapedText.replace(urlRegex, (url) => {
+    return text.replace(urlRegex, (url) => {
         const isImage = /\.(jpg|jpeg|png|gif|webp)(\?.*)?$/i.test(url)
 
         if (isImage) {

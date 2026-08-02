@@ -133,13 +133,12 @@
                     <label class="block text-xs md:text-sm font-bold text-slate-700">
                         詳細・説明 <span class="text-xs text-slate-400 font-normal">（任意）</span>
                     </label>
-                    <textarea
+                    <TiptapEditor
+                        ref="editorRef"
                         v-model="form.description"
-                        rows="6"
-                        placeholder="ワークショップのアジェンダや概要などを入力してください"
-                        class="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 bg-white text-xs md:text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all leading-relaxed"
-                        :class="{ 'border-rose-400 bg-rose-50/30': errors.description }"
-                    ></textarea>
+                        placeholder="ワークショップのアジェンダや概要などを入力してください..."
+                        @open-media="showMediaModal = true"
+                    />
                     <p v-if="errors.description" class="text-xs text-rose-500 font-medium">{{ errors.description[0] }}</p>
                 </div>
 
@@ -166,12 +165,20 @@
 
         </div>
     </div>
+    <!-- メディアライブラリ モーダル -->
+    <MediaLibraryModal
+        v-if="showMediaModal"
+        @close="showMediaModal = false"
+        @select="handleSelectImage"
+    />
 </template>
 
 <script setup>
 import { ref, reactive, onMounted } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import api from '../../api.js'
+import TiptapEditor from '../../components/TiptapEditor.vue'
+import MediaLibraryModal from '../../components/MediaLibraryModal.vue'
 
 const router = useRouter()
 const route = useRoute()
@@ -180,6 +187,10 @@ const loading = ref(true)
 const submitting = ref(false)
 const errorMessage = ref('')
 const errors = ref({})
+
+// リッチテキスト＆モーダル用の ref
+const editorRef = ref(null)
+const showMediaModal = ref(false)
 
 const form = reactive({
     title: '',
@@ -209,7 +220,7 @@ const fetchData = async () => {
     try {
         const id = route.params.id
         const response = await api.get(`/admin/workshops/${id}`)
-        
+
         const item = response.data?.item || response.data?.data || response.data
 
         if (item) {
@@ -226,6 +237,14 @@ const fetchData = async () => {
     } finally {
         loading.value = false
     }
+}
+
+// メディアライブラリで画像が選択された時の処理
+const handleSelectImage = (file) => {
+    if (file && file.url) {
+        editorRef.value?.insertImage(file.url)
+    }
+    showMediaModal.value = false
 }
 
 // 更新処理

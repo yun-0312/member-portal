@@ -127,18 +127,18 @@
                     <p v-if="errors.title" class="text-xs text-rose-500 font-medium">{{ errors.title[0] }}</p>
                 </div>
 
-                <!-- 本文 (body) -->
+                <!-- ★ 本文 (body) - リッチテキストエディタに差し替え -->
                 <div class="space-y-1.5">
                     <label class="block text-xs md:text-sm font-bold text-slate-700">
                         本文 <span class="text-xs text-slate-400 font-normal">（任意）</span>
                     </label>
-                    <textarea
+
+                    <TiptapEditor
+                        ref="editorRef"
                         v-model="form.body"
-                        rows="8"
-                        placeholder="コンテンツの詳細内容を入力してください"
-                        class="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 bg-white text-xs md:text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all leading-relaxed"
-                        :class="{ 'border-rose-400 bg-rose-50/30': errors.body }"
-                    ></textarea>
+                        @open-media="showMediaModal = true"
+                    />
+
                     <p v-if="errors.body" class="text-xs text-rose-500 font-medium">{{ errors.body[0] }}</p>
                 </div>
 
@@ -242,6 +242,13 @@
             </form>
 
         </div>
+
+        <!-- ★ メディアライブラリ モーダル -->
+        <MediaLibraryModal
+            v-if="showMediaModal"
+            @close="showMediaModal = false"
+            @select="handleSelectImage"
+        />
     </div>
 </template>
 
@@ -250,6 +257,10 @@ import { ref, reactive, computed, onMounted } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import api from '../../api.js'
 
+// エディタとモーダルのコンポーネントをインポート
+import TiptapEditor from '../../components/TiptapEditor.vue'
+import MediaLibraryModal from '../../components/MediaLibraryModal.vue'
+
 const router = useRouter()
 const route = useRoute()
 
@@ -257,12 +268,16 @@ const submitting = ref(false)
 const errorMessage = ref('')
 const errors = ref({})
 
+// ★ リッチテキスト＆モーダル用の ref
+const editorRef = ref(null)
+const showMediaModal = ref(false)
+
 const categories = ref([])
 const allSubcategories = ref([])
 const rolesList = ref([])
 const files = ref([])
 
-// 💡 遷移前のカテゴリパラメータを保持（例: ?category=letter）
+// 遷移前のカテゴリパラメータを保持（例: ?category=letter）
 const currentCategoryParam = computed(() => route.query.category || '')
 
 const getCurrentDatetimeLocal = () => {
@@ -306,6 +321,14 @@ const handleCategoryChange = () => {
     form.subcategory_id = ''
 }
 
+// メディアライブラリで画像が選択された時の処理
+const handleSelectImage = (file) => {
+    if (file && file.url) {
+        editorRef.value?.insertImage(file.url)
+    }
+    showMediaModal.value = false
+}
+
 const fetchMasterData = async () => {
     try {
         const [catRes, subCatRes, roleRes] = await Promise.all([
@@ -318,7 +341,6 @@ const fetchMasterData = async () => {
         allSubcategories.value = subCatRes.data?.data || subCatRes.data || []
         rolesList.value = roleRes.data?.roles || roleRes.data?.data || roleRes.data || []
 
-        //  クエリパラメータ（?category=●●）が渡されている場合、初期選択カテゴリに設定
         if (currentCategoryParam.value && categories.value.length > 0) {
             const matchedCat = categories.value.find(
                 c => c.slug === currentCategoryParam.value || String(c.id) === String(currentCategoryParam.value)
@@ -356,21 +378,17 @@ const formatFileSize = (bytes) => {
     return parseFloat((bytes / Math.pow(k, i)).toFixed(1)) + ' ' + sizes[i]
 }
 
-//  元の一覧画面へのリダイレクトURL（パラメータ付き）を生成
 const getIndexUrl = () => {
-    // 1. URLクエリに category がある場合
     if (currentCategoryParam.value) {
         return `/admin/contents?category=${currentCategoryParam.value}`
     }
 
-    // 2. フォームで選択されたカテゴリがある場合（選択したカテゴリ一覧へ戻す）
     if (form.category_id) {
         const selectedCat = categories.value.find(c => String(c.id) === String(form.category_id))
         const categoryKey = selectedCat?.slug || form.category_id
         return `/admin/contents?category=${categoryKey}`
     }
 
-    // 3. どちらもない場合
     return '/admin/contents'
 }
 
@@ -385,6 +403,7 @@ const handleSubmit = async () => {
     formData.append('title', form.title)
     formData.append('category_id', form.category_id)
 
+    // リッチテキスト（HTML文字列）が form.body に入っています
     if (form.body) formData.append('body', form.body)
     if (form.subcategory_id) formData.append('subcategory_id', form.subcategory_id)
     if (form.meeting_date) formData.append('meeting_date', form.meeting_date)
@@ -414,13 +433,11 @@ const handleSubmit = async () => {
         const selectedCat = categories.value.find(c => String(c.id) === String(form.category_id))
         const catParam = currentCategoryParam.value || selectedCat?.slug || form.category_id
 
-        // 1. サブカテゴリが選択されている場合は、サブカテゴリ絞り込み一覧へ飛ぶ
         if (form.subcategory_id) {
             router.push(`/admin/contents?category=${catParam}&subcategory_id=${form.subcategory_id}`)
             return
         }
 
-        // 2. サブカテゴリがない場合は、該当カテゴリの一覧画面へ飛ぶ
         router.push(getIndexUrl())
 
     } catch (error) {
@@ -436,9 +453,7 @@ const handleSubmit = async () => {
     }
 }
 
-//  「一覧へ戻る」ボタン・「キャンセル」ボタンの処理
 const goBack = () => {
-    // router.back() またはパラメータを維持した一覧URLに戻る
     router.push(getIndexUrl())
 }
 

@@ -106,14 +106,13 @@
                     <label class="block text-xs md:text-sm font-bold text-slate-700">
                         本文 <span class="text-rose-500">*</span>
                     </label>
-                    <textarea
+                    <!-- 💡 ref="editorRef" と @open-media イベントハンドラを追加 -->
+                    <TiptapEditor
+                        ref="editorRef"
                         v-model="form.body"
-                        rows="8"
-                        required
-                        placeholder="お知らせの詳細内容を入力してください"
-                        class="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 bg-white text-xs md:text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all leading-relaxed"
-                        :class="{ 'border-rose-400 bg-rose-50/30': errors.body }"
-                    ></textarea>
+                        placeholder="お知らせの詳細内容を入力してください..."
+                        @open-media="showMediaModal = true"
+                    />
                     <p v-if="errors.body" class="text-xs text-rose-500 font-medium">{{ errors.body[0] }}</p>
                 </div>
 
@@ -214,15 +213,30 @@
             </form>
 
         </div>
+
+        <!-- 💡 メディアライブラリモーダル -->
+        <MediaLibraryModal
+            v-if="showMediaModal"
+            v-model="showMediaModal"
+            @select="handleSelectImage"
+        />
+
     </div>
 </template>
 
 <script setup>
 import { ref, reactive, onMounted } from 'vue'
-import { useRouter } from 'vue-router'
-import api from '../../api.js' // APIパスに合わせて変更してください
+import { useRouter, useRoute } from 'vue-router'
+import api from '../../api.js'
+import TiptapEditor from '../../components/TiptapEditor.vue'
+import MediaLibraryModal from '../../components/MediaLibraryModal.vue'
 
 const router = useRouter()
+const route = useRoute()
+
+// リッチテキスト＆モーダル用の ref
+const editorRef = ref(null)
+const showMediaModal = ref(false)
 
 // フォーム初期値（published_at には現在日時を JST で初期セット）
 const now = new Date()
@@ -249,23 +263,46 @@ const errors = ref({})
 // 初期選択肢データ（カテゴリ・ロール）の取得
 const fetchMasterData = async () => {
     try {
-        // バックエンドのマスター取得APIに合わせて調整してください
         const [catRes, roleRes] = await Promise.all([
             api.get('/admin/notice-categories'),
             api.get('/admin/roles')
         ])
         categories.value = catRes.data?.data || catRes.data || []
         rolesList.value = roleRes.data?.data || roleRes.data || []
+
+        // URLクエリからカテゴリを取得 (?category=letter または ?category=1 など)
+        const categoryParam = route.query.category
+
+        if (categoryParam && categories.value.length > 0) {
+            const paramLower = String(categoryParam).toLowerCase()
+
+            // slug または ID が一致するカテゴリを検索
+            const matchedCategory = categories.value.find(cat =>
+                String(cat.id) === paramLower ||
+                (cat.slug && cat.slug.toLowerCase() === paramLower)
+            )
+
+            if (matchedCategory) {
+                form.category_id = matchedCategory.id
+            }
+        }
     } catch (error) {
         console.error('マスターデータの取得に失敗しました:', error)
     }
+}
+
+// メディアライブラリで画像が選択された時の処理
+const handleSelectImage = (file) => {
+    if (file && file.url) {
+        editorRef.value?.insertImage(file.url)
+    }
+    showMediaModal.value = false
 }
 
 // ファイル追加処理
 const handleFileChange = (e) => {
     const files = Array.from(e.target.files || [])
     files.forEach(file => {
-        // 10MB (10240KB) の簡易サイズチェック
         if (file.size > 10 * 1024 * 1024) {
             alert(`ファイル「${file.name}」は10MBを超えているため追加できません。`)
             return
@@ -295,13 +332,11 @@ const handleSubmit = async () => {
     errorMessage.value = ''
     errors.value = {}
 
-    // ファイル送信があるため Multipart/FormData を作成
     const formData = new FormData()
     formData.append('category_id', form.category_id)
     formData.append('title', form.title)
     formData.append('body', form.body)
 
-    // datetime-local ("YYYY-MM-DDTHH:mm") を標準の "YYYY-MM-DD HH:mm:ss" に変換して送信
     if (form.published_at) {
         const formattedPublishedAt = form.published_at.replace('T', ' ') + ':00'
         formData.append('published_at', formattedPublishedAt)
@@ -311,12 +346,10 @@ const handleSubmit = async () => {
         formData.append('committee_name', form.committee_name)
     }
 
-    // roles[] の追加
     form.roles.forEach(roleId => {
         formData.append('roles[]', roleId)
     })
 
-    // file[] の追加
     selectedFiles.value.forEach(file => {
         formData.append('file[]', file)
     })
@@ -332,13 +365,12 @@ const handleSubmit = async () => {
     } catch (error) {
         console.error('登録処理に失敗しました:', error)
         if (error.response?.status === 422) {
-            // バリデーションエラー処理
             errors.value = error.response.data.errors || {}
             errorMessage.value = '入力内容に不備があります。エラー項目を確認してください。'
         } else {
             errorMessage.value = error.response?.data?.message || '登録処理中にエラーが発生しました。'
         }
-    } fontFinally: {
+    } finally {
         submitting.value = false
     }
 }

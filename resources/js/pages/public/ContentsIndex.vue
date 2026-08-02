@@ -149,10 +149,10 @@
                     </h2>
 
                     <!-- 本文 -->
-                    <p
-                    class="text-xs md:text-sm text-slate-600 leading-relaxed whitespace-pre-wrap"
-                    v-html="formatBodyWithLinks(item.body)"
-                    ></p>
+                    <div
+                        class="prose prose-slate prose-sm max-w-none text-slate-600 leading-relaxed"
+                        v-html="formatBodyWithLinks(item.body)"
+                    ></div>
 
                     <!-- 📎 添付ファイルエリア -->
                     <div v-if="item.files && item.files.length" class="pt-2 flex flex-wrap gap-2">
@@ -406,27 +406,35 @@
     })
 
     const formatBodyWithLinks = (text) => {
-    if (!text) return ''
+        if (!text) return ''
 
-    const escapedText = text
-        .replace(/&/g, '&amp;')
-        .replace(/</g, '&lt;')
-        .replace(/>/g, '&gt;')
-        .replace(/"/g, '&quot;')
-        .replace(/'/g, '&#039;')
-
-    const urlRegex = /(https?:\/\/[^\s<]+)/g
-
-    return escapedText.replace(urlRegex, (url) => {
-        const cleanUrl = url.trim()
-        const isImage = /\.(jpg|jpeg|png|gif|webp)(\?.*)?$/i.test(cleanUrl)
-
-        if (isImage) {
-        return `<img src="${cleanUrl}" alt="挿入画像" class="my-3 max-h-96 border border-slate-200 shadow-sm object-cover rounded-xl" />`
-        } else {
-        return `<a href="${cleanUrl}" target="_blank" rel="noopener noreferrer" class="text-blue-600 hover:underline font-medium break-all" onclick="event.stopPropagation()">${cleanUrl}</a>`
+        // すでに HTML タグ（<p> や <img>）が含まれている場合はそのまま描画
+        if (/<[a-z][\s\S]*>/i.test(text)) {
+            return text
         }
-    })
+
+        // プレーンテキストデータの場合は URL を自動リンク・画像化 & 改行保持
+        const escapedText = text
+            .replace(/&/g, '&amp;')
+            .replace(/</g, '&lt;')
+            .replace(/>/g, '&gt;')
+            .replace(/"/g, '&quot;')
+            .replace(/'/g, '&#039;')
+
+        const urlRegex = /(https?:\/\/[^\s<]+)/g
+
+        const linkedText = escapedText.replace(urlRegex, (url) => {
+            const cleanUrl = url.trim()
+            const isImage = /\.(jpg|jpeg|png|gif|webp)(\?.*)?$/i.test(cleanUrl)
+
+            if (isImage) {
+                return `<img src="${cleanUrl}" alt="挿入画像" class="my-3 max-h-96 border border-slate-200 shadow-sm object-cover rounded-xl" />`
+            } else {
+                return `<a href="${cleanUrl}" target="_blank" rel="noopener noreferrer" class="text-blue-600 hover:underline font-medium break-all" onclick="event.stopPropagation()">${cleanUrl}</a>`
+            }
+        })
+
+        return linkedText.replace(/\n/g, '<br>')
     }
 
     const getFileUrl = (filePath) => {

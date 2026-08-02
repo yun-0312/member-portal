@@ -144,6 +144,8 @@ Route::middleware(['auth:sanctum'])->group(function () {
     // Video
         Route::get('/videos', [PublicVideoController::class, 'index'])
             ->name('videos.index');
+        Route::get('/videos/{video}', [PublicVideoController::class, 'show'])
+            ->name('videos.show');
 
     // FAQ
     Route::prefix('faqs')->group(function () {
@@ -537,6 +539,18 @@ Route::middleware(['auth:sanctum'])->prefix('admin')->group(function () {
             ->middleware('permission:video.update')
             ->name('admin.files.upload.video');
 
+        Route::get('/media', [FileController::class, 'listMedia'])
+            ->middleware('permission:content.update')
+            ->name('admin.files.list-media');
+
+        Route::post('/media', [FileController::class, 'storeMedia'])
+            ->middleware('permission:content.update')
+            ->name('admin.files.store-media');
+
+        Route::delete('/media/{file}', [FileController::class, 'destroy'])
+            ->middleware('permission:content.update')
+            ->name('admin.files.media.destroy');
+
         Route::get('/{file}/download', [FileController::class, 'download'])
             ->name('admin.files.download');
 
@@ -545,10 +559,6 @@ Route::middleware(['auth:sanctum'])->prefix('admin')->group(function () {
             ->name('admin.files.destroy');
     });
 
-    //Content、NoticeのCategoryにroleを結びつける
-    Route::get('{type}/{id}/roles', [RoleTargetableController::class, 'index']);
-    Route::post('{type}/{id}/roles', [RoleTargetableController::class, 'store']);
-    Route::delete('{type}/{id}/roles/{role}', [RoleTargetableController::class, 'destroy']);
 
     //system-admin home
     Route::prefix('system')->group(function () {
@@ -592,7 +602,6 @@ Route::middleware(['auth:sanctum'])->prefix('admin')->group(function () {
     // NoticeCategory
     Route::prefix('notice-categories')->group(function () {
         Route::get('/', [NoticeCategoryController::class, 'index'])
-            ->middleware('permission:notice_category.update')
             ->name('admin.notice-categories.index');
         Route::get('/{noticeCategory}', [NoticeCategoryController::class, 'show'])
             ->middleware('permission:notice_category.update')
@@ -607,5 +616,10 @@ Route::middleware(['auth:sanctum'])->prefix('admin')->group(function () {
             ->middleware('permission:notice_category.delete')
             ->name('admin.notice-categories.destroy');
     });
+
+    //Content、NoticeのCategoryにroleを結びつける
+    Route::get('{type}/{id}/roles', [RoleTargetableController::class, 'index']);
+    Route::post('{type}/{id}/roles', [RoleTargetableController::class, 'store']);
+    Route::delete('{type}/{id}/roles/{role}', [RoleTargetableController::class, 'destroy']);
 
 });

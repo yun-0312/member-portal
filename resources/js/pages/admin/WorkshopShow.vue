@@ -10,7 +10,7 @@
                     </h1>
                     <p class="text-xs md:text-sm text-slate-500 mt-1">ワークショップの登録内容を確認・管理します</p>
                 </div>
-                
+
                 <div class="flex items-center gap-2.5">
                     <button
                         type="button"
@@ -94,9 +94,10 @@
                     <!-- 詳細・説明 (description) -->
                     <div class="space-y-2 pt-2">
                         <h3 class="text-xs font-bold text-slate-400 uppercase tracking-wider">詳細・説明</h3>
-                        <div class="text-xs md:text-sm text-slate-700 leading-relaxed whitespace-pre-wrap bg-white p-4 rounded-xl border border-slate-200">
-                            {{ item.description || '説明はありません。' }}
-                        </div>
+                        <div
+                            class="prose prose-slate prose-sm max-w-none text-slate-700 leading-relaxed bg-white p-4 rounded-xl border border-slate-200"
+                            v-html="formatDescription(item.description)"
+                        ></div>
                     </div>
 
                 </div>
@@ -104,9 +105,9 @@
                 <!-- システム管理情報カード -->
                 <div class="bg-white border border-slate-200 rounded-2xl p-6 shadow-xs space-y-4">
                     <h3 class="text-xs font-bold text-slate-400 uppercase tracking-wider">システム情報</h3>
-                    
+
                     <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 text-xs md:text-sm">
-                        
+
                         <!-- ⭕️ IDから「作成者名」に変更 -->
                         <div class="space-y-0.5">
                             <span class="text-slate-400 block">作成者</span>
@@ -217,6 +218,29 @@ const handleDelete = async () => {
     } finally {
         deleting.value = false
     }
+}
+
+// 詳細・説明描画用ヘルパー関数
+const formatDescription = (text) => {
+    if (!text) return '説明はありません。'
+
+    // すでに HTML タグ（<p> や <img> など）が含まれている場合はそのまま描画
+    if (/<[a-z][\s\S]*>/i.test(text)) {
+        return text
+    }
+
+    // プレーンテキストデータの場合は改行を <br> に変換＆URL を自動リンク化
+    const escapedText = text
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+
+    const urlRegex = /(https?:\/\/[^\s<]+)/g
+    const linkedText = escapedText.replace(urlRegex, (url) => {
+        return `<a href="${url}" target="_blank" rel="noopener noreferrer" class="text-blue-600 hover:underline font-medium break-all" onclick="event.stopPropagation()">${url}</a>`
+    })
+
+    return linkedText.replace(/\n/g, '<br>')
 }
 
 const goIndex = () => {

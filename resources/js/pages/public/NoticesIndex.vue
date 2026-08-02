@@ -102,10 +102,10 @@
                         </h2>
 
                         <!-- 本文 -->
-                        <p
-                        class="text-xs md:text-sm text-slate-600 leading-relaxed whitespace-pre-wrap"
-                        v-html="formatBodyWithLinks(notice.body)"
-                        ></p>
+                        <div
+                            class="prose prose-slate prose-sm max-w-none text-slate-600 leading-relaxed"
+                            v-html="formatBodyWithLinks(notice.body)"
+                        ></div>
 
                         <!-- 📎 添付ファイルエリア -->
                         <div v-if="notice.files && notice.files.length" class="pt-2 flex flex-wrap gap-2">
@@ -311,6 +311,12 @@
     const formatBodyWithLinks = (text) => {
         if (!text) return ''
 
+        // すでに HTML タグ（<p> や <img> など）が含まれている場合はそのまま描画
+        if (/<[a-z][\s\S]*>/i.test(text)) {
+            return text
+        }
+
+        // プレーンテキストデータの場合は URL 自動リンク化・画像展開 & 改行保持
         const escapedText = text
             .replace(/&/g, '&amp;')
             .replace(/</g, '&lt;')
@@ -320,15 +326,17 @@
 
         const urlRegex = /(https?:\/\/[^\s<]+)/g
 
-        return escapedText.replace(urlRegex, (url) => {
+        const linkedText = escapedText.replace(urlRegex, (url) => {
             const isImage = /\.(jpg|jpeg|png|gif|webp)(\?.*)?$/i.test(url)
 
             if (isImage) {
-                return `<img src="${url}" alt="挿入画像" class="my-3 max-h-96 border border-slate-200 shadow-sm object-cover" />`
+                return `<img src="${url}" alt="挿入画像" class="my-3 max-h-96 border border-slate-200 shadow-sm object-cover rounded-xl" />`
             } else {
                 return `<a href="${url}" target="_blank" rel="noopener noreferrer" class="text-blue-600 hover:underline font-medium break-all" onclick="event.stopPropagation()">${url}</a>`
             }
         })
+
+        return linkedText.replace(/\n/g, '<br>')
     }
 
     const getFileUrl = (filePath) => {

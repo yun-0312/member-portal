@@ -61,7 +61,7 @@ class BasePublicContentController extends Controller
 
         return response()->json([
             'item' => $item,
-            'index_url' => route("{$this->routePrefix}.index"),
+            'index_url' => "/admin/$this->routePrefix",
         ]);
     }
 }

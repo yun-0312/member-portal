@@ -139,9 +139,10 @@
                     </div>
 
                     <!-- 説明文 -->
-                    <p class="text-xs text-slate-600 leading-relaxed line-clamp-3">
-                    {{ video.description }}
-                    </p>
+                    <div
+                        class="prose prose-slate prose-xs max-w-none text-slate-600 leading-relaxed line-clamp-3"
+                        v-html="formatDescription(video.description)"
+                    ></div>
                 </div>
 
                 <div class="space-y-3 pt-3 border-t border-slate-100 text-xs">
@@ -300,32 +301,26 @@
             </div>
             </div>
 
-            <!-- モーダル詳細説明 -->
             <div class="p-5 overflow-y-auto space-y-4 text-xs md:text-sm">
-            <div>
-                <h4 class="font-bold text-slate-700 mb-1">概要</h4>
-                <p class="text-slate-600 whitespace-pre-wrap leading-relaxed">
-                {{ selectedVideo.description }}
-                </p>
-            </div>
 
-            <!-- モーダル内の資料ダウンロード -->
-            <div v-if="selectedVideo.files && selectedVideo.files.length > 0" class="pt-3 border-t border-slate-100">
-                <h4 class="font-bold text-slate-700 mb-2">添付資料・配布ファイル</h4>
-                <div class="flex flex-wrap gap-2">
-                <a
-                    v-for="file in selectedVideo.files"
-                    :key="file.id"
-                    :href="getFileUrl(file.path)"
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    class="inline-flex items-center gap-1.5 px-3 py-1.5 bg-slate-100 hover:bg-blue-50 text-slate-700 hover:text-blue-600 border border-slate-200 rounded-xl text-xs font-medium transition-colors"
-                >
-                    <span>📎</span>
-                    <span>{{ file.name }}</span>
-                </a>
+
+                <!-- モーダル内の資料ダウンロード -->
+                <div v-if="selectedVideo.files && selectedVideo.files.length > 0" class="pt-3 border-t border-slate-100">
+                    <h4 class="font-bold text-slate-700 mb-2">添付資料・配布ファイル</h4>
+                    <div class="flex flex-wrap gap-2">
+                        <a
+                            v-for="file in selectedVideo.files"
+                            :key="file.id"
+                            :href="getFileUrl(file.path)"
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            class="inline-flex items-center gap-1.5 px-3 py-1.5 bg-slate-100 hover:bg-blue-50 text-slate-700 hover:text-blue-600 border border-slate-200 rounded-xl text-xs font-medium transition-colors"
+                        >
+                            <span>📎</span>
+                            <span>{{ file.name }}</span>
+                        </a>
+                    </div>
                 </div>
-            </div>
             </div>
         </div>
         </div>
@@ -551,6 +546,29 @@ const formatPaginationLabel = (label) => {
     if (label.includes('previous') || label.includes('Previous')) return '前へ'
     if (label.includes('next') || label.includes('Next')) return '次へ'
     return label
+}
+
+// 説明文描画用ヘルパー関数
+const formatDescription = (text) => {
+    if (!text) return ''
+
+    // すでに HTML タグ（<p> や <img> など）が含まれている場合はそのまま描画
+    if (/<[a-z][\s\S]*>/i.test(text)) {
+        return text
+    }
+
+    // プレーンテキストデータの場合は改行を <br> に変換＆URL を自動リンク化
+    const escapedText = text
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+
+    const urlRegex = /(https?:\/\/[^\s<]+)/g
+    const linkedText = escapedText.replace(urlRegex, (url) => {
+        return `<a href="${url}" target="_blank" rel="noopener noreferrer" class="text-blue-600 hover:underline font-medium break-all" onclick="event.stopPropagation()">${url}</a>`
+    })
+
+    return linkedText.replace(/\n/g, '<br>')
 }
 
 watch(

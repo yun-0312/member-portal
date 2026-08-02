@@ -138,13 +138,12 @@
                     <label class="block text-xs md:text-sm font-bold text-slate-700">
                         本文 <span class="text-xs text-slate-400 font-normal">（任意）</span>
                     </label>
-                    <textarea
+                    <TiptapEditor
+                        ref="editorRef"
                         v-model="form.body"
-                        rows="8"
-                        placeholder="コンテンツの詳細内容を入力してください"
-                        class="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 bg-white text-xs md:text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all leading-relaxed"
-                        :class="{ 'border-rose-400 bg-rose-50/30': errors.body }"
-                    ></textarea>
+                        placeholder="コンテンツの詳細内容を入力してください..."
+                        @open-media="showMediaModal = true"
+                    />
                     <p v-if="errors.body" class="text-xs text-rose-500 font-medium">{{ errors.body[0] }}</p>
                 </div>
 
@@ -296,6 +295,13 @@
             </form>
 
         </div>
+
+        <!--  メディアライブラリ モーダル -->
+        <MediaLibraryModal
+            v-if="showMediaModal"
+            @close="showMediaModal = false"
+            @select="handleSelectImage"
+        />
     </div>
 </template>
 
@@ -303,6 +309,8 @@
 import { ref, reactive, computed, onMounted } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import api from '../../api.js'
+import TiptapEditor from '../../components/TiptapEditor.vue'
+import MediaLibraryModal from '../../components/MediaLibraryModal.vue'
 
 const router = useRouter()
 const route = useRoute()
@@ -311,6 +319,10 @@ const loading = ref(true)
 const submitting = ref(false)
 const errorMessage = ref('')
 const errors = ref({})
+
+// リッチテキスト＆モーダル用の ref
+const editorRef = ref(null)
+const showMediaModal = ref(false)
 
 const categories = ref([])
 const allSubcategories = ref([])
@@ -349,22 +361,27 @@ const form = reactive({
 const filteredSubcategories = computed(() => {
     if (!form.category_id) return []
 
-    // 1. 選択されたカテゴリ配下のサブカテゴリのみを抽出
     const subs = allSubcategories.value.filter(
         sub => String(sub.category_id) === String(form.category_id)
     )
 
-    // 2. 他のサブカテゴリの「親（parent_id）」として指定されている ID のリストを作成
     const parentIds = new Set(
         subs.map(sub => sub.parent_id).filter(id => id !== null && id !== undefined)
     )
 
-    // 3. 子を持っている親サブカテゴリを除外して返す
     return subs.filter(sub => !parentIds.has(sub.id))
 })
 
 const handleCategoryChange = () => {
     form.subcategory_id = ''
+}
+
+// メディアライブラリで画像が選択された時の処理
+const handleSelectImage = (file) => {
+    if (file && file.url) {
+        editorRef.value?.insertImage(file.url)
+    }
+    showMediaModal.value = false
 }
 
 // データの初期読み込み (詳細データ & マスターデータ)
@@ -383,7 +400,6 @@ const fetchData = async () => {
         allSubcategories.value = subCatRes.data?.data || subCatRes.data || []
         rolesList.value = roleRes.data?.roles || roleRes.data?.data || roleRes.data || []
 
-        // 詳細データの展開（レスポンス構造に合わせた吸収処理）
         const res = contentRes.data
         const item = res?.item || res?.data || res
 
@@ -395,13 +411,11 @@ const fetchData = async () => {
             form.meeting_date = item.meeting_date ? item.meeting_date.substring(0, 10) : ''
             form.published_at = formatToDatetimeLocal(item.published_at)
 
-            // ロールセット
             const roles = res?.roles || item.roles || []
             if (Array.isArray(roles)) {
                 form.roles = roles.map(r => typeof r === 'object' ? r.id : Number(r))
             }
 
-            // 既存ファイルセット
             existingFiles.value = item.files || item.attachments || []
         }
 
@@ -413,7 +427,6 @@ const fetchData = async () => {
     }
 }
 
-// 既存ファイルの個別削除フラグ切り替え
 const toggleDeleteExistingFile = (fileId) => {
     const idx = deleteFileIds.value.indexOf(fileId)
     if (idx > -1) {
@@ -423,7 +436,6 @@ const toggleDeleteExistingFile = (fileId) => {
     }
 }
 
-// 新規ファイル選択ハンドラ
 const handleFileChange = (e) => {
     const selectedFiles = Array.from(e.target.files || [])
     selectedFiles.forEach(file => {
@@ -460,7 +472,6 @@ const getIndexUrl = () => {
     return '/admin/contents'
 }
 
-// 更新送信処理
 const handleSubmit = async () => {
     submitting.value = true
     errorMessage.value = ''
@@ -469,7 +480,6 @@ const handleSubmit = async () => {
     const id = route.params.id
     const formData = new FormData()
 
-    // 💡 FormDataでファイル送信を行うための Laravel 疑似メソッド指定
     formData.append('_method', 'PATCH')
 
     if (form.title) formData.append('title', form.title)
@@ -484,17 +494,14 @@ const handleSubmit = async () => {
         formData.append('published_at', formattedPublishedAt)
     }
 
-    // roles[]
     form.roles.forEach(roleId => {
         formData.append('roles[]', roleId)
     })
 
-    // 新規ファイル (file[])
     newFiles.value.forEach(file => {
         formData.append('file[]', file)
     })
 
-    // ファイル削除指示
     if (deleteAllFiles.value) {
         formData.append('delete_all_files', '1')
     } else {
@@ -504,7 +511,6 @@ const handleSubmit = async () => {
     }
 
     try {
-        // POST + _method: PATCH で送信
         await api.post(`/admin/contents/${id}`, formData, {
             headers: {
                 'Content-Type': 'multipart/form-data'

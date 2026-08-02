@@ -102,10 +102,13 @@
                 </div>
 
                 <div class="border-t border-slate-100 pt-4">
-                <h3 class="text-xs font-bold text-slate-400 uppercase tracking-wider mb-2">概要・説明</h3>
-                <p class="text-sm text-slate-700 whitespace-pre-wrap leading-relaxed">
-                    {{ video.description || '説明はありません。' }}
-                </p>
+                    <h3 class="text-xs font-bold text-slate-400 uppercase tracking-wider mb-2">概要・説明</h3>
+                    <div
+                        v-if="video.description"
+                        v-html="video.description"
+                        class="text-sm text-slate-700 leading-relaxed space-y-2 [&_img]:max-w-full [&_img]:h-auto [&_img]:rounded-xl [&_a]:text-blue-600 [&_a]:underline"
+                    ></div>
+                    <p v-else class="text-sm text-slate-400 italic">説明はありません。</p>
                 </div>
 
                 <!-- 📎 添付ファイル一覧 -->

@@ -112,13 +112,12 @@
                     <label class="block text-xs md:text-sm font-bold text-slate-700">
                         本文
                     </label>
-                    <textarea
+                    <TiptapEditor
+                        ref="editorRef"
                         v-model="form.body"
-                        rows="8"
-                        placeholder="お知らせの詳細内容を入力してください"
-                        class="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 bg-white text-xs md:text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all leading-relaxed"
-                        :class="{ 'border-rose-400 bg-rose-50/30': errors.body }"
-                    ></textarea>
+                        placeholder="お知らせの詳細内容を入力してください..."
+                        @open-media="showMediaModal = true"
+                    />
                     <p v-if="errors.body" class="text-xs text-rose-500 font-medium">{{ errors.body[0] }}</p>
                 </div>
 
@@ -278,12 +277,20 @@
 
         </div>
     </div>
+    <!-- メディアライブラリ モーダル -->
+    <MediaLibraryModal
+        v-if="showMediaModal"
+        @close="showMediaModal = false"
+        @select="handleSelectImage"
+    />
 </template>
 
 <script setup>
 import { ref, reactive, onMounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
-import api from '../../api.js' // ※プロジェクトのapi.jsのパスに合わせて調整してください
+import api from '../../api.js'
+import TiptapEditor from '../../components/TiptapEditor.vue'
+import MediaLibraryModal from '../../components/MediaLibraryModal.vue'
 
 const route = useRoute()
 const router = useRouter()
@@ -292,6 +299,9 @@ const loading = ref(true)
 const submitting = ref(false)
 const errorMessage = ref('')
 const errors = ref({})
+// リッチテキスト＆モーダル用の ref
+const editorRef = ref(null)
+const showMediaModal = ref(false)
 
 const categories = ref([])
 const rolesList = ref([])
@@ -337,8 +347,8 @@ const fetchData = async () => {
         ])
 
         const res = noticeRes.data
-        
-        // 🔍 レスポンス構造に合わせて抽出場所を指定
+
+        // レスポンス構造に合わせて抽出場所を指定
         const notice = res?.item || {}
         const noticeRoles = res?.roles || notice.roles || []
 
@@ -374,6 +384,14 @@ const fetchData = async () => {
     } finally {
         loading.value = false
     }
+}
+
+// メディアライブラリで画像が選択された時の処理
+const handleSelectImage = (file) => {
+    if (file && file.url) {
+        editorRef.value?.insertImage(file.url)
+    }
+    showMediaModal.value = false
 }
 
 // 個別ファイルの削除フラグ切替
@@ -504,7 +522,6 @@ const goBack = () => {
     router.back()
 }
 
-// ⚠️ 必ず fetchData を定義した「後」に呼び出します
 onMounted(() => {
     fetchData()
 })

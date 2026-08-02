@@ -47,14 +47,14 @@
 
       <!-- 3. メインコンテンツ -->
       <div v-else-if="contentData?.item" class="space-y-6">
-        
+
         <!-- メインカード -->
         <div class="bg-white rounded-2xl shadow-xs border border-slate-200/80 overflow-hidden">
-          
+
           <!-- メタヘッダー領域 -->
           <div class="p-6 border-b border-slate-100 bg-slate-50/50 space-y-3">
             <div class="flex items-center justify-between flex-wrap gap-2">
-              
+
               <!-- カテゴリ・サブカテゴリの階層表示 -->
               <div class="flex items-center gap-2 flex-wrap">
                 <span
@@ -93,9 +93,10 @@
 
           <!-- 本文 -->
           <div class="p-6 md:p-8">
-            <p class="text-sm md:text-base text-slate-700 leading-relaxed whitespace-pre-wrap">
-              {{ contentData.item.body }}
-            </p>
+            <div 
+              class="prose prose-slate max-w-none text-sm md:text-base text-slate-700 leading-relaxed" 
+              v-html="contentData.item.body"
+            ></div>
           </div>
 
           <!-- 添付ファイル（ある場合） -->

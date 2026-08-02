@@ -109,14 +109,12 @@
                     <label class="block text-xs md:text-sm font-bold text-slate-700">
                         動画概要・説明 <span class="text-rose-500">*</span>
                     </label>
-                    <textarea
+                    <TiptapEditor
+                        ref="editorRef"
                         v-model="form.description"
-                        rows="6"
-                        required
-                        placeholder="研修会動画のアジェンダや概要・補足情報などを入力してください"
-                        class="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 bg-white text-xs md:text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all leading-relaxed"
-                        :class="{ 'border-rose-400 bg-rose-50/30': errors.description }"
-                    ></textarea>
+                        placeholder="研修会動画のアジェンダや概要・補足情報などを入力してください..."
+                        @open-media="showMediaModal = true"
+                    />
                     <p v-if="errors.description" class="text-xs text-rose-500 font-medium">{{ errors.description[0] }}</p>
                 </div>
 
@@ -149,7 +147,7 @@
 
                 <!-- 添付資料管理 (既存ファイル & 新規ファイル) -->
                 <div class="space-y-4 border-t border-slate-100 pt-5">
-                    
+
                     <!-- 1. 登録済みのファイル一覧 -->
                     <div v-if="existingFiles.length > 0" class="space-y-2">
                         <label class="block text-xs md:text-sm font-bold text-slate-700">
@@ -170,8 +168,8 @@
                                     type="button"
                                     @click="toggleDeleteFile(file.id)"
                                     class="text-xs px-2.5 py-1 rounded-lg border font-semibold transition-all cursor-pointer"
-                                    :class="deleteFileIds.includes(file.id) 
-                                        ? 'bg-slate-200 border-slate-300 text-slate-700 hover:bg-slate-300' 
+                                    :class="deleteFileIds.includes(file.id)
+                                        ? 'bg-slate-200 border-slate-300 text-slate-700 hover:bg-slate-300'
                                         : 'bg-white border-rose-200 text-rose-600 hover:bg-rose-50'"
                                 >
                                     {{ deleteFileIds.includes(file.id) ? '削除を取り消す' : '削除対象にする' }}
@@ -251,17 +249,23 @@
                         <span>{{ submitting ? '更新中…' : '更新を保存する' }}</span>
                     </button>
                 </div>
-
             </form>
-
         </div>
     </div>
+    <!-- メディアライブラリ モーダル -->
+    <MediaLibraryModal
+        v-if="showMediaModal"
+        @close="showMediaModal = false"
+        @select="handleSelectImage"
+    />
 </template>
 
 <script setup>
 import { ref, reactive, onMounted } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import api from '../../api.js'
+import TiptapEditor from '../../components/TiptapEditor.vue'
+import MediaLibraryModal from '../../components/MediaLibraryModal.vue'
 
 const router = useRouter()
 const route = useRoute()
@@ -270,6 +274,10 @@ const loading = ref(true)
 const submitting = ref(false)
 const errorMessage = ref('')
 const errors = ref({})
+
+// リッチテキスト＆モーダル用の ref
+const editorRef = ref(null)
+const showMediaModal = ref(false)
 
 const rolesList = ref([])
 const existingFiles = ref([])
@@ -319,7 +327,7 @@ const fetchData = async () => {
             form.external_url = item.external_url ?? ''
             form.published_at = formatToDatetimeLocal(item.published_at)
             form.expired_at = formatToDatetimeLocal(item.expired_at)
-            
+
             // ロールID配列のバインド
             if (Array.isArray(item.roles)) {
                 form.roles = item.roles.map(r => typeof r === 'object' ? r.id : r)
@@ -334,6 +342,14 @@ const fetchData = async () => {
     } finally {
         loading.value = false
     }
+}
+
+// メディアライブラリで画像が選択された時の処理
+const handleSelectImage = (file) => {
+    if (file && file.url) {
+        editorRef.value?.insertImage(file.url)
+    }
+    showMediaModal.value = false
 }
 
 // 既存ファイルの削除フラグ切替

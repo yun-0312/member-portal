@@ -86,9 +86,10 @@
 
             <!-- 本文 -->
             <div class="p-6 md:p-8">
-                <p class="text-sm md:text-base text-slate-700 leading-relaxed whitespace-pre-wrap">
-                {{ noticeData.item.body }}
-                </p>
+                <div
+                    class="prose prose-slate prose-sm md:prose-base max-w-none text-slate-700 leading-relaxed"
+                    v-html="formatBody(noticeData.item.body)"
+                ></div>
             </div>
 
             <!-- 添付ファイル（ある場合） -->
@@ -390,6 +391,29 @@ const downloadFile = async (file) => {
     } finally {
         downloadingId.value = null
     }
+}
+
+// 本文描画用ヘルパー関数
+const formatBody = (text) => {
+    if (!text) return ''
+
+    // すでに HTML タグ（<p> や <img>）が含まれている場合はそのまま返す
+    if (/<[a-z][\s\S]*>/i.test(text)) {
+        return text
+    }
+
+    // 古いプレーンテキストの場合は URL を自動で <a> タグ化して表示
+    const urlRegex = /(https?:\/\/[^\s<]+)/g
+    return text.replace(urlRegex, (url) => {
+        const cleanUrl = url.trim()
+        const isImage = /\.(jpg|jpeg|png|gif|webp)(\?.*)?$/i.test(cleanUrl)
+
+        if (isImage) {
+            return `<img src="${cleanUrl}" alt="挿入画像" class="my-3 max-h-96 border border-slate-200 shadow-sm object-cover rounded-xl" />`
+        } else {
+            return `<a href="${cleanUrl}" target="_blank" rel="noopener noreferrer" class="text-blue-600 hover:underline font-medium break-all">${cleanUrl}</a>`
+        }
+    })
 }
 
 onMounted(() => {

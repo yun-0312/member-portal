@@ -8,7 +8,7 @@
         >
             <!-- 左側：ロゴ・サイト名エリア -->
             <router-link
-                to="/dashboard"
+                to="/admin/dashboard"
                 class="flex items-center gap-2.5 sm:gap-3 group transition-all duration-200 hover:opacity-90 active:scale-98 shrink-0"
             >
                 <!-- 管理者用アイコン枠 -->

@@ -12,6 +12,7 @@ import ScheduleList from "../pages/public/ScheduleList.vue";
 import WorkshopList from "../pages/public/WorkshopList.vue";
 import FaqList from "../pages/public/FaqList.vue";
 import VideoList from "../pages/public/VideoList.vue";
+import VideoShow from "../pages/public/VideoShow.vue";
 import UserProfile from "../pages/public/UserProfile.vue";
 import UserEdit from "../pages/public/UserEdit.vue";
 import MedicalInstitutionUsers from "../pages/public/MedicalInstitutionUsers.vue";
@@ -158,6 +159,11 @@ const routes = [
         path: "/videos",
         name: "VideoList",
         component: VideoList,
+    },
+    {
+        path: "/videos/:id",
+        name: "VideoShow",
+        component: VideoShow,
     },
     {
         path: "/users/:id/edit",

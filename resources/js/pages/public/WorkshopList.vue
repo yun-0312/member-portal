@@ -46,9 +46,10 @@
           </div>
 
           <!-- 概要テキスト -->
-          <p class="text-xs text-slate-600 line-clamp-2 leading-relaxed">
-            {{ workshop.description }}
-          </p>
+          <div
+              class="prose prose-slate prose-xs max-w-none text-slate-600 leading-relaxed [&_img]:max-w-full [&_img]:h-auto [&_img]:rounded-xl [&_a]:text-blue-600 [&_a]:underline"
+              v-html="formatDescription(workshop.description)"
+          ></div>
 
           <!-- 詳細メタ情報（日時・場所・講師） -->
           <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-2 text-xs text-slate-600 pt-2 border-t border-slate-100">
@@ -208,6 +209,31 @@ const getLocationBadgeStyle = (location) => {
     default:
       return 'bg-blue-50 text-blue-700 border-blue-200'
   }
+}
+
+const formatDescription = (text) => {
+    if (!text) return ''
+
+    // すでに HTML タグ（<p> や <img> など）が含まれている場合はそのまま描画
+    if (/<[a-z][\s\S]*>/i.test(text)) {
+        return text
+    }
+
+    // プレーンテキストデータの場合は URL 自動リンク化 & 改行保持
+    const escapedText = text
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#039;')
+
+    const urlRegex = /(https?:\/\/[^\s<]+)/g
+
+    const linkedText = escapedText.replace(urlRegex, (url) => {
+        return `<a href="${url}" target="_blank" rel="noopener noreferrer" class="text-blue-600 hover:underline font-medium break-all" onclick="event.stopPropagation()">${url}</a>`
+    })
+
+    return linkedText.replace(/\n/g, '<br>')
 }
 
 onMounted(() => {
