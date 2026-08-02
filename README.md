@@ -173,6 +173,7 @@ Resend（メール送信API）を使用して本番環境のメール送信を�
 ```
 
 ## ER図
+```mermaid
 erDiagram
 
     users {
@@ -319,6 +320,7 @@ erDiagram
     role_permissions ||--o{ permissions : belongs_to
 
     role_targetables ||--o{ roles : belongs_to
+```
 
 ## URL
 ・会員画面：http://localhost/<br />
