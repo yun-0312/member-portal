@@ -321,9 +321,78 @@ erDiagram
 
     role_targetables ||--o{ roles : belongs_to
 ```
+```mermaid
+flowchart LR
+flowchart LR
+linkStyle default interpolate linear
+
+%% ===== User / Auth =====
+subgraph User_Auth
+    users[users]
+    roles[roles]
+    medical_institutions[medical_institutions]
+end
+
+users --> roles
+users --> medical_institutions
+users --> users
+
+%% ===== Content =====
+subgraph Content
+    contents[contents]
+    content_categories[content_categories]
+    content_subcategories[content_subcategories]
+end
+
+contents --> content_categories
+contents --> content_subcategories
+content_subcategories --> content_categories
+content_subcategories --> content_subcategories
+
+%% ===== Notice =====
+subgraph Notice
+    notices[notices]
+    notice_categories[notice_categories]
+end
+
+notices --> notice_categories
+
+%% ===== Schedule =====
+subgraph Schedule
+    schedules[schedules]
+    schedule_categories[schedule_categories]
+    schedule_recurrences[schedule_recurrences]
+    schedule_occurrences[schedule_occurrences]
+    rooms[rooms]
+end
+
+schedules --> schedule_categories
+schedules --> rooms
+schedules --> schedule_recurrences
+schedules --> schedule_occurrences
+schedule_occurrences --> schedule_recurrences
+
+%% ===== FAQ =====
+subgraph FAQ
+    faqs[faqs]
+    faq_categories[faq_categories]
+end
+
+faqs --> faq_categories
+
+%% ===== Others =====
+subgraph Others
+    workshops[workshops]
+    videos[videos]
+    files[files]
+    role_targetables[role_targetables]
+end
+```
+
 - Userは医療機関に所属
 - Contentはカテゴリ・サブカテゴリ構造
 - ScheduleはRecurrenceとOccurrenceで分離
+- Policyにより医療機関単位でアクセス制御
 
 ## URL
 ・会員画面：http://localhost/<br />
