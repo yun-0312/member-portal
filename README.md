@@ -323,7 +323,6 @@ erDiagram
 ```
 ```mermaid
 flowchart LR
-flowchart LR
 linkStyle default interpolate linear
 
 %% ===== User / Auth =====
