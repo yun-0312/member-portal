@@ -95,11 +95,11 @@ Password: password<br />
 Email: system@example.com<br />
 Password: password<br />
 
-#### ※システム管理者ユーザー（system）
+### ※システム管理者ユーザー（system）
 システム管理者は、一般の管理者とは異なり、
 システムの根幹に関わる設定のみを扱う特別ロールです。
 
-・permission の CRUD<<br />
+・permission の CRUD<br />
 ・お知らせカテゴリ（Notice-category）の CRUD<br />
 ・コード変更が必要な設定項目の管理<br />
 ・その他の管理機能にはアクセス不可（安全性のため）<br />
@@ -173,10 +173,10 @@ Resend（メール送信API）を使用して本番環境のメール送信を�
 ```
 
 ## ER図
-<img width="1191" height="1114" alt="Image" src="https://github.com/user-attachments/assets/239f30bf-60f0-4cf2-bf3c-f4083d059932" />
+<pre> ## ER図（シンプル版） ```mermaid flowchart LR users --> roles users --> medical_institutions users --> users contents --> content_categories contents --> content_subcategories content_subcategories --> content_categories content_subcategories --> content_subcategories notices --> notice_categories schedules --> schedule_categories schedules --> rooms schedules --> schedule_recurrences schedules --> schedule_occurrences schedule_occurrences --> schedule_recurrences faqs --> faq_categories ``` </pre>
 
 ## URL
 ・会員画面：http://localhost/<br />
  ・phpMyAdmin：http://localhost:8080/<br />
 ・MailPit：http://localhost:8025<br />
-・RailWay本番環境：https://member-portal-production-960b.up.railway.app
+・Railway本番環境：https://member-portal-production-960b.up.railway.app
