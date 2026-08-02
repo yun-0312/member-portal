@@ -173,7 +173,152 @@ Resend（メール送信API）を使用して本番環境のメール送信を�
 ```
 
 ## ER図
-<pre> ## ER図（シンプル版） ```mermaid flowchart LR users --> roles users --> medical_institutions users --> users contents --> content_categories contents --> content_subcategories content_subcategories --> content_categories content_subcategories --> content_subcategories notices --> notice_categories schedules --> schedule_categories schedules --> rooms schedules --> schedule_recurrences schedules --> schedule_occurrences schedule_occurrences --> schedule_recurrences faqs --> faq_categories ``` </pre>
+erDiagram
+
+    users {
+        bigint id PK
+        bigint role_id FK
+        bigint medical_institution_id FK
+        bigint approved_by FK
+    }
+
+    roles {
+        bigint id PK
+    }
+
+    medical_institutions {
+        bigint id PK
+    }
+
+    notices {
+        bigint id PK
+        bigint category_id FK
+        bigint created_by FK
+    }
+
+    notice_categories {
+        bigint id PK
+    }
+
+    contents {
+        bigint id PK
+        bigint category_id FK
+        bigint subcategory_id FK
+        bigint created_by FK
+    }
+
+    content_categories {
+        bigint id PK
+    }
+
+    content_subcategories {
+        bigint id PK
+        bigint category_id FK
+        bigint parent_id FK
+    }
+
+    schedules {
+        bigint id PK
+        bigint room_id FK
+        bigint schedule_category_id FK
+        bigint created_by FK
+    }
+
+    schedule_categories {
+        bigint id PK
+    }
+
+    schedule_recurrences {
+        bigint id PK
+        bigint schedule_id FK
+    }
+
+    schedule_occurrences {
+        bigint id PK
+        bigint schedule_id FK
+        bigint recurrence_id FK
+    }
+
+    rooms {
+        bigint id PK
+    }
+
+    workshops {
+        bigint id PK
+        bigint created_by FK
+    }
+
+    videos {
+        bigint id PK
+        bigint created_by FK
+    }
+
+    faqs {
+        bigint id PK
+        bigint category_id FK
+        bigint created_by FK
+    }
+
+    faq_categories {
+        bigint id PK
+    }
+
+    files {
+        bigint id PK
+        string fileable_type
+        bigint fileable_id
+    }
+
+    role_targetables {
+        bigint id PK
+        bigint role_id FK
+        string targetable_type
+        bigint targetable_id
+    }
+
+    role_permissions {
+        bigint role_id FK
+        bigint permission_id FK
+    }
+
+    permissions {
+        bigint id PK
+    }
+
+    %% ===== リレーション =====
+
+    users ||--o{ roles : belongs_to
+    users ||--o{ medical_institutions : belongs_to
+    users ||--o{ users : approved_by
+
+    notices ||--o{ notice_categories : belongs_to
+    notices ||--o{ users : created_by
+
+    contents ||--o{ content_categories : belongs_to
+    contents ||--o{ content_subcategories : belongs_to
+    contents ||--o{ users : created_by
+
+    content_subcategories ||--o{ content_categories : belongs_to
+    content_subcategories ||--o{ content_subcategories : parent
+
+    schedules ||--o{ rooms : belongs_to
+    schedules ||--o{ schedule_categories : belongs_to
+    schedules ||--o{ users : created_by
+
+    schedule_recurrences ||--o{ schedules : belongs_to
+    schedule_occurrences ||--o{ schedules : belongs_to
+    schedule_occurrences ||--o{ schedule_recurrences : belongs_to
+
+    faqs ||--o{ faq_categories : belongs_to
+    faqs ||--o{ users : created_by
+
+    workshops ||--o{ users : created_by
+    videos ||--o{ users : created_by
+
+    role_permissions ||--o{ roles : belongs_to
+    role_permissions ||--o{ permissions : belongs_to
+
+    role_targetables ||--o{ roles : belongs_to
 
 ## URL
 ・会員画面：http://localhost/<br />
