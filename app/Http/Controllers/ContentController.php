@@ -25,8 +25,8 @@ class ContentController extends BasePublicContentController
         $category = null;
         if (!empty($categoryParam)) {
             $category = is_numeric($categoryParam)
-                ? ContentCategory::with('subcategories')->find($categoryParam)
-                : ContentCategory::with('subcategories')->where('slug', $categoryParam)->first();
+                ? ContentCategory::with('topLevelSubcategories')->find($categoryParam)
+                : ContentCategory::with('topLevelSubcategories')->where('slug', $categoryParam)->first();
 
             // Trait側で文字列のまま検索条件が作られないよう、リクエストのパラメータをIDで上書き
             if ($category) {
@@ -126,7 +126,7 @@ class ContentController extends BasePublicContentController
                 ]);
             }
 
-            if ($category->display_type === 'subcategory' || $category->subcategories->isNotEmpty()) {
+            if ($category->display_type === 'subcategory' || $category->topLevelSubcategories->isNotEmpty()) {
                 return response()->json([
                     'display_mode'  => 'subcategory',
                     'context'       => [
@@ -135,7 +135,7 @@ class ContentController extends BasePublicContentController
                         'name' => $category->name,
                         'slug' => $category->slug,
                     ],
-                    'subcategories' => $category->subcategories()->orderBy('sort_order')->get(),
+                    'subcategories' => $category->topLevelSubcategories()->orderBy('sort_order')->get(),
                 ]);
             }
 

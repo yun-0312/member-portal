@@ -29,8 +29,9 @@ class ContentCategoryUpdateRequest extends FormRequest
         return [
             'name' => ['sometimes', 'string', 'max:255'],
             'slug' => ['sometimes', 'string', 'max:255', Rule::unique('content_categories', 'slug')->ignore($categoryId),],
-            'description' => ['nullable', 'string'],
+            'section' => ['sometimes', 'string', Rule::in(['download', 'main_menu', 'special'])],
             'sort_order' => ['sometimes', 'integer'],
+            'display_type' => ['nullable', 'string', Rule::in(['list', 'year_archive', 'subcategory'])],
         ];
     }
 }

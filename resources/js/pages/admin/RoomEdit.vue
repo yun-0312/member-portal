@@ -1,9 +1,9 @@
 <template>
     <CategoryMasterEdit
-        title="権限（Permission）編集"
-        :fetch-url="`/admin/permissions/${route.params.id}`"
-        :submit-url="`/admin/permissions/${route.params.id}`"
-        index-url="/admin/permissions"
+        title="会議室編集"
+        :fetch-url="`/admin/rooms/${route.params.id}`"
+        :submit-url="`/admin/rooms/${route.params.id}`"
+        index-url="/admin/rooms"
         :fields="[]"
     />
 </template>

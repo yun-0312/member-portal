@@ -3,7 +3,7 @@
 namespace App\Http\Requests;
 
 use Illuminate\Foundation\Http\FormRequest;
-use App\Models\ContentCategory;
+use Illuminate\Validation\Rule;
 
 class ContentCategoryStoreRequest extends FormRequest
 {
@@ -25,7 +25,9 @@ class ContentCategoryStoreRequest extends FormRequest
         return [
             'name' => ['required', 'string', 'max:255'],
             'slug' => ['required', 'string', 'max:255', 'unique:content_categories,slug'],
+            'section' => ['required', 'string', Rule::in(['download', 'main_menu', 'special'])],
             'sort_order' => ['nullable', 'integer'],
+            'display_type' => ['nullable', 'string', Rule::in(['list', 'year_archive', 'subcategory'])],
         ];
     }
 }

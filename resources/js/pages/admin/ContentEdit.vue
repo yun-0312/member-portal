@@ -177,7 +177,7 @@
 
                 <!-- 添付ファイル管理 -->
                 <div class="space-y-4 border-t border-slate-100 pt-5">
-                    
+
                     <!-- A. 既存の登録済みファイル一覧 -->
                     <div v-if="existingFiles.length > 0" class="space-y-2">
                         <div class="flex items-center justify-between">
@@ -317,10 +317,10 @@ const allSubcategories = ref([])
 const rolesList = ref([])
 
 // ファイル管理用ステート
-const existingFiles = ref([])       // APIから取得した既存ファイル
-const deleteFileIds = ref([])       // 個別削除対象のファイルID配列
-const deleteAllFiles = ref(false)   // 一括削除フラグ
-const newFiles = ref([])            // 新しく添付するファイル
+const existingFiles = ref([])
+const deleteFileIds = ref([])
+const deleteAllFiles = ref(false)
+const newFiles = ref([])
 
 const currentCategoryParam = computed(() => route.query.category || '')
 
@@ -348,7 +348,19 @@ const form = reactive({
 
 const filteredSubcategories = computed(() => {
     if (!form.category_id) return []
-    return allSubcategories.value.filter(sub => String(sub.category_id) === String(form.category_id))
+
+    // 1. 選択されたカテゴリ配下のサブカテゴリのみを抽出
+    const subs = allSubcategories.value.filter(
+        sub => String(sub.category_id) === String(form.category_id)
+    )
+
+    // 2. 他のサブカテゴリの「親（parent_id）」として指定されている ID のリストを作成
+    const parentIds = new Set(
+        subs.map(sub => sub.parent_id).filter(id => id !== null && id !== undefined)
+    )
+
+    // 3. 子を持っている親サブカテゴリを除外して返す
+    return subs.filter(sub => !parentIds.has(sub.id))
 })
 
 const handleCategoryChange = () => {
@@ -362,8 +374,8 @@ const fetchData = async () => {
         const id = route.params.id
         const [contentRes, catRes, subCatRes, roleRes] = await Promise.all([
             api.get(`/admin/contents/${id}`),
-            api.get('/admin/content-categories'),
-            api.get('/admin/content-subcategories'),
+            api.get('/admin/content-categories?per_page=1000'),
+            api.get('/admin/content-subcategories?per_page=1000'),
             api.get('/admin/roles')
         ])
 

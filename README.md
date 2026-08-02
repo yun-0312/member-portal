@@ -405,7 +405,7 @@ end
 - Userは医療機関に所属
 - Contentはカテゴリ・サブカテゴリ構造
 - ScheduleはRecurrenceとOccurrenceで分離
-- Policyにより医療機関単位でアクセス制御
+- Policyによりユーザーロール単位でアクセス制御
 
 ## URL
 ・会員画面：http://localhost/<br />

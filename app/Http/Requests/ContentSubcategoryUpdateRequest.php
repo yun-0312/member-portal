@@ -3,6 +3,7 @@
 namespace App\Http\Requests;
 
 use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Validation\Rule;
 
 class ContentSubcategoryUpdateRequest extends FormRequest
 {
@@ -23,8 +24,11 @@ class ContentSubcategoryUpdateRequest extends FormRequest
     {
         return [
             'category_id' => ['sometimes', 'exists:content_categories,id'],
+            'slug' => ['sometimes', 'string', 'max:255'],
             'name' => ['sometimes', 'string', 'max:255'],
             'sort_order' => ['sometimes', 'integer'],
+            'display_type' => ['sometimes', 'string', Rule::in(['list', 'year_archive', 'children'])],
+            'parent_id' => ['nullable', 'exists:content_subcategories,id'],
         ];
     }
 }

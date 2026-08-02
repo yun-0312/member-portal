@@ -24,10 +24,6 @@ class ManagementController extends Controller
                 'name' => 'ロール管理',
                 'url' => '/admin/roles',
             ],
-            'notice_categories' => [
-                'name' => 'お知らせカテゴリー管理',
-                'url' => '/admin/notice-categories',
-            ],
             'content_categories' => [
                 'name' => 'コンテンツカテゴリー管理',
                 'url' => '/admin/content-categories',
@@ -43,10 +39,6 @@ class ManagementController extends Controller
             'rooms' => [
                 'name' => '会議室管理',
                 'url' => '/admin/rooms',
-            ],
-            'permissions' => [
-                'name' => '権限管理',
-                'url' => '/admin/permissions',
             ],
         ];
 

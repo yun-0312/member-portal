@@ -287,7 +287,19 @@ const form = reactive({
 
 const filteredSubcategories = computed(() => {
     if (!form.category_id) return []
-    return allSubcategories.value.filter(sub => String(sub.category_id) === String(form.category_id))
+
+    // 1. 選択されたカテゴリ配下のサブカテゴリのみを抽出
+    const subs = allSubcategories.value.filter(
+        sub => String(sub.category_id) === String(form.category_id)
+    )
+
+    // 2. 他のサブカテゴリの「親（parent_id）」として指定されている ID のリストを作成
+    const parentIds = new Set(
+        subs.map(sub => sub.parent_id).filter(id => id !== null && id !== undefined)
+    )
+
+    // 3. 子を持っている親サブカテゴリを除外して返す
+    return subs.filter(sub => !parentIds.has(sub.id))
 })
 
 const handleCategoryChange = () => {
@@ -297,8 +309,8 @@ const handleCategoryChange = () => {
 const fetchMasterData = async () => {
     try {
         const [catRes, subCatRes, roleRes] = await Promise.all([
-            api.get('/admin/content-categories'),
-            api.get('/admin/content-subcategories'),
+            api.get('/admin/content-categories?per_page=1000'),
+            api.get('/admin/content-subcategories?per_page=1000'),
             api.get('/admin/roles')
         ])
 

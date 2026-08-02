@@ -3,6 +3,7 @@
 namespace App\Http\Requests;
 
 use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Validation\Rule;
 
 class ContentSubcategoryStoreRequest extends FormRequest
 {
@@ -25,6 +26,9 @@ class ContentSubcategoryStoreRequest extends FormRequest
             'category_id' => ['required', 'exists:content_categories,id'],
             'name' => ['required', 'string', 'max:255'],
             'sort_order' => ['nullable', 'integer'],
+            'slug' => ['required', 'string', 'max:255'],
+            'display_type' => ['nullable', 'string', Rule::in(['list', 'year_archive', 'children'])],
+            'parent_id' => ['nullable', 'exists:content_subcategories,id'],
         ];
     }
 }

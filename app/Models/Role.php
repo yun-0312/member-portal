@@ -39,4 +39,16 @@ class Role extends Model
         return $this->morphedByMany(Notice::class, 'targetable', 'role_targetables');
     }
 
+    public function contentCategories() {
+        return $this->morphedByMany(ContentCategory::class, 'targetable', 'role_targetables');
+    }
+
+    public function contentSubcategories() {
+        return $this->morphedByMany(ContentSubcategory::class, 'targetable', 'role_targetables');
+    }
+
+    public function noticeCategories() {
+        return $this->morphedByMany(NoticeCategory::class, 'targetable', 'role_targetables');
+    }
+
 }

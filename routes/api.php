@@ -23,6 +23,7 @@ use App\Http\Controllers\UserController as PublicUserController;
 use App\Http\Controllers\Admin\RoleController;
 use App\Http\Controllers\Admin\PermissionController;
 use App\Http\Controllers\Admin\RolePermissionController;
+use App\Http\Controllers\Admin\RoleTargetableController;
 use App\Http\Controllers\Admin\RoomController;
 use App\Http\Controllers\Admin\MedicalInstitutionController as AdminMedicalInstitutionController;
 use App\Http\Controllers\MedicalInstitutionController as PublicMedicalInstitutionController;
@@ -543,6 +544,11 @@ Route::middleware(['auth:sanctum'])->prefix('admin')->group(function () {
             ->middleware('permission:content.update')
             ->name('admin.files.destroy');
     });
+
+    //Content、NoticeのCategoryにroleを結びつける
+    Route::get('{type}/{id}/roles', [RoleTargetableController::class, 'index']);
+    Route::post('{type}/{id}/roles', [RoleTargetableController::class, 'store']);
+    Route::delete('{type}/{id}/roles/{role}', [RoleTargetableController::class, 'destroy']);
 
     //system-admin home
     Route::prefix('system')->group(function () {

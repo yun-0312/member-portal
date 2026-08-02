@@ -82,27 +82,63 @@
                 <!-- 3. セクション (section) -->
                 <div v-if="hasField('section')">
                     <label class="block text-xs font-bold text-slate-600 mb-1">セクション<span class="text-rose-500">*</span></label>
-                    <input
-                        v-model="form.section"
-                        type="text"
-                        placeholder="例: main"
-                        class="w-full px-3.5 py-2 text-sm border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all"
-                    />
-                </div>
-
-                <!-- 親カテゴリー選択 (サブカテゴリー編集時用) -->
-                <div v-if="hasField('parent_id')">
-                    <label class="block text-xs font-bold text-slate-600 mb-1">
-                        親カテゴリー <span class="text-rose-500">*</span>
-                    </label>
                     <select
-                        v-model="form.parent_id"
+                        v-model="form.section"
                         required
                         class="w-full px-3.5 py-2 text-sm border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all bg-white"
                     >
-                        <option value="" disabled>親カテゴリーを選択してください</option>
-                        <option v-for="parent in parentOptions" :key="parent.id" :value="parent.id">
-                            {{ parent.name }}
+                        <option value="" disabled>セクションを選択してください</option>
+                        <option v-for="opt in sectionOptions" :key="opt.value" :value="opt.value">
+                            {{ opt.label }}
+                        </option>
+                    </select>
+                </div>
+
+                <!-- 4. 表示タイプ (display_type) -->
+                <div v-if="hasField('display_type')">
+                    <label class="block text-xs font-bold text-slate-600 mb-1">表示タイプ (Display Type)<span class="text-rose-500">*</span></label>
+                    <select
+                        v-model="form.display_type"
+                        required
+                        class="w-full px-3.5 py-2 text-sm border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all bg-white font-mono"
+                    >
+                        <option value="" disabled>表示タイプを選択してください</option>
+                        <option v-for="opt in displayTypeOptions" :key="opt.value" :value="opt.value">
+                            {{ opt.label }}
+                        </option>
+                    </select>
+                </div>
+
+                <!-- 5. 所属カテゴリー選択 (category_id) -->
+                <div v-if="hasField('category_id')">
+                    <label class="block text-xs font-bold text-slate-600 mb-1">
+                        所属カテゴリー (category_id) <span class="text-rose-500">*</span>
+                    </label>
+                    <select
+                        v-model="form.category_id"
+                        required
+                        class="w-full px-3.5 py-2 text-sm border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all bg-white font-mono"
+                    >
+                        <option value="" disabled>カテゴリーを選択してください</option>
+                        <option v-for="cat in categoryOptions" :key="cat.id" :value="cat.id">
+                            #{{ cat.id }} - {{ cat.name }} ({{ cat.slug }})
+                        </option>
+                    </select>
+                    <p v-if="categoryOptions.length === 0" class="text-xs text-amber-600 mt-1">選択可能なカテゴリーを取得中か、存在しません。</p>
+                </div>
+
+                <!-- 6. 親サブカテゴリー選択 (parent_id) -->
+                <div v-if="hasField('parent_id')">
+                    <label class="block text-xs font-bold text-slate-600 mb-1">
+                        親サブカテゴリー (parent_id)
+                    </label>
+                    <select
+                        v-model="form.parent_id"
+                        class="w-full px-3.5 py-2 text-sm border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all bg-white font-mono"
+                    >
+                        <option :value="null">-- 親サブカテゴリーなし (ルート) --</option>
+                        <option v-for="sub in subCategoryOptions" :key="sub.id" :value="sub.id">
+                            #{{ sub.id }} - {{ sub.name }} ({{ sub.slug }})
                         </option>
                     </select>
                 </div>
@@ -131,7 +167,7 @@
 </template>
 
 <script setup>
-import { ref, reactive, onMounted } from 'vue'
+import { ref, reactive, onMounted, watch } from 'vue'
 import { useRouter } from 'vue-router'
 import api from '@/api.js'
 
@@ -140,12 +176,10 @@ const props = defineProps({
         type: String,
         default: 'カテゴリー編集'
     },
-    // 初期データの取得用 API URL (GET /admin/notice-categories/1 など)
     fetchUrl: {
         type: String,
         required: true
     },
-    // 送信先 API URL (PUT /admin/notice-categories/1 など)
     submitUrl: {
         type: String,
         required: true
@@ -154,13 +188,31 @@ const props = defineProps({
         type: String,
         default: ''
     },
-    // 表示・入力させるフィールドの指定
     fields: {
         type: Array,
         default: () => ['slug', 'sort_order']
     },
-    // サブカテゴリー用の親カテゴリー選択肢リスト
-    parentOptions: {
+    sectionOptions: {
+        type: Array,
+        default: () => [
+            { value: 'download', label: 'download' },
+            { value: 'main_menu', label: 'main_menu' },
+            { value: 'special', label: 'special' }
+        ]
+    },
+    displayTypeOptions: {
+        type: Array,
+        default: () => [
+            { value: 'list', label: 'list' },
+            { value: 'year_archive', label: 'year_archive' },
+            { value: 'subcategory', label: 'subcategory' }
+        ]
+    },
+    categoryOptions: {
+        type: Array,
+        default: () => []
+    },
+    subCategoryOptions: {
         type: Array,
         default: () => []
     }
@@ -171,32 +223,48 @@ const loading = ref(true)
 const isSubmitting = ref(false)
 const errorMessage = ref('')
 
-// フォームの入力状態
 const form = reactive({
     name: '',
     slug: '',
     sort_order: 0,
     section: '',
-    parent_id: ''
+    display_type: '',
+    category_id: '',
+    parent_id: null
 })
 
 const hasField = (fieldName) => props.fields.includes(fieldName)
 
-// 1. 初期データの取得 (GET)
+// 初期データの取得 (GET)
 const fetchCategory = async () => {
     loading.value = true
     errorMessage.value = ''
 
     try {
         const res = await api.get(props.fetchUrl)
-        // レスポンスが res.data または res.data.data などに対応
-        const data = res.data.data || res.data.category || res.data
 
-        form.name = data.name ?? ''
-        form.slug = data.slug ?? ''
-        form.sort_order = data.sort_order ?? 0
-        form.section = data.section ?? ''
-        form.parent_id = data.parent_id ?? ''
+        const rawData = res.data
+        const data = rawData.role
+            || rawData.permission
+            || rawData.content_subcategory
+            || rawData.content_category
+            || rawData.notice_category
+            || rawData.category
+            || rawData.item
+            || rawData.data
+            || rawData
+
+        if (data && typeof data === 'object') {
+            form.name = data.name ?? ''
+            form.slug = data.slug ?? ''
+            form.sort_order = data.sort_order ?? 0
+            form.section = data.section ?? ''
+            form.display_type = data.display_type ?? ''
+
+            // 型揺れ（文字列/数値）を統一・ネストされたデータ構造にも対応
+            form.category_id = data.category_id ?? data.content_category_id ?? data.category?.id ?? ''
+            form.parent_id = data.parent_id ?? data.parent_subcategory_id ?? null
+        }
     } catch (error) {
         console.error('データ取得エラー:', error)
         errorMessage.value = 'データの読み込みに失敗しました。'
@@ -205,23 +273,21 @@ const fetchCategory = async () => {
     }
 }
 
-// 2. フォーム更新処理 (PUT)
+// フォーム更新処理 (PUT)
 const handleSubmit = async () => {
     isSubmitting.value = true
     errorMessage.value = ''
 
-    // 表示されているフィールドのみ送信データに含める
     const payload = { name: form.name }
     props.fields.forEach(field => {
         if (field in form) {
-            payload[field] = form[field]
+            payload[field] = (form[field] === '' || form[field] === undefined) ? null : form[field]
         }
     })
 
     try {
         await api.put(props.submitUrl, payload)
 
-        // 成功したら一覧画面等へリダイレクト
         if (props.indexUrl) {
             router.push(props.indexUrl)
         } else {
@@ -229,7 +295,6 @@ const handleSubmit = async () => {
         }
     } catch (error) {
         console.error('更新エラー:', error)
-
         errorMessage.value = error.response?.data?.message
             || error.response?.data?.error
             || '更新に失敗しました。入力内容をご確認ください。'

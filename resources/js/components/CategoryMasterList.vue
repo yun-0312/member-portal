@@ -314,7 +314,7 @@
                                     :to="getRelativePath(sub.show_url)"
                                     class="inline-flex items-center justify-center px-2.5 py-1 text-xs font-semibold text-slate-600 hover:text-indigo-600 hover:bg-white border border-slate-200 rounded-md transition-all cursor-pointer"
                                     >
-                                    編集
+                                    詳細/編集
                                     </router-link>
                                 </td>
                                 </tr>

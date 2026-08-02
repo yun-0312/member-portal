@@ -15,9 +15,9 @@
             <!-- ヘッダー -->
             <div class="flex flex-wrap items-center justify-between gap-4 border-b border-slate-200 pb-4">
                 <div>
-                    <span class="text-xs font-bold text-slate-400 uppercase tracking-wider">コンテンツカテゴリー詳細</span>
+                    <span class="text-xs font-bold text-slate-400 uppercase tracking-wider">サブカテゴリー詳細</span>
                     <h1 class="text-2xl md:text-3xl font-extrabold text-slate-800">
-                        📂 {{ item.name }}
+                        📁 {{ item.name }}
                     </h1>
                 </div>
 
@@ -39,7 +39,7 @@
                     <!-- 🗑️ 削除ボタン -->
                     <button
                         v-if="data.delete_url"
-                        @click="deleteCategory"
+                        @click="deleteSubcategory"
                         :disabled="processing"
                         class="px-3.5 py-2 bg-rose-600 hover:bg-rose-700 text-white text-xs font-semibold rounded-xl shadow-2xs transition-all disabled:opacity-50 cursor-pointer"
                     >
@@ -57,41 +57,26 @@
                         <dd class="col-span-2 font-mono text-slate-700">#{{ item.id }} ({{ item.slug }})</dd>
                     </div>
                     <div class="py-2.5 grid grid-cols-3">
-                        <dt class="text-slate-400">セクション / 表示タイプ</dt>
+                        <dt class="text-slate-400">親カテゴリー</dt>
+                        <dd class="col-span-2 font-medium text-slate-700">
+                            {{ item.category?.name || item.content_category?.name || '未設定' }}
+                        </dd>
+                    </div>
+                    <div class="py-2.5 grid grid-cols-3">
+                        <dt class="text-slate-400">表示タイプ / 並び順</dt>
                         <dd class="col-span-2 space-x-2">
-                            <span class="px-2 py-0.5 bg-slate-100 text-slate-700 rounded text-xs font-mono">{{ item.section }}</span>
-                            <span class="px-2 py-0.5 bg-indigo-50 text-indigo-700 rounded text-xs font-mono">{{ item.display_type }}</span>
+                            <span class="px-2 py-0.5 bg-indigo-50 text-indigo-700 rounded text-xs font-mono">{{ item.display_type || 'default' }}</span>
+                            <span class="px-2 py-0.5 bg-slate-100 text-slate-700 rounded text-xs font-mono">順序: {{ item.sort_order ?? 0 }}</span>
                         </dd>
                     </div>
                 </dl>
-            </div>
-
-            <!-- サブカテゴリー (Subcategories) -->
-            <div class="bg-white rounded-2xl border border-slate-200/80 p-6 shadow-sm space-y-3">
-                <h2 class="text-sm font-bold text-slate-500 uppercase">サブカテゴリー ({{ item.subcategories?.length || 0 }})</h2>
-                <div v-if="item.subcategories && item.subcategories.length > 0" class="divide-y divide-slate-100 border border-slate-100 rounded-xl overflow-hidden">
-                    <div
-                        v-for="sub in item.subcategories"
-                        :key="sub.id"
-                        class="p-3.5 flex items-center justify-between hover:bg-slate-50 transition-colors"
-                    >
-                        <div>
-                            <div class="font-bold text-sm text-slate-800">{{ sub.name }}</div>
-                            <div class="text-xs font-mono text-slate-400">slug: {{ sub.slug }}</div>
-                        </div>
-                        <span class="text-xs font-mono px-2 py-1 bg-slate-100 rounded text-slate-600">
-                            {{ sub.display_type }}
-                        </span>
-                    </div>
-                </div>
-                <div v-else class="text-slate-400 text-xs py-2">サブカテゴリーはありません</div>
             </div>
 
             <!-- 閲覧許可ロール (Roles) の管理エリア -->
             <div class="bg-white rounded-2xl border border-slate-200/80 p-6 shadow-sm space-y-4">
                 <div>
                     <h2 class="text-sm font-bold text-slate-500 uppercase">閲覧対象ロール ({{ assignedRoles.length }})</h2>
-                    <p class="text-xs text-slate-400 mt-0.5">このカテゴリーにアクセス権限を与えるロールを設定します</p>
+                    <p class="text-xs text-slate-400 mt-0.5">このサブカテゴリーにアクセス権限を与えるロールを設定します</p>
                 </div>
 
                 <!-- 設定中ロールバッジ一覧 -->
@@ -153,9 +138,9 @@ const route = useRoute()
 const router = useRouter()
 
 const data = ref({})
-const allRoles = ref([])          // システムに存在するすべてのロール
-const assignedRoles = ref([])     // このカテゴリーに紐づいているロール
-const selectedRoleId = ref('')   // 追加選択されたロールID
+const allRoles = ref([])
+const assignedRoles = ref([])
+const selectedRoleId = ref('')
 const processing = ref(false)
 const message = ref('')
 const messageType = ref('success')
@@ -168,10 +153,10 @@ const availableRoles = computed(() => {
     return allRoles.value.filter(r => !currentIds.includes(r.id))
 })
 
-// 対象カテゴリーに設定されているロール一覧を取得 (GET)
+// 対象サブカテゴリーに設定されているロール一覧を取得 (GET)
 const fetchAssignedRoles = async () => {
     try {
-        const res = await api.get(`/admin/content-categories/${route.params.id}/roles`)
+        const res = await api.get(`/admin/content-subcategories/${route.params.id}/roles`)
         assignedRoles.value = res.data || []
     } catch (error) {
         console.error('紐づきロールの取得に失敗しました:', error)
@@ -181,13 +166,13 @@ const fetchAssignedRoles = async () => {
 // 初期データの読み込み
 const fetchInitialData = async () => {
     try {
-        const [categoryRes, allRolesRes] = await Promise.all([
-            api.get(`/admin/content-categories/${route.params.id}`),
+        const [subcategoryRes, allRolesRes] = await Promise.all([
+            api.get(`/admin/content-subcategories/${route.params.id}`),
             api.get('/admin/roles')
         ])
-        
-        data.value = categoryRes.data
-        // 全ロール一覧のデータ格納（レスポンス形式に応じて調整）
+
+        data.value = subcategoryRes.data
+        // 全ロール一覧のデータ格納
         allRoles.value = allRolesRes.data.roles || allRolesRes.data.data || allRolesRes.data || []
 
         // 紐づいているロールの最新情報を取得
@@ -197,11 +182,11 @@ const fetchInitialData = async () => {
     }
 }
 
-// 🗑️ カテゴリー自体の削除処理
-const deleteCategory = async () => {
+// 🗑️ サブカテゴリー自体の削除処理
+const deleteSubcategory = async () => {
     if (!data.value.delete_url) return
 
-    const confirmMessage = `「${item.value.name || 'このカテゴリー'}」を削除してもよろしいですか？\nこの操作は取り消せません。`
+    const confirmMessage = `「${item.value.name || 'このサブカテゴリー'}」を削除してもよろしいですか？\nこの操作は取り消せません。`
     if (!confirm(confirmMessage)) return
 
     processing.value = true
@@ -209,14 +194,14 @@ const deleteCategory = async () => {
 
     try {
         await api.delete(data.value.delete_url)
-        
-        // 削除成功後、一覧ページへ遷移（index_url が無ければデフォルトの一覧パス）
-        const redirectUrl = data.value.index_url || '/admin/content-categories'
+
+        // 削除成功後、一覧ページへ遷移
+        const redirectUrl = data.value.index_url || '/admin/content-subcategories'
         router.push(redirectUrl)
     } catch (error) {
-        console.error('カテゴリーの削除に失敗しました:', error)
+        console.error('サブカテゴリーの削除に失敗しました:', error)
         messageType.value = 'error'
-        message.value = error.response?.data?.message || 'カテゴリーの削除に失敗しました'
+        message.value = error.response?.data?.message || 'サブカテゴリーの削除に失敗しました'
         processing.value = false
     }
 }
@@ -229,7 +214,7 @@ const addRole = async () => {
     message.value = ''
 
     try {
-        const res = await api.post(`/admin/content-categories/${route.params.id}/roles`, {
+        const res = await api.post(`/admin/content-subcategories/${route.params.id}/roles`, {
             role_id: Number(selectedRoleId.value)
         })
 
@@ -254,7 +239,7 @@ const removeRole = async (roleId) => {
     message.value = ''
 
     try {
-        const res = await api.delete(`/admin/content-categories/${route.params.id}/roles/${roleId}`)
+        const res = await api.delete(`/admin/content-subcategories/${route.params.id}/roles/${roleId}`)
 
         messageType.value = 'success'
         message.value = res.data.message || 'ロールを削除しました'

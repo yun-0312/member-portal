@@ -9,6 +9,20 @@
         </div>
 
         <template v-else>
+            <!-- エラー表示エリア（削除エラー等） -->
+            <div
+                v-if="errorMessage"
+                class="p-4 bg-rose-50 border border-rose-200 rounded-xl text-rose-700 text-sm font-medium flex items-center justify-between gap-3 shadow-2xs"
+            >
+                <div class="flex items-center gap-2">
+                    <span>⚠️</span>
+                    <span>{{ errorMessage }}</span>
+                </div>
+                <button @click="errorMessage = ''" class="text-rose-400 hover:text-rose-600 font-bold text-xs p-1 cursor-pointer">
+                    ✕
+                </button>
+            </div>
+
             <!-- 1. ヘッダーエリア -->
             <div class="flex flex-wrap items-center justify-between gap-4 border-b border-slate-200 pb-4">
                 <div>
@@ -139,6 +153,7 @@ const router = useRouter()
 
 const loading = ref(true)
 const processing = ref(false)
+const errorMessage = ref('')
 const permission = ref({})
 const selectedRoleId = ref('')
 
@@ -234,7 +249,15 @@ const deletePermission = async () => {
         router.push(permission.value.index_url || '/admin/permissions')
     } catch (error) {
         console.error('削除に失敗しました:', error)
-        alert('権限の削除に失敗しました。')
+        if (error.response && error.response.status === 422) {
+            // 例: { message: "使用中のため削除できません", errors: { ... } }
+            errorMessage.value = error.response.data?.message
+                || error.response.data?.error
+                || '使用中のため削除できませんでした。'
+        } else {
+            errorMessage.value = error.response?.data?.message
+                || '権限の削除に失敗しました。'
+        }
     }
 }
 

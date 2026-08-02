@@ -55,9 +55,11 @@ import AdminUserEdit from "../pages/admin/UserEdit.vue";
 import AdminFaqCategoryList from "../pages/admin/FaqCategoryList.vue";
 import AdminFaqCategoryShow from "../pages/admin/FaqCategoryShow.vue";
 import AdminFaqCategoryCreate from "../pages/admin/FaqCategoryCreate.vue";
+import AdminFaqCategoryEdit from "../pages/admin/FaqCategoryEdit.vue";
 import AdminScheduleCategoryList from "../pages/admin/ScheduleCategoryList.vue";
 import AdminScheduleCategoryShow from "../pages/admin/ScheduleCategoryShow.vue";
 import AdminScheduleCategoryCreate from "../pages/admin/ScheduleCategoryCreate.vue";
+import AdminScheduleCategoryEdit from "../pages/admin/ScheduleCategoryEdit.vue";
 import AdminNoticeCategoryList from "../pages/admin/NoticeCategoryList.vue";
 import AdminNoticeCategoryShow from "../pages/admin/NoticeCategoryShow.vue";
 import AdminNoticeCategoryCreate from "../pages/admin/NoticeCategoryCreate.vue";
@@ -65,14 +67,22 @@ import AdminNoticeCategoryEdit from "../pages/admin/NoticeCategoryEdit.vue";
 import AdminPermissionList from "../pages/admin/PermissionList.vue";
 import AdminPermissionShow from "../pages/admin/PermissionShow.vue";
 import AdminPermissionCreate from "../pages/admin/PermissionCreate.vue";
+import AdminPermissionEdit from "../pages/admin/PermissionEdit.vue";
 import AdminRoomList from "../pages/admin/RoomList.vue";
 import AdminRoomShow from "../pages/admin/RoomShow.vue";
 import AdminRoomCreate from "../pages/admin/RoomCreate.vue";
+import AdminRoomEdit from "../pages/admin/RoomEdit.vue";
 import AdminRoleList from "../pages/admin/RoleList.vue";
 import AdminRoleShow from "../pages/admin/RoleShow.vue";
 import AdminRoleCreate from "../pages/admin/RoleCreate.vue";
+import AdminRoleEdit from "../pages/admin/RoleEdit.vue";
 import AdminContentCategoryList from "../pages/admin/ContentCategoryList.vue";
 import AdminContentCategoryShow from "../pages/admin/ContentCategoryShow.vue";
+import AdminContentCategoryCreate from "../pages/admin/ContentCategoryCreate.vue";
+import AdminContentCategoryEdit from "../pages/admin/ContentCategoryEdit.vue";
+import AdminContentSubcategoryShow from "../pages/admin/ContentSubcategoryShow.vue";
+import AdminContentSubcategoryCreate from "../pages/admin/ContentSubcategoryCreate.vue";
+import AdminContentSubcategoryEdit from "../pages/admin/ContentSubcategoryEdit.vue";
 
 import System from "../pages/admin/System.vue";
 
@@ -366,6 +376,11 @@ const routes = [
                 component: AdminFaqCategoryCreate,
             },
             {
+                path: "/admin/faq-categories/:id/edit",
+                name: "admin.FaqCategoryEdit",
+                component: AdminFaqCategoryEdit,
+            },
+            {
                 path: "/admin/schedule-categories",
                 name: "admin.ScheduleCategoryList",
                 component: AdminScheduleCategoryList,
@@ -379,6 +394,11 @@ const routes = [
                 path: "/admin/schedule-categories/create",
                 name: "admin.ScheduleCategoryCreate",
                 component: AdminScheduleCategoryCreate,
+            },
+            {
+                path: "/admin/schedule-categories/:id/edit",
+                name: "admin.ScheduleCategoryEdit",
+                component: AdminScheduleCategoryEdit,
             },
             {
                 path: "/admin/notice-categories",
@@ -416,6 +436,11 @@ const routes = [
                 component: AdminPermissionCreate,
             },
             {
+                path: "/admin/permissions/:id/edit",
+                name: "admin.PermissionEdit",
+                component: AdminPermissionEdit,
+            },
+            {
                 path: "/admin/rooms",
                 name: "admin.RoomList",
                 component: AdminRoomList,
@@ -429,6 +454,11 @@ const routes = [
                 path: "/admin/rooms/create",
                 name: "admin.RoomCreate",
                 component: AdminRoomCreate,
+            },
+            {
+                path: "/admin/rooms/:id/edit",
+                name: "admin.RoomEdit",
+                component: AdminRoomEdit,
             },
             {
                 path: "/admin/roles",
@@ -446,6 +476,11 @@ const routes = [
                 component: AdminRoleCreate,
             },
             {
+                path: "/admin/roles/:id/edit",
+                name: "admin.RoleEdit",
+                component: AdminRoleEdit,
+            },
+            {
                 path: "/admin/content-categories",
                 name: "admin.ContentCategoryList",
                 component: AdminContentCategoryList,
@@ -454,6 +489,31 @@ const routes = [
                 path: "/admin/content-categories/:id",
                 name: "admin.ContentCategoryShow",
                 component: AdminContentCategoryShow,
+            },
+            {
+                path: "/admin/content-categories/create",
+                name: "admin.ContentCategoryCreate",
+                component: AdminContentCategoryCreate,
+            },
+            {
+                path: "/admin/content-categories/:id/edit",
+                name: "admin.ContentCategoryEdit",
+                component: AdminContentCategoryEdit,
+            },
+            {
+                path: "/admin/content-subcategories/:id",
+                name: "admin.ContentSubcategoryShow",
+                component: AdminContentSubcategoryShow,
+            },
+            {
+                path: "/admin/content-subcategories/create",
+                name: "admin.ContentSubcategoryCreate",
+                component: AdminContentSubcategoryCreate,
+            },
+            {
+                path: "/admin/content-subcategories/:id/edit",
+                name: "admin.ContentSubcategoryEdit",
+                component: AdminContentSubcategoryEdit,
             },
         ],
     },

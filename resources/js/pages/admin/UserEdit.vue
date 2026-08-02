@@ -35,7 +35,7 @@
 
         <!-- 入力フォーム -->
         <form v-else @submit.prevent="submitForm" class="bg-white rounded-2xl border border-slate-200 p-6 sm:p-8 shadow-2xs space-y-6">
-            
+
             <!-- 氏名 (name) -->
             <div>
                 <label class="block text-xs sm:text-sm font-bold text-slate-700 mb-2">
@@ -208,8 +208,8 @@ const fetchData = async () => {
 
         // 並列でマスターデータと対象ユーザー情報を取得
         const [rolesRes, instRes, userRes] = await Promise.all([
-            api.get('/admin/roles').catch(() => null),
-            api.get('/admin/medical-institutions').catch(() => null),
+            api.get('/admin/roles?per_page=1000').catch(() => null),
+            api.get('/admin/medical-institutions?per_page=1000').catch(() => null),
             api.get(`/admin/users/${userId}`)
         ])
 

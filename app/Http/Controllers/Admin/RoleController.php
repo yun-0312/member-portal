@@ -20,7 +20,7 @@ class RoleController extends BaseAdminMasterController
         //URLとpermissionを追加するためオーバーライド
     public function show($id) {
         $role = $this->findModel($id);
-        $role->load('permissions');
+        $role->load(['permissions', 'contentCategories', 'noticeCategories']);
 
         return response()->json([
             'role' => [
@@ -30,12 +30,21 @@ class RoleController extends BaseAdminMasterController
                 'update_url' => "/admin/roles/$role->id/edit",
                 'destroy_url' => "/admin/roles/$role->id",
                 'index_url' => '/admin/roles',
-                'add_permission_url' => "/admin/roles/$role->id/permissions",
-                'permissions' => $role->permissions->map(function ($permission) use ($role) {
+                // このロールが紐づいているコンテンツカテゴリー一覧
+                'content_categories' => $role->contentCategories->map(function ($category) {
                     return [
-                        'id' => $permission->id,
-                        'name' => $permission->name,
-                        'remove_url' => "/admin/roles/$role->id/permissions/$permission->id",
+                        'id'       => $category->id,
+                        'name'     => $category->name,
+                        'show_url' => "/admin/content-categories/$category->id",
+                    ];
+                }),
+
+                // このロールが紐づいているお知らせカテゴリー一覧
+                'notice_categories' => $role->noticeCategories->map(function ($category) {
+                    return [
+                        'id'       => $category->id,
+                        'name'     => $category->name,
+                        'show_url' => "/admin/notice-categories/$category->id",
                     ];
                 }),
             ],
