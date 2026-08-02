@@ -288,9 +288,9 @@ erDiagram
 
     %% ===== リレーション =====
 
-    users ||--o{ roles : belongs_to
+    users }o--|| roles : belongs_to
     users ||--o{ medical_institutions : belongs_to
-    users ||--o{ users : approved_by
+    users }o--|| users : approved_by
 
     notices ||--o{ notice_categories : belongs_to
     notices ||--o{ users : created_by
@@ -320,6 +320,10 @@ erDiagram
     role_permissions ||--o{ permissions : belongs_to
 
     role_targetables ||--o{ roles : belongs_to
+
+    files }o--|| notices : fileable
+    files }o--|| contents : fileable
+    files }o--|| videos: fileable
 ```
 ```mermaid
 flowchart LR
@@ -379,11 +383,21 @@ end
 
 faqs --> faq_categories
 
+%% ===== File =====
+subgraph File
+    files[files]
+    notices[notices]
+    contents[contents]
+    videos[videos]
+end
+
+files --> notices
+files --> contents
+files --> videos
+
 %% ===== Others =====
 subgraph Others
     workshops[workshops]
-    videos[videos]
-    files[files]
     role_targetables[role_targetables]
 end
 ```
