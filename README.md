@@ -321,6 +321,9 @@ erDiagram
 
     role_targetables ||--o{ roles : belongs_to
 ```
+- Userは医療機関に所属
+- Contentはカテゴリ・サブカテゴリ構造
+- ScheduleはRecurrenceとOccurrenceで分離
 
 ## URL
 ・会員画面：http://localhost/<br />
