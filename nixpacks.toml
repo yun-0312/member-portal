@@ -1,2 +1,0 @@
-[providers]
-php = { extensions = ["bcmath", "pdo_mysql", "zip", "opcache", "redis", "sodium"] }
