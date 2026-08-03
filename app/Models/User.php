@@ -52,15 +52,12 @@ class User extends Authenticatable
      *
      * @return array<string, string>
      */
-    protected function casts(): array
-    {
-        return [
-            'status' => UserStatus::class,
-            'email_verified_at' => 'datetime',
-            'password' => 'hashed',
-            'status' => UserStatus::class,
-        ];
-    }
+    protected $casts = [
+        'status' => UserStatus::class,
+        'email_verified_at' => 'datetime',
+        'approved_at' => 'datetime',
+        'password' => 'hashed',
+    ];
 
     public function isAdmin(): bool {
         return $this->role?->name === 'admin';
