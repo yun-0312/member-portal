@@ -105,8 +105,8 @@
                     <h3 class="text-xs font-bold text-slate-400 uppercase tracking-wider mb-2">概要・説明</h3>
                     <div
                         v-if="video.description"
-                        v-html="video.description"
-                        class="prose prose-slate prose-sm max-w-none text-slate-700 leading-relaxed break-words [word-break:break-word] [&_img]:max-w-full [&_img]:h-auto [&_img]:rounded-xl [&_a]:text-blue-600 [&_a]:underline [&_table]:block [&_table]:max-w-full [&_table]:overflow-x-auto [&_iframe]:max-w-full [&_pre]:max-w-full [&_pre]:overflow-x-auto"
+                        v-html="formatDescription(video.description)"
+                        class="prose prose-slate prose-sm max-w-none text-slate-700 leading-relaxed break-words [word-break:break-word] [&_img]:max-w-full [&_img]:h-auto [&_img]:rounded-xl [&_a]:text-blue-600 [&_a]:underline [&_a]:break-all [&_table]:block [&_table]:max-w-full [&_table]:overflow-x-auto [&_iframe]:max-w-full [&_pre]:max-w-full [&_pre]:overflow-x-auto"
                     ></div>
                     <p v-else class="text-sm text-slate-400 italic">説明はありません。</p>
                 </div>
@@ -447,6 +447,23 @@ const formatDate = (dateString) => {
         day: '2-digit',
         hour: '2-digit',
         minute: '2-digit'
+    })
+}
+
+const formatDescription = (text) => {
+    if (!text) return ''
+
+    const rawUrlRegex = /(?<!href="|src="|ref="|">)(https?:\/\/[^\s<"']+)/g
+
+    return text.replace(rawUrlRegex, (url) => {
+        const cleanUrl = url.trim()
+        const isImage = /\.(jpg|jpeg|png|gif|webp)(\?.*)?$/i.test(cleanUrl)
+
+        if (isImage) {
+            return `<img src="${cleanUrl}" alt="挿入画像" class="my-3 max-w-full max-h-96 border border-slate-200 shadow-sm object-cover rounded-xl" />`
+        } else {
+            return `<a href="${cleanUrl}" target="_blank" rel="noopener noreferrer" class="text-blue-600 hover:underline font-medium break-all" onclick="event.stopPropagation()">${cleanUrl}</a>`
+        }
     })
 }
 

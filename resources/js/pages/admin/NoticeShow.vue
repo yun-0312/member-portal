@@ -87,7 +87,7 @@
             <!-- 本文 -->
             <div class="p-6 md:p-8 overflow-hidden">
                 <div
-                    class="prose prose-slate prose-sm md:prose-base max-w-none text-slate-700 leading-relaxed break-words [word-break:break-word] [&_img]:max-w-full [&_img]:h-auto [&_table]:block [&_table]:max-w-full [&_table]:overflow-x-auto [&_iframe]:max-w-full [&_pre]:max-w-full [&_pre]:overflow-x-auto"
+                    class="prose prose-slate prose-sm md:prose-base max-w-none text-slate-700 leading-relaxed break-words [word-break:break-word] [&_a]:text-blue-600 [&_a]:underline [&_a]:break-all [&_img]:max-w-full [&_img]:h-auto [&_table]:block [&_table]:max-w-full [&_table]:overflow-x-auto [&_iframe]:max-w-full [&_pre]:max-w-full [&_pre]:overflow-x-auto"
                     v-html="formatBody(noticeData.item.body)"
                 ></div>
             </div>
@@ -397,19 +397,14 @@ const downloadFile = async (file) => {
 const formatBody = (text) => {
     if (!text) return ''
 
-    // すでに HTML タグ（<p> や <img>）が含まれている場合はそのまま返す
-    if (/<[a-z][\s\S]*>/i.test(text)) {
-        return text
-    }
+    const rawUrlRegex = /(?<!href="|src="|ref="|">)(https?:\/\/[^\s<"']+)/g
 
-    // 古いプレーンテキストの場合は URL を自動で <a> タグ化して表示
-    const urlRegex = /(https?:\/\/[^\s<]+)/g
-    return text.replace(urlRegex, (url) => {
+    return text.replace(rawUrlRegex, (url) => {
         const cleanUrl = url.trim()
         const isImage = /\.(jpg|jpeg|png|gif|webp)(\?.*)?$/i.test(cleanUrl)
 
         if (isImage) {
-            return `<img src="${cleanUrl}" alt="挿入画像" class="my-3 max-h-96 border border-slate-200 shadow-sm object-cover rounded-xl" />`
+            return `<img src="${cleanUrl}" alt="挿入画像" class="my-3 max-h-96 border border-slate-200 shadow-xs object-cover rounded-xl" />`
         } else {
             return `<a href="${cleanUrl}" target="_blank" rel="noopener noreferrer" class="text-blue-600 hover:underline font-medium break-all">${cleanUrl}</a>`
         }

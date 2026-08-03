@@ -126,7 +126,7 @@
 
                             <!-- 本文 -->
                             <div
-                                class="prose prose-slate prose-sm max-w-none text-slate-600 leading-relaxed break-words overflow-hidden [word-break:break-word] [&_img]:max-w-full [&_img]:h-auto [&_table]:block [&_table]:overflow-x-auto [&_iframe]:max-w-full [&_pre]:max-w-full [&_pre]:overflow-x-auto"
+                                class="prose prose-slate prose-sm max-w-none text-slate-600 leading-relaxed break-words overflow-hidden [word-break:break-word] [&_a]:text-blue-600 [&_a]:underline [&_a]:break-all [&_img]:max-w-full [&_img]:h-auto [&_table]:block [&_table]:overflow-x-auto [&_iframe]:max-w-full [&_pre]:max-w-full [&_pre]:overflow-x-auto"
                                 v-html="formatBodyWithLinks(notice.body)"
                             ></div>
 
@@ -317,20 +317,16 @@ onMounted(() => {
 const formatBodyWithLinks = (text) => {
     if (!text) return ''
 
-    // すでに HTML タグ（<p> や <img>）が含まれている場合はそのまま描画
-    if (/<[a-z][\s\S]*>/i.test(text)) {
-        return text
-    }
+    const rawUrlRegex = /(?<!href="|src="|ref="|">)(https?:\/\/[^\s<"']+)/g
 
-    // プレーンテキストデータの場合は URL を自動リンク化
-    const urlRegex = /(https?:\/\/[^\s<]+)/g
-    return text.replace(urlRegex, (url) => {
-        const isImage = /\.(jpg|jpeg|png|gif|webp)(\?.*)?$/i.test(url)
+    return text.replace(rawUrlRegex, (url) => {
+        const cleanUrl = url.trim()
+        const isImage = /\.(jpg|jpeg|png|gif|webp)(\?.*)?$/i.test(cleanUrl)
 
         if (isImage) {
-            return `<img src="${url}" alt="挿入画像" class="my-3 max-w-full max-h-96 border border-slate-200 shadow-sm object-cover rounded-xl" />`
+            return `<img src="${cleanUrl}" alt="挿入画像" class="my-3 max-w-full max-h-96 border border-slate-200 shadow-sm object-cover rounded-xl" />`
         } else {
-            return `<a href="${url}" target="_blank" rel="noopener noreferrer" class="text-blue-600 hover:underline font-medium break-all" onclick="event.stopPropagation()">${url}</a>`
+            return `<a href="${cleanUrl}" target="_blank" rel="noopener noreferrer" class="text-blue-600 hover:underline font-medium break-all" onclick="event.stopPropagation()">${cleanUrl}</a>`
         }
     })
 }

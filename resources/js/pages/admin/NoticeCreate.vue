@@ -291,6 +291,26 @@ const fetchMasterData = async () => {
     }
 }
 
+// 該当カテゴリ一覧ページへのリダイレクト処理
+const redirectToCategoryList = () => {
+    const categoryId = form.category_id
+
+    // 選択されたカテゴリのオブジェクトを検索
+    const selectedCategory = categories.value.find(c => c.id === Number(categoryId) || c.id === categoryId)
+
+    // slug や code があれば優先して使用し、無ければ ID を使用
+    const categoryParam = selectedCategory?.slug || selectedCategory?.code || categoryId
+
+    if (categoryParam) {
+        router.push({
+            path: '/admin/notices',
+            query: { category: categoryParam }
+        })
+    } else {
+        router.push('/admin/notices')
+    }
+}
+
 // メディアライブラリで画像が選択された時の処理
 const handleSelectImage = (file) => {
     if (file && file.url) {
@@ -361,7 +381,7 @@ const handleSubmit = async () => {
             }
         })
         alert('お知らせを登録しました！')
-        router.push('/admin/notices')
+        redirectToCategoryList()
     } catch (error) {
         console.error('登録処理に失敗しました:', error)
         if (error.response?.status === 422) {

@@ -118,8 +118,8 @@
 
                             <!-- 説明文（カード側は line-clamp-3 で長さを綺麗に揃える） -->
                             <div
-                            class="prose prose-slate prose-xs max-w-none text-slate-600 leading-relaxed line-clamp-3"
-                            v-html="formatDescription(video.description)"
+                                class="prose prose-slate prose-xs max-w-none text-slate-600 leading-relaxed line-clamp-3 [&_a]:text-blue-600 [&_a]:underline [&_a]:break-all"
+                                v-html="formatDescription(video.description)"
                             ></div>
                         </div>
 
@@ -510,24 +510,18 @@ const getNextPageUrl = () => {
 const formatDescription = (text) => {
     if (!text) return ''
 
-    if (/<[a-z][\s\S]*>/i.test(text)) {
-        return text
-    }
+    const rawUrlRegex = /(?<!href="|src="|ref="|">)(https?:\/\/[^\s<"']+)/g
 
-    const escapedText = text
-        .replace(/&/g, '&amp;')
-        .replace(/</g, '&lt;')
-        .replace(/>/g, '&gt;')
-        .replace(/"/g, '&quot;')
-        .replace(/'/g, '&#039;')
+    return text.replace(rawUrlRegex, (url) => {
+        const cleanUrl = url.trim()
+        const isImage = /\.(jpg|jpeg|png|gif|webp)(\?.*)?$/i.test(cleanUrl)
 
-    const urlRegex = /(https?:\/\/[^\s<]+)/g
-
-    const linkedText = escapedText.replace(urlRegex, (url) => {
-        return `<a href="${url}" target="_blank" rel="noopener noreferrer" class="text-blue-600 hover:underline font-medium break-all" onclick="event.stopPropagation()">${url}</a>`
+        if (isImage) {
+            return `<img src="${cleanUrl}" alt="挿入画像" class="my-3 max-w-full max-h-96 border border-slate-200 shadow-sm object-cover rounded-xl" />`
+        } else {
+            return `<a href="${cleanUrl}" target="_blank" rel="noopener noreferrer" class="text-blue-600 hover:underline font-medium break-all" onclick="event.stopPropagation()">${cleanUrl}</a>`
+        }
     })
-
-    return linkedText.replace(/\n/g, '<br>')
 }
 
 const formatDate = (dateString) => {

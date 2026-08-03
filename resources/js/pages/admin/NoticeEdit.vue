@@ -448,7 +448,6 @@ const handleSubmit = async () => {
     const id = route.params.id
     const formData = new FormData()
 
-    // 💡 Laravelなどの疑似メソッド指定（PATCH）
     formData.append('_method', 'PATCH')
 
     if (form.category_id) formData.append('category_id', form.category_id)
@@ -480,32 +479,33 @@ const handleSubmit = async () => {
         })
     }
 
+    const redirectToCategoryList = () => {
+        const categoryId = form.category_id
+
+        const selectedCategory = categories.value.find(c => c.id === Number(categoryId) || c.id === categoryId)
+
+        const categoryParam = selectedCategory?.slug || selectedCategory?.code || categoryId
+
+        if (categoryParam) {
+            router.push({
+                path: '/admin/notices',
+                query: { category: categoryParam }
+            })
+        } else {
+            router.push('/admin/notices')
+        }
+    }
+
     try {
-        // 💡 サーバーのルーティングに合わせて api.post ではなく api.patch または api.post を調整
-        // FormData でファイルアップロードを行う場合、_method: PATCH を入れた上で POST 送信するのが一般的です
         await api.post(`/admin/notices/${id}`, formData, {
             headers: {
                 'Content-Type': 'multipart/form-data'
             }
         })
         alert('お知らせを更新しました！')
-        router.push('/admin/notices')
+        redirectToCategoryList()
     } catch (error) {
         console.error('更新処理に失敗しました:', error)
-
-        // 💡 もし POST + _method: PATCH でも 405 になる場合は api.patch で直接送信を試すフォールバック処理
-        if (error.response?.status === 405) {
-            try {
-                await api.patch(`/admin/notices/${id}`, formData, {
-                    headers: { 'Content-Type': 'multipart/form-data' }
-                })
-                alert('お知らせを更新しました！')
-                router.push('/admin/notices')
-                return
-            } catch (patchError) {
-                console.error('PATCHでの直接送信も失敗:', patchError)
-            }
-        }
 
         if (error.response?.status === 422) {
             errors.value = error.response.data.errors || {}

@@ -18,6 +18,7 @@
         "symfony/css-selector": "^7.0"
     },
     "require-dev": {
+        "laravel-lang/common": "^6.8",
         "laravel/pint": "^1.0",
         "laravel/sail": "^1.63",
         "mockery/mockery": "^1.4.4",
