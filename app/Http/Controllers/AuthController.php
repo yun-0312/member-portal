@@ -24,6 +24,8 @@ class AuthController extends Controller
             ], 401);
         }
 
+        $user = $result['user'];
+
         //メール認証チェック
         if (!$result['user']->hasVerifiedEmail()) {
             return response()->json([
@@ -32,7 +34,7 @@ class AuthController extends Controller
         }
 
         // 2. 管理者承認チェック（approved_at または status で判定）
-        if (is_null($user->approved_at) || $user->status !== UserStatus::Approved) {
+        if (is_null($user->approved_at) || $user->status !== UserStatus::Active) {
             return response()->json([
                 'message' => 'アカウントがまだ承認されていません。管理者の承認をお待ちください。',
             ], 403);
@@ -79,7 +81,7 @@ class AuthController extends Controller
         $user->sendEmailVerificationNotification();
 
         return response()->json([
-            'message' => '登録が完了しました。承認をお待ちください。',
+            'message' => '登録が完了しました。メール認証後、管理者による承認をお待ちください。',
             'user' => $user,
         ], 201);
     }
