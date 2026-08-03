@@ -192,7 +192,7 @@ class UserController extends Controller
                 $user->name,
                 $user->email,
                 optional($user->role)->name,
-                $user->status,
+                $user->status instanceof \App\Enums\UserStatus ? $user->status->value : $user->status,
                 optional($user->medicalInstitution)->name,
                 $user->approved_at,
                 optional($user->approvedBy)->name,

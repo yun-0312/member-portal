@@ -169,13 +169,17 @@ RBAC の観点から、<br />
   ・Production/API: Railway / Resend<br />
 
 ## テスト
-現在 Feature / Unit テストを追加構築中です。<br />
+バックエンド（PHPUnit）およびフロントエンド（Vitest）の単体・機能テストを構築しています。<br />
+現在は主にログインや認証関係のテストに絞っています。今後、Feature / Unit テストを追加構築中です。<br />
 
-### テストの実行方法
+### バックエンドテスト (PHPUnit / Feature & Unit)
 ``` bash
 ./vendor/bin/sail artisan test
 ```
-
+### フロントエンドテスト (Vitest / Vue 3)
+``` bash
+./vendor/bin/sail npm run test:vue
+```
 ## ER図
 ```mermaid
 erDiagram

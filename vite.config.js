@@ -10,6 +10,11 @@ export default defineConfig({
         }),
         vue(),
     ],
+    test: {
+        globals: true,
+        environment: "jsdom",
+        include: ["resources/js/tests/**/*.test.js"],
+    },
     server: {
         host: "0.0.0.0",
         hmr: {

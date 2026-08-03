@@ -33,7 +33,7 @@ class AuthController extends Controller
             ], 403);
         }
 
-        // 2. 管理者承認チェック（approved_at または status で判定）
+        // 管理者承認チェック（approved_at または status で判定）
         if (is_null($user->approved_at) || $user->status !== UserStatus::Active) {
             return response()->json([
                 'message' => 'アカウントがまだ承認されていません。管理者の承認をお待ちください。',
