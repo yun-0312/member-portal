@@ -58,6 +58,7 @@ class User extends Authenticatable
             'status' => UserStatus::class,
             'email_verified_at' => 'datetime',
             'password' => 'hashed',
+            'status' => UserStatus::class,
         ];
     }
 
