@@ -323,38 +323,83 @@
 
             <div class="h-4 w-px bg-slate-300 mx-0.5"></div>
 
-            <!--  文字色選択パレット -->
-            <div class="flex items-center gap-1 px-1 py-0.5 bg-slate-200/60 rounded-xl">
-                <!-- パレット（プリセットカラー） -->
-                <button
-                    v-for="color in presetColors"
-                    :key="color"
-                    type="button"
-                    @click="editor.chain().focus().setColor(color).run()"
-                    class="w-5 h-5 rounded-full border border-black/10 hover:scale-110 transition-transform cursor-pointer shadow-xs"
-                    :style="{ backgroundColor: color }"
-                    :title="`文字色: ${color}`"
-                ></button>
-
-                <!-- カスタムカラーピッカー -->
-                <label class="relative w-5 h-5 rounded-full border border-slate-300 overflow-hidden cursor-pointer hover:scale-110 transition-transform flex items-center justify-center bg-white" title="自由な色を選択">
-                    <span class="text-[9px] font-bold text-slate-500">🎨</span>
-                    <input
-                        type="color"
-                        @input="editor.chain().focus().setColor($event.target.value).run()"
-                        class="absolute inset-0 opacity-0 cursor-pointer w-full h-full"
-                    />
-                </label>
-
-                <!-- 色解除（デフォルトに戻す） -->
+            <!-- 文字色ツール -->
+            <div class="relative inline-block text-left">
+                <!-- 1. メインボタン -->
                 <button
                     type="button"
-                    @click="editor.chain().focus().unsetColor().run()"
-                    class="px-1.5 py-0.5 text-[10px] text-slate-500 hover:text-slate-800 transition-colors font-bold"
-                    title="色を解除"
+                    @click="showColorMenu = !showColorMenu"
+                    :class="[
+                        'px-2 py-1.5 rounded-lg hover:bg-slate-200 transition-colors flex items-center gap-1 cursor-pointer font-bold text-xs',
+                        showColorMenu ? 'bg-slate-200 text-blue-600' : 'text-slate-700'
+                    ]"
+                    title="文字色設定"
                 >
-                    ✕
+                    <span class="flex items-center gap-1">
+                        🎨
+                        <!-- 選択中の文字色を示すアンダーバー -->
+                        <span class="w-3 h-1 rounded-full border border-black/10" :style="{ backgroundColor: currentColor }"></span>
+                    </span>
+                    <span class="text-[9px] text-slate-400">▼</span>
                 </button>
+
+                <!-- 背景クリックで閉じる透明オーバーレイ -->
+                <div
+                    v-if="showColorMenu"
+                    @click="showColorMenu = false"
+                    class="fixed inset-0 z-10 cursor-default"
+                ></div>
+
+                <!-- 2. ポップアップ設定メニュー -->
+                <div
+                    v-if="showColorMenu"
+                    class="absolute left-0 mt-1 z-20 w-56 p-2.5 bg-white rounded-xl shadow-xl border border-slate-200 text-xs animate-in fade-in zoom-in-95 duration-100 flex flex-col gap-2.5"
+                >
+                    <div>
+                        <span class="text-[11px] text-slate-500 font-medium block mb-1.5">文字色を選択</span>
+                        <!-- プリセットカラーグリッド（5列） -->
+                        <div class="grid grid-cols-5 gap-1.5 bg-slate-50 p-2 rounded-lg">
+                            <button
+                                v-for="color in presetColors"
+                                :key="color"
+                                type="button"
+                                @click="selectColor(color)"
+                                class="w-6 h-6 rounded-full border border-black/10 hover:scale-110 transition-transform cursor-pointer shadow-xs flex items-center justify-center mx-auto"
+                                :style="{ backgroundColor: color }"
+                                :title="`文字色: ${color}`"
+                            >
+                                <span v-if="currentColor === color" class="w-1.5 h-1.5 rounded-full bg-white shadow-xs"></span>
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- 自由色ピッカー -->
+                    <div class="flex items-center justify-between gap-2">
+                        <span class="text-[11px] text-slate-500 font-medium">自由な色を選択</span>
+                        <label class="relative w-6 h-6 rounded-full border border-slate-300 overflow-hidden cursor-pointer hover:scale-110 transition-transform flex items-center justify-center bg-white shadow-xs" title="カスタムカラー">
+                            <span class="text-[10px]">🎨</span>
+                            <input
+                                type="color"
+                                :value="currentColor"
+                                @input="selectColor($event.target.value)"
+                                class="absolute inset-0 opacity-0 cursor-pointer w-full h-full"
+                            />
+                        </label>
+                    </div>
+
+                    <hr class="border-slate-100 my-0.5" />
+
+                    <!-- 色を解除ボタン -->
+                    <div class="flex items-center justify-between gap-2">
+                        <button
+                            type="button"
+                            @click="clearColor"
+                            class="w-full py-1 text-[11px] text-slate-500 hover:text-slate-800 hover:bg-slate-100 rounded transition-colors text-center"
+                        >
+                            文字色をリセット（既定色へ）
+                        </button>
+                    </div>
+                </div>
             </div>
 
             <button
@@ -481,6 +526,7 @@ const openMediaModal = () => {
 const showLinkInput = ref(false)
 const linkUrl = ref('')
 const linkInputRef = ref(null)
+const showColorMenu = ref(false)
 const showColorPicker = ref(false)
 const rawHtml = ref('')
 const isHtmlMode = ref(false)
@@ -488,6 +534,7 @@ const showUnderlineMenu = ref(false)
 const underlineStyle = ref('solid')
 const underlineColor = ref('#000000')
 const underlineThickness = ref('2px')
+
 
 const editor = useEditor({
     content: props.modelValue,
@@ -646,13 +693,13 @@ const currentColor = computed(() => {
 const selectColor = (color) => {
     if (!editor.value) return
     editor.value.chain().focus().setColor(color).run()
-    showColorPicker.value = false
+    showColorMenu.value = FinalizationRegistry
 }
 
 const clearColor = () => {
     if (!editor.value) return
     editor.value.chain().focus().unsetColor().run()
-    showColorPicker.value = false
+    showColorMenu.value = false
 }
 
 // 現在選択中の見出しレベル

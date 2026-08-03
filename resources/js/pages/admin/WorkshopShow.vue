@@ -92,10 +92,10 @@
                     </div>
 
                     <!-- 詳細・説明 (description) -->
-                    <div class="space-y-2 pt-2">
+                    <div class="space-y-2 pt-2 overflow-hidden">
                         <h3 class="text-xs font-bold text-slate-400 uppercase tracking-wider">詳細・説明</h3>
                         <div
-                            class="prose prose-slate prose-sm max-w-none text-slate-700 leading-relaxed bg-white p-4 rounded-xl border border-slate-200"
+                            class="prose prose-slate prose-sm max-w-none text-slate-700 leading-relaxed bg-white p-4 rounded-xl border border-slate-200 break-words [word-break:break-word] [&_img]:max-w-full [&_img]:h-auto [&_table]:block [&_table]:max-w-full [&_table]:overflow-x-auto [&_iframe]:max-w-full [&_pre]:max-w-full [&_pre]:overflow-x-auto"
                             v-html="formatDescription(item.description)"
                         ></div>
                     </div>

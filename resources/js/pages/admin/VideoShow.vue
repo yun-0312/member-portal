@@ -101,12 +101,12 @@
                 </span>
                 </div>
 
-                <div class="border-t border-slate-100 pt-4">
+                <div class="border-t border-slate-100 pt-4 overflow-hidden">
                     <h3 class="text-xs font-bold text-slate-400 uppercase tracking-wider mb-2">概要・説明</h3>
                     <div
                         v-if="video.description"
                         v-html="video.description"
-                        class="text-sm text-slate-700 leading-relaxed space-y-2 [&_img]:max-w-full [&_img]:h-auto [&_img]:rounded-xl [&_a]:text-blue-600 [&_a]:underline"
+                        class="prose prose-slate prose-sm max-w-none text-slate-700 leading-relaxed break-words [word-break:break-word] [&_img]:max-w-full [&_img]:h-auto [&_img]:rounded-xl [&_a]:text-blue-600 [&_a]:underline [&_table]:block [&_table]:max-w-full [&_table]:overflow-x-auto [&_iframe]:max-w-full [&_pre]:max-w-full [&_pre]:overflow-x-auto"
                     ></div>
                     <p v-else class="text-sm text-slate-400 italic">説明はありません。</p>
                 </div>

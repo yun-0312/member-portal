@@ -102,11 +102,11 @@
             </div>
 
             <!-- 概要本文（長文・HTML対応） -->
-            <div class="space-y-2">
+            <div class="space-y-2 overflow-hidden">
                 <h2 class="text-sm font-bold text-slate-400 uppercase tracking-wider">概要</h2>
                 <div
-                class="prose prose-slate prose-sm max-w-none text-slate-700 leading-relaxed [&_img]:max-w-full [&_img]:h-auto [&_img]:rounded-xl [&_a]:text-blue-600 [&_a]:underline"
-                v-html="formatDescription(video.description)"
+                    class="prose prose-slate prose-sm max-w-none text-slate-700 leading-relaxed break-words [word-break:break-word] [&_img]:max-w-full [&_img]:h-auto [&_img]:rounded-xl [&_a]:text-blue-600 [&_a]:underline [&_table]:block [&_table]:max-w-full [&_table]:overflow-x-auto [&_iframe]:max-w-full [&_pre]:max-w-full [&_pre]:overflow-x-auto"
+                    v-html="formatDescription(video.description)"
                 ></div>
             </div>
 

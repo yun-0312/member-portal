@@ -71,7 +71,7 @@
 
           <!-- 概要テキスト -->
           <div
-              class="prose prose-slate prose-xs max-w-none text-slate-600 leading-relaxed [&_img]:max-w-full [&_img]:h-auto [&_img]:rounded-xl [&_a]:text-blue-600 [&_a]:underline"
+              class="prose prose-slate prose-xs max-w-none text-slate-600 leading-relaxed break-words overflow-hidden [word-break:break-word] [&_img]:max-w-full [&_img]:h-auto [&_img]:rounded-xl [&_a]:text-blue-600 [&_a]:underline [&_table]:block [&_table]:max-w-full [&_table]:overflow-x-auto [&_iframe]:max-w-full [&_pre]:max-w-full [&_pre]:overflow-x-auto"
               v-html="formatDescription(workshop.description)"
           ></div>
 
