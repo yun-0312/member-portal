@@ -400,7 +400,7 @@ Route::middleware(['auth:sanctum'])->prefix('admin')->group(function () {
             ->name('admin.users.options');
         Route::get('/representatives', [AdminUserController::class, 'representatives'])
             ->middleware('permission:user.update')
-            ->name('admin.users.options');
+            ->name('admin.users.representatives');
         Route::get('/{user}', [AdminUserController::class, 'show'])
             ->name('admin.users.show');
         Route::post('/', [AdminUserController::class, 'store'])
