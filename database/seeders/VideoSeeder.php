@@ -28,7 +28,7 @@ class VideoSeeder extends Seeder
         ]);
 
         // 動画データの作成（5件）
-        $videos = Video::factory()->count(20)->create();
+        $videos = Video::factory()->count(5)->create();
 
         //  3. attach ではなく sync を使って安全に権限を同期
         foreach ($videos as $video) {

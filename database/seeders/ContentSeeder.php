@@ -39,7 +39,7 @@ class ContentSeeder extends Seeder
             $subcategories = ContentSubcategory::where('category_id', $committeeCategory->id)->get();
 
             foreach ($subcategories as $sub) {
-                for ($i = 1; $i <= 60; $i++) {
+                for ($i = 1; $i <= 20; $i++) {
                     $content = Content::factory()->create([
                         'category_id'    => $committeeCategory->id,
                         'subcategory_id' => $sub->id,
@@ -60,7 +60,7 @@ class ContentSeeder extends Seeder
             $subcategories = ContentSubcategory::where('category_id', $fourMedicalAssociationCategory->id)->get();
 
             foreach ($subcategories as $sub) {
-                for ($i = 1; $i <= 60; $i++) {
+                for ($i = 1; $i <= 20; $i++) {
                     $content = Content::factory()->create([
                         'category_id'    => $fourMedicalAssociationCategory->id,
                         'subcategory_id' => $sub->id,
@@ -78,7 +78,7 @@ class ContentSeeder extends Seeder
         // --- 3. 理事会 ---
         $boardCategory = ContentCategory::where('slug', 'board-news')->first();
         if ($boardCategory) {
-            for ($i = 1; $i <= 60; $i++) {
+            for ($i = 1; $i <= 20; $i++) {
                 $content = Content::factory()->create([
                     'category_id'     => $boardCategory->id,
                     'subcategory_id'  => null,
@@ -185,7 +185,7 @@ class ContentSeeder extends Seeder
 
                 if ($subcategories->count() > 0) {
                     foreach ($subcategories as $sub) {
-                        for ($i = 1; $i <= 50; $i++) {
+                        for ($i = 1; $i <= 10; $i++) {
                             $content = Content::factory()->create([
                                 'category_id'    => $category->id,
                                 'subcategory_id' => $sub->id,
@@ -199,7 +199,7 @@ class ContentSeeder extends Seeder
                         }
                     }
                 } else {
-                    for ($i = 1; $i <= 50; $i++) {
+                    for ($i = 1; $i <= 10; $i++) {
                         $content = Content::factory()->create([
                             'category_id'    => $category->id,
                             'subcategory_id' => null,
