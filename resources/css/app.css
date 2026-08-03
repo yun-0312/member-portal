@@ -1,1 +1,142 @@
 @import "tailwindcss";
+
+/* Tiptap (ResizeImage / TextAlign) の表示共通スタイル */
+.editor-content img[containerstyle],
+.editor-content img[wrapperstyle],
+.prose img[containerstyle],
+.prose img[wrapperstyle] {
+    display: block;
+    max-width: 100%;
+    height: auto;
+}
+
+/* 中央寄せ */
+.editor-content img[containerstyle*="margin: 0px auto"],
+.editor-content img[wrapperstyle*="margin: 0px auto"],
+.editor-content img[containerstyle*="margin: auto"],
+.editor-content img[wrapperstyle*="margin: auto"],
+.prose img[containerstyle*="margin: 0px auto"],
+.prose img[wrapperstyle*="margin: 0px auto"] {
+    margin-left: auto !important;
+    margin-right: auto !important;
+}
+
+/* 右寄せ */
+.editor-content img[containerstyle*="margin-left: auto"],
+.editor-content img[wrapperstyle*="margin-left: auto"],
+.prose img[containerstyle*="margin-left: auto"],
+.prose img[wrapperstyle*="margin-left: auto"] {
+    margin-left: auto !important;
+    margin-right: 0 !important;
+}
+
+/* 左寄せ */
+.editor-content img[containerstyle*="margin-right: auto"],
+.editor-content img[wrapperstyle*="margin-right: auto"],
+.prose img[containerstyle*="margin-right: auto"],
+.prose img[wrapperstyle*="margin-right: auto"] {
+    margin-left: 0 !important;
+    margin-right: auto !important;
+}
+
+/* ========================================================
+   Tiptap リスト共通スタイル & 中央揃え・右揃え完全対応
+   ======================================================== */
+
+.tiptap ul,
+.editor-content ul,
+.prose ul {
+    list-style-type: disc !important;
+    padding-left: 1.5rem;
+    margin: 0.5rem 0;
+}
+
+.tiptap ol,
+.editor-content ol,
+.prose ol {
+    list-style-type: decimal !important;
+    padding-left: 1.5rem;
+    margin: 0.5rem 0;
+}
+
+.tiptap li,
+.editor-content li,
+.prose li {
+    margin-bottom: 0.25rem;
+}
+
+/* リストの中央揃え対応 (全てのHTML構造パターンに対応)*/
+
+/* ★ 重要：li 内の p 要素（Tiptapが自動挿入するタグ）が改行されないようにインライン化 */
+ul:has([style*="text-align: center"]) li,
+ol:has([style*="text-align: center"]) li,
+li[style*="text-align: center"] {
+    list-style-position: inside !important;
+    text-align: center !important;
+}
+
+/* Tiptapの li の中の p タグを inline 化して「番号 ＋ 本文」を横並びで1行にする */
+ul:has([style*="text-align: center"]) li > p,
+ol:has([style*="text-align: center"]) li > p,
+ul:has([style*="text-align: right"]) li > p,
+ol:has([style*="text-align: right"]) li > p,
+li[style*="text-align: center"] > p,
+li[style*="text-align: right"] > p {
+    display: inline !important; /* 👈 これで番号の後の改行を防ぎます！ */
+}
+
+/* 2. 右揃え時 */
+.tiptap ul[style*="text-align: right"],
+.tiptap ol[style*="text-align: right"],
+.editor-content ul[style*="text-align: right"],
+.editor-content ol[style*="text-align: right"],
+.prose ul[style*="text-align: right"],
+.prose ol[style*="text-align: right"],
+ul:has([style*="text-align: right"]),
+ol:has([style*="text-align: right"]) {
+    list-style-position: inside !important;
+    padding-left: 0 !important;
+    text-align: right !important;
+}
+
+ul:has([style*="text-align: right"]) li,
+ol:has([style*="text-align: right"]) li,
+li[style*="text-align: right"] {
+    list-style-position: inside !important;
+    text-align: right !important;
+}
+
+@layer base {
+    /* サイト全体＆エディタ内の見出しデザインを一括定義 */
+    h1 {
+        font-size: 1.875rem !important; /* 30px */
+        font-weight: 800 !important;
+        line-height: 1.25 !important;
+        margin-top: 1.5rem !important;
+        margin-bottom: 0.75rem !important;
+    }
+
+    h2 {
+        font-size: 1.5rem !important; /* 24px */
+        font-weight: 700 !important;
+        line-height: 1.33 !important;
+        margin-top: 1.25rem !important;
+        margin-bottom: 0.5rem !important;
+    }
+
+    h3 {
+        font-size: 1.25rem !important; /* 20px */
+        font-weight: 700 !important;
+        line-height: 1.4 !important;
+        margin-top: 1rem !important;
+        margin-bottom: 0.5rem !important;
+    }
+
+    h4 {
+        font-size: 1.125rem !important; /* 18px */
+        font-weight: 600 !important;
+        line-height: 1.4 !important;
+        margin-top: 0.75rem !important;
+        margin-bottom: 0.25rem !important;
+    }
+}

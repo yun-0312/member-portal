@@ -18,12 +18,18 @@
     "dependencies": {
         "@holiday-jp/holiday_jp": "^2.5.1",
         "@tiptap/extension-bubble-menu": "^3.29.2",
+        "@tiptap/extension-color": "^3.29.2",
         "@tiptap/extension-image": "^3.29.2",
+        "@tiptap/extension-link": "^3.29.2",
         "@tiptap/extension-placeholder": "^3.29.2",
+        "@tiptap/extension-text-align": "^3.29.2",
+        "@tiptap/extension-text-style": "^3.29.2",
         "@tiptap/pm": "^3.29.2",
         "@tiptap/starter-kit": "^3.29.2",
+        "@tiptap/suggestion": "^3.29.2",
         "@tiptap/vue-3": "^3.29.2",
         "@vitejs/plugin-vue": "^6.0.8",
+        "tippy.js": "^6.3.7",
         "tiptap-extension-resize-image": "^1.4.5",
         "vue": "^3.5.40",
         "vue-router": "^4.6.4"

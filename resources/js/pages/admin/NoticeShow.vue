@@ -85,9 +85,9 @@
             </div>
 
             <!-- 本文 -->
-            <div class="p-6 md:p-8">
+            <div class="p-6 md:p-8 overflow-hidden">
                 <div
-                    class="prose prose-slate prose-sm md:prose-base max-w-none text-slate-700 leading-relaxed"
+                    class="prose prose-slate prose-sm md:prose-base max-w-none text-slate-700 leading-relaxed break-words [word-break:break-word] [&_img]:max-w-full [&_img]:h-auto [&_table]:block [&_table]:max-w-full [&_table]:overflow-x-auto [&_iframe]:max-w-full [&_pre]:max-w-full [&_pre]:overflow-x-auto"
                     v-html="formatBody(noticeData.item.body)"
                 ></div>
             </div>

@@ -126,7 +126,7 @@
 
                             <!-- 本文 -->
                             <div
-                                class="prose prose-slate prose-sm max-w-none text-slate-600 leading-relaxed"
+                                class="prose prose-slate prose-sm max-w-none text-slate-600 leading-relaxed break-words overflow-hidden [word-break:break-word] [&_img]:max-w-full [&_img]:h-auto [&_table]:block [&_table]:overflow-x-auto [&_iframe]:max-w-full [&_pre]:max-w-full [&_pre]:overflow-x-auto"
                                 v-html="formatBodyWithLinks(notice.body)"
                             ></div>
 
@@ -328,7 +328,7 @@ const formatBodyWithLinks = (text) => {
         const isImage = /\.(jpg|jpeg|png|gif|webp)(\?.*)?$/i.test(url)
 
         if (isImage) {
-            return `<img src="${url}" alt="挿入画像" class="my-3 max-h-96 border border-slate-200 shadow-sm object-cover rounded-xl" />`
+            return `<img src="${url}" alt="挿入画像" class="my-3 max-w-full max-h-96 border border-slate-200 shadow-sm object-cover rounded-xl" />`
         } else {
             return `<a href="${url}" target="_blank" rel="noopener noreferrer" class="text-blue-600 hover:underline font-medium break-all" onclick="event.stopPropagation()">${url}</a>`
         }

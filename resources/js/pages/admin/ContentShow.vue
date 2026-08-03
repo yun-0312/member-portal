@@ -92,9 +92,9 @@
           </div>
 
           <!-- 本文 -->
-          <div class="p-6 md:p-8">
-            <div 
-              class="prose prose-slate max-w-none text-sm md:text-base text-slate-700 leading-relaxed" 
+          <div class="p-6 md:p-8 overflow-hidden">
+            <div
+              class="prose prose-slate max-w-none text-sm md:text-base text-slate-700 leading-relaxed break-words [word-break:break-word] [&_img]:max-w-full [&_img]:h-auto [&_table]:block [&_table]:max-w-full [&_table]:overflow-x-auto [&_iframe]:max-w-full [&_pre]:max-w-full [&_pre]:overflow-x-auto"
               v-html="contentData.item.body"
             ></div>
           </div>
