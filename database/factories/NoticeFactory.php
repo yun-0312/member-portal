@@ -42,8 +42,8 @@ class NoticeFactory extends Factory
             </ul>
 
             <h3>■ 関連マニュアル・詳細URL</h3>
-            <p>事前マニュアルは下記URLよりアクセスしてご確認ください。折り返し確認用の長大なURLを含んでいます。</p>
-            <p><a href="https://example.com/system/notice/2026/manual/update-guide-v2-detail-check-page-test-long-url-path-string-for-overflow-testing">https://example.com/system/notice/2026/manual/update-guide-v2-detail-check-page-test-long-url-path-string-for-overflow-testing</a></p>
+            <p>事前マニュアルは下記URLよりアクセスしてご確認ください。</p>
+            <p><a href="https://example.com/share/committee/public-relations/2026/meetings/03-report-document-draft-v2-check-page-test-long-url-path">https://example.com/share/committee/public-relations/2026/meetings/03-report-document-draft-v2-check-page-test-long-url-path"</a></p>
 
             <blockquote>
                 <p>※注意: メンテナンス期間中はすべてのWeb手続き・データ参照ができなくなります。ご不便をおかけしますがご容赦ください。</p>

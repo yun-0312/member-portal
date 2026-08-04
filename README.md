@@ -104,7 +104,7 @@ Password: password<br />
 Email: medical@example.com<br />
 Password: password<br />
 ・理事ユーザー<br />
-Email: director@test.com<br />
+Email: director@example.com<br />
 Password: password<br />
 ・管理者ユーザー<br />
 Email: admin@example.com<br />
