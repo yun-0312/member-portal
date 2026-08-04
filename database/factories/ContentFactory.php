@@ -38,8 +38,7 @@ class ContentFactory extends Factory
             <p><span style="text-decoration: underline wavy #dc2626 2px;">※原稿の最終締め切りは8月20日(木)必着となります。</span></p>
 
             <h3>（2）公式Webサイトのリニューアル進行状況</h3>
-            <p>制作会社より提示されたトップページデザイン案の確認を行いました。提出資料の詳細は下記共有フォルダURLより各自ご確認ください。</p>
-            <p><a href="https://example.com/share/committee/public-relations/2026/meetings/03-report-document-draft-v2-check-page-test-long-url-path">https://example.com/share/committee/public-relations/2026/meetings/03-report-document-draft-v2-check-page-test-long-url-path</a></p>
+            <p>制作会社より提示されたトップページデザイン案の確認を行いました。提出資料の詳細は事務局共有フォルダー内の「03_広報委員会資料」をご確認ください。</p>
 
             <blockquote>
                 <p><strong>【決定事項】</strong>次回「第4回広報委員会」は 2026年9月10日(木) 14:00〜 オンラインにて開催予定です。</p>
